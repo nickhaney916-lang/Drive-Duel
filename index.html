@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,266 +7,36 @@
 <title>Drive Duel</title>
 <style>
 :root{--bg:#0b1220;--panel:#151f30;--line:#29374b;--text:#f3f6fc;--muted:#9eabc0;--green:#36d399;--blue:#60a5fa;--purple:#c084fc;--gold:#fbbf24}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,sans-serif}
-button,select{font:inherit}
-button{cursor:pointer}
-.app{max-width:760px;margin:auto;padding:18px 14px 40px}
-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
-.logo{font-size:24px;font-weight:900;letter-spacing:-1px}
-.logo span{color:var(--green)}
-.pill{border:1px solid var(--line);border-radius:30px;padding:6px 10px;color:var(--muted);font-size:12px}
-.hero{background:linear-gradient(135deg,#183c36,#17263d 70%);border:1px solid #31504f;border-radius:20px;padding:20px;margin-bottom:14px}
-.eyebrow{color:var(--green);font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase}
-.matchup{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:12px 0 18px}
-.team{flex:1;text-align:center}
-.team-name{font-size:14px;color:#dce6f5;font-weight:700}
-.team-score{font-size:34px;font-weight:900}
-.vs{color:var(--muted);font-size:12px}
-.meta{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;color:var(--muted);font-size:12px}
-.section{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:17px;margin:14px 0}
-.section h2{font-size:17px;margin:0 0 6px}
-.sub{font-size:13px;color:var(--muted);line-height:1.45}
-.scoreboard{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0}
-.scorecard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 8px;text-align:center}
-.scorecard .name{font-size:12px;color:var(--muted)}
-.scorecard .points{font-size:26px;font-weight:900;margin:4px 0}
-.scorecard.you{border-color:#287b60}.you .points{color:var(--green)}
-.dad .points{color:var(--blue)}.chatgpt .points{color:var(--purple)}
-.timerbox{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:15px 0}
-.timer{font-size:42px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:-2px}
-.timerlabel{font-size:12px;color:var(--muted)}
-.track{height:6px;background:#263449;border-radius:10px;overflow:hidden;margin:12px 0}
-.bar{height:100%;width:100%;background:var(--green);transition:width .2s linear}
-.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:15px 0}
-.choice{border:1px solid var(--line);border-radius:12px;background:#101827;color:var(--text);padding:13px 10px;text-align:left;min-height:58px}
-.choice strong{display:block;font-size:14px}
-.choice small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
-.choice.selected{border:2px solid var(--green);background:#17352f}
-.choice:disabled{opacity:.65;cursor:default}
-.primary,.secondary,.danger{border:0;border-radius:12px;padding:13px 15px;font-weight:800}
-.primary{background:var(--green);color:#092018}
-.secondary{background:#25354b;color:var(--text);border:1px solid #35465c}
-.danger{background:#4b2630;color:#ffd7dd;border:1px solid #78404b}
-.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}
-.actions button{flex:1}
-.status{padding:11px 12px;border-radius:10px;background:#101827;border:1px solid var(--line);font-size:13px;line-height:1.45;margin-top:12px}
-.status.good{border-color:#287b60;color:#baf8df}
-.status.warn{border-color:#82652c;color:#ffe6a3}
-.hidden{display:none!important}
-.picklist{display:grid;gap:8px;margin-top:14px}
-.pickrow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 12px;border-radius:10px;background:#101827;border:1px solid var(--line);font-size:13px}
-.pickrow .who{font-weight:800}
-.tag{font-size:11px;color:var(--muted);text-align:right}
-.actual{width:100%;background:#101827;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:12px;margin:12px 0}
-.history{font-size:13px;color:var(--muted);line-height:1.7}
-footer{text-align:center;color:#718097;font-size:11px;margin:22px 0}
-@media(min-width:560px){.choices{grid-template-columns:repeat(3,minmax(0,1fr))}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,sans-serif}button,select{font:inherit}button{cursor:pointer}.app{max-width:760px;margin:auto;padding:18px 14px 40px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}.logo{font-size:24px;font-weight:900;letter-spacing:-1px}.logo span{color:var(--green)}.pill{border:1px solid var(--line);border-radius:30px;padding:6px 10px;color:var(--muted);font-size:12px}
+.hero{background:linear-gradient(135deg,#183c36,#17263d 70%);border:1px solid #31504f;border-radius:20px;padding:20px;margin-bottom:14px}.eyebrow{color:var(--green);font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase}.matchup{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:12px 0 18px}.team{flex:1;text-align:center}.team-name{font-size:14px;color:#dce6f5;font-weight:700}.team-score{font-size:34px;font-weight:900}.vs{color:var(--muted);font-size:12px}.meta{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;color:var(--muted);font-size:12px}
+.section{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:17px;margin:14px 0}.section h2{font-size:17px;margin:0 0 6px}.sub{font-size:13px;color:var(--muted);line-height:1.45}.scoreboard{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0}.scorecard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 8px;text-align:center}.scorecard .name{font-size:12px;color:var(--muted)}.scorecard .points{font-size:26px;font-weight:900;margin:4px 0}.scorecard.you{border-color:#287b60}.you .points{color:var(--green)}.dad .points{color:var(--blue)}.chatgpt .points{color:var(--purple)}
+.timerbox{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:15px 0}.timer{font-size:42px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:-2px}.timerlabel{font-size:12px;color:var(--muted)}.track{height:6px;background:#263449;border-radius:10px;overflow:hidden;margin:12px 0}.bar{height:100%;width:100%;background:var(--green);transition:width .2s linear}.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:15px 0}.choice{border:1px solid var(--line);border-radius:12px;background:#101827;color:var(--text);padding:13px 10px;text-align:left;min-height:58px}.choice strong{display:block;font-size:14px}.choice small{display:block;color:var(--muted);font-size:11px;margin-top:3px}.choice.selected{border:2px solid var(--green);background:#17352f}.choice:disabled{opacity:.65;cursor:default}
+.primary,.secondary,.danger{border:0;border-radius:12px;padding:13px 15px;font-weight:800}.primary{background:var(--green);color:#092018}.secondary{background:#25354b;color:var(--text);border:1px solid #35465c}.danger{background:#4b2630;color:#ffd7dd;border:1px solid #78404b}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}.actions button{flex:1}.status{padding:11px 12px;border-radius:10px;background:#101827;border:1px solid var(--line);font-size:13px;line-height:1.45;margin-top:12px}.status.good{border-color:#287b60;color:#baf8df}.status.warn{border-color:#82652c;color:#ffe6a3}.hidden{display:none!important}.picklist{display:grid;gap:8px;margin-top:14px}.pickrow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 12px;border-radius:10px;background:#101827;border:1px solid var(--line);font-size:13px}.pickrow .who{font-weight:800}.tag{font-size:11px;color:var(--muted);text-align:right}.actual{width:100%;background:#101827;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:12px;margin:12px 0}.history{font-size:13px;color:var(--muted);line-height:1.7}footer{text-align:center;color:#718097;font-size:11px;margin:22px 0}@media(min-width:560px){.choices{grid-template-columns:repeat(3,minmax(0,1fr))}}
 </style>
 </head>
-<body>
-<div class="app">
-<header>
-  <div class="logo">DRIVE <span>DUEL</span></div>
-  <div class="pill">PROTOTYPE · DEMO MODE</div>
-</header>
-
-<div class="hero">
-  <div class="eyebrow">Game room · Practice match</div>
-  <div class="matchup">
-    <div class="team"><div class="team-name" id="awayName">AWAY TEAM</div><div class="team-score" id="awayScore">0</div></div>
-    <div class="vs">VS</div>
-    <div class="team"><div class="team-name" id="homeName">HOME TEAM</div><div class="team-score" id="homeScore">0</div></div>
-  </div>
-  <div class="meta"><span id="quarter">Q1 · Demo game</span><span id="driveLabel">Drive 1</span></div>
+<body><div class="app">
+<header><div class="logo">DRIVE <span>DUEL</span></div><div class="pill">PROTOTYPE · DEMO MODE</div></header>
+<div class="hero"><div class="eyebrow">Game room · Practice match</div><div class="matchup"><div class="team"><div class="team-name" id="awayName">AWAY TEAM</div><div class="team-score" id="awayScore">0</div></div><div class="vs">VS</div><div class="team"><div class="team-name" id="homeName">HOME TEAM</div><div class="team-score" id="homeScore">0</div></div></div><div class="meta"><span id="quarter">Q1 · Demo game</span><span id="driveLabel">Drive 1</span></div></div>
+<div class="scoreboard"><div class="scorecard you"><div class="name">YOU</div><div class="points" id="youPoints">0</div><div class="name">points</div></div><div class="scorecard dad"><div class="name">DAD</div><div class="points" id="dadPoints">0</div><div class="name">demo player</div></div><div class="scorecard chatgpt"><div class="name">CHATGPT</div><div class="points" id="botPoints">0</div><div class="name">demo player</div></div></div>
+<div class="section"><h2 id="driveTitle">Predict the next drive</h2><div class="sub" id="driveDesc">Choose what you think will happen. Picks stay hidden until the window closes.</div><div class="timerbox"><div><div class="timer" id="timer">15<span style="font-size:16px">s</span></div><div class="timerlabel" id="timerLabel">PICKS OPEN</div></div><div class="pill" id="windowType">NORMAL DRIVE · 15 SEC</div></div><div class="track"><div class="bar" id="timerBar"></div></div><div class="choices" id="choices"></div><div class="actions" id="openActions"><button class="primary" id="submitBtn" disabled>Submit my pick</button><button class="secondary" id="lockBtn">Next play starts · Lock picks</button></div><div class="status" id="status">Choose a prediction to get started. You can submit once per drive.</div><div id="revealArea" class="hidden"><h2 style="margin-top:18px">Picks revealed</h2><div class="sub">Everyone's predictions are shown after the lock.</div><div class="picklist" id="pickList"></div></div></div>
+<div class="section hidden" id="resultSection"><h2>Drive result</h2><div class="sub">Select the actual outcome to test the scoring system. Correct picks earn 10 points.</div><select id="actualOutcome" class="actual"><option value="">Choose actual drive outcome…</option></select><button class="primary" id="scoreBtn" style="width:100%">Score this drive</button><div class="status hidden" id="resultStatus"></div></div>
+<div class="section"><h2>Drive controls</h2><div class="sub">Test both countdown types. “Next play starts” locks picks immediately. Score the drive, then start another.</div><div class="actions"><button class="secondary" id="normalBtn">New normal drive · 15s</button><button class="secondary" id="turnoverBtn">New turnover · 8s</button></div><div class="actions"><button class="danger" id="resetBtn">Reset demo scores</button></div></div>
+<div class="section"><h2>Recent drives</h2><div class="history" id="history">No drives scored yet.</div></div><footer>Drive Duel · Prototype only · No live game feed or online multiplayer connected</footer>
 </div>
-
-<div class="scoreboard">
-  <div class="scorecard you"><div class="name">YOU</div><div class="points" id="youPoints">0</div><div class="name">points</div></div>
-  <div class="scorecard dad"><div class="name">DAD</div><div class="points" id="dadPoints">0</div><div class="name">demo player</div></div>
-  <div class="scorecard chatgpt"><div class="name">CHATGPT</div><div class="points" id="botPoints">0</div><div class="name">demo player</div></div>
-</div>
-
-<div class="section">
-  <h2 id="driveTitle">Predict the next drive</h2>
-  <div class="sub" id="driveDesc">Choose what you think will happen. Picks stay hidden until the window closes.</div>
-  <div class="timerbox">
-    <div><div class="timer" id="timer">15<span style="font-size:16px">s</span></div><div class="timerlabel" id="timerLabel">PICKS OPEN</div></div>
-    <div class="pill" id="windowType">NORMAL DRIVE · 15 SEC</div>
-  </div>
-  <div class="track"><div class="bar" id="timerBar"></div></div>
-  <div class="choices" id="choices"></div>
-  <div class="actions" id="openActions">
-    <button class="primary" id="submitBtn" disabled>Submit my pick</button>
-    <button class="secondary" id="lockBtn">Next play starts · Lock picks</button>
-  </div>
-  <div class="status" id="status">Choose a prediction to get started. You can submit once per drive.</div>
-  <div id="revealArea" class="hidden">
-    <h2 style="margin-top:18px">Picks revealed</h2>
-    <div class="sub">Everyone's predictions are shown after the lock.</div>
-    <div class="picklist" id="pickList"></div>
-  </div>
-</div>
-
-<div class="section hidden" id="resultSection">
-  <h2>Drive result</h2>
-  <div class="sub">Select the actual outcome to test the scoring system. Correct picks earn 10 points.</div>
-  <select id="actualOutcome" class="actual">
-    <option value="">Choose actual drive outcome…</option>
-  </select>
-  <button class="primary" id="scoreBtn" style="width:100%">Score this drive</button>
-  <div class="status hidden" id="resultStatus"></div>
-</div>
-
-<div class="section">
-  <h2>Drive controls</h2>
-  <div class="sub">Test both countdown types. “Next play starts” locks picks immediately. “End drive” becomes available after picks lock.</div>
-  <div class="actions">
-    <button class="secondary" id="normalBtn">New normal drive · 15s</button>
-    <button class="secondary" id="turnoverBtn">New turnover · 8s</button>
-  </div>
-  <div class="actions">
-    <button class="danger" id="resetBtn">Reset demo scores</button>
-  </div>
-</div>
-
-<div class="section">
-  <h2>Recent drives</h2>
-  <div class="history" id="history">No drives scored yet.</div>
-</div>
-
-<footer>Drive Duel · Prototype only · No live game feed or online multiplayer connected</footer>
-</div>
-
 <script>
-(() => {
-  const outcomes = [
-    {value:"TD",label:"Touchdown",detail:"Offense scores a TD"},
-    {value:"FG",label:"Field goal",detail:"Three points"},
-    {value:"TURNOVER",label:"Turnover",detail:"Interception or fumble"},
-    {value:"PUNT",label:"Punt",detail:"Possession changes"},
-    {value:"DOWNS",label:"Turnover on downs",detail:"Failed fourth down"},
-    {value:"OTHER",label:"Other",detail:"Safety or another outcome"}
-  ];
-  const $ = id => document.getElementById(id);
-  let drive = 1, duration = 15, remaining = 15, interval = null;
-  let state = "open", submitted = false, myPick = "";
-  let scores = {you:0,dad:0,bot:0}, history = [], scoredDrives = new Set();
-  let actual = "";
-  let dadPick = "", botPick = "";
-
-  function randomPick(){return outcomes[Math.floor(Math.random()*outcomes.length)].value;}
-  function label(value){const o=outcomes.find(x=>x.value===value);return o?o.label:value;}
-  function setStatus(message,kind=""){ $("status").className="status "+kind; $("status").textContent=message; }
-  function renderChoices(){
-    $("choices").innerHTML="";
-    outcomes.forEach(o=>{
-      const b=document.createElement("button");
-      b.className="choice"+(myPick===o.value?" selected":"");
-      b.disabled=state!=="open"||submitted;
-      b.innerHTML="<strong>"+o.label+"</strong><small>"+o.detail+"</small>";
-      b.onclick=()=>{if(state!=="open"||submitted)return;myPick=o.value;renderChoices();$("submitBtn").disabled=false;};
-      $("choices").appendChild(b);
-    });
-  }
-  function renderTimer(){
-    $("timer").innerHTML=Math.max(0,remaining)+"<span style='font-size:16px'>s</span>";
-    $("timerLabel").textContent=state==="open"?(submitted?"PICK SUBMITTED":"PICKS OPEN"):(state==="locked"?"PICKS LOCKED":"DRIVE SCORED");
-    $("timerBar").style.width=(duration?Math.max(0,remaining)/duration*100:0)+"%";
-    $("windowType").textContent=(duration===8?"TURNOVER":"NORMAL DRIVE")+" · "+duration+" SEC";
-  }
-  function renderScores(){
-    $("youPoints").textContent=scores.you;
-    $("dadPoints").textContent=scores.dad;
-    $("botPoints").textContent=scores.bot;
-    $("driveLabel").textContent="Drive "+drive;
-    $("history").innerHTML=history.length?history.slice().reverse().map(h=>"Drive "+h.drive+": "+label(h.actual)+" — You "+(h.you?"+10":"0")+", Dad "+(h.dad?"+10":"0")+", ChatGPT "+(h.bot?"+10":"0")).join("<br>"):"No drives scored yet.";
-  }
-  function startWindow(seconds){
-    clearInterval(interval);
-    duration=seconds;remaining=seconds;state="open";submitted=false;myPick="";actual="";
-    dadPick=randomPick();botPick=randomPick();
-    $("revealArea").classList.add("hidden");
-    $("resultSection").classList.add("hidden");
-    $("resultStatus").classList.add("hidden");
-    $("actualOutcome").value="";
-    $("submitBtn").disabled=true;
-    $("openActions").classList.remove("hidden");
-    $("lockBtn").disabled=false;
-    $("submitBtn").disabled=false;
-    $("driveTitle").textContent="Predict the next drive";
-    $("driveDesc").textContent="Choose what you think will happen. Your pick stays hidden until the window closes.";
-    $("quarter").textContent="Q1 · Demo game";
-    setStatus(seconds===8?"Possession just changed. You have 8 seconds to predict.":"You have 15 seconds to predict the drive outcome.");
-    renderChoices();renderTimer();renderScores();
-    interval=setInterval(()=>{
-      if(state!=="open"){clearInterval(interval);return;}
-      remaining=Math.max(0,remaining-1);renderTimer();
-      if(remaining<=0)lockPicks("Timer expired. Picks are now locked.");
-    },1000);
-  }
-  function submitPick(){
-    if(state!=="open"||submitted||!myPick)return;
-    submitted=true;
-    $("submitBtn").disabled=true;
-    $("lockBtn").textContent="Next play starts · Lock picks";
-    renderChoices();renderTimer();
-    setStatus("Your pick is submitted and hidden. You cannot change it this drive.","good");
-  }
-  function lockPicks(reason){
-    if(state!=="open")return;
-    clearInterval(interval);
-    state="locked";remaining=0;
-    $("openActions").classList.add("hidden");
-    renderChoices();renderTimer();
-    $("pickList").innerHTML="";
-    [
-      {who:"You",pick:submitted?myPick:"NO PICK",color:"var(--green)"},
-      {who:"Dad",pick:dadPick,color:"var(--blue)"},
-      {who:"ChatGPT",pick:botPick,color:"var(--purple)"}
-    ].forEach(p=>{
-      const row=document.createElement("div");row.className="pickrow";
-      const left=document.createElement("span");left.className="who";left.style.color=p.color;left.textContent=p.who;
-      const right=document.createElement("span");right.className="tag";right.textContent=p.pick==="NO PICK"?"No pick submitted":label(p.pick);
-      row.append(left,right);$("pickList").appendChild(row);
-    });
-    $("revealArea").classList.remove("hidden");
-    $("resultSection").classList.remove("hidden");
-    $("driveTitle").textContent="Picks locked";
-    $("driveDesc").textContent="Predictions are revealed. Choose the actual outcome below to test scoring.";
-    setStatus(reason+" All players are locked; nobody gets extra time.","good");
-    $("actualOutcome").innerHTML='<option value="">Choose actual drive outcome…</option>'+outcomes.map(o=>'<option value="'+o.value+'">'+o.label+'</option>').join("");
-  }
-  function scoreDrive(){
-    if(state!=="locked")return;
-    if(!actual){setStatus("Choose the actual drive outcome first.","warn");return;}
-    if(scoredDrives.has(drive)){setStatus("This drive has already been scored.","warn");return;}
-    const you=submitted&&myPick===actual;
-    const dad=dadPick===actual,bot=botPick===actual;
-    if(you)scores.you+=10;if(dad)scores.dad+=10;if(bot)scores.bot+=10;
-    scoredDrives.add(drive);
-    history.push({drive,actual,you,dad,bot});
-    state="scored";
-    $("scoreBtn").disabled=true;
-    $("resultStatus").className="status good";
-    $("resultStatus").textContent="Drive scored once. You "+(you?"+10 points":"earned 0 points")+".";
-    $("resultStatus").classList.remove("hidden");
-    $("driveTitle").textContent="Drive "+drive+" scored";
-    $("driveDesc").textContent="Start another drive below to continue testing.";
-    renderTimer();renderScores();
-  }
-  $("submitBtn").onclick=submitPick;
-  $("lockBtn").onclick=()=>lockPicks("Next play started. Picks locked immediately.");
-  $("actualOutcome").onchange=e=>{actual=e.target.value;};
-  $("scoreBtn").onclick=scoreDrive;
-  $("normalBtn").onclick=()=>{drive++;$("scoreBtn").disabled=false;startWindow(15);};
-  $("turnoverBtn").onclick=()=>{drive++;$("scoreBtn").disabled=false;startWindow(8);};
-  $("resetBtn").onclick=()=>{
-    clearInterval(interval);scores={you:0,dad:0,bot:0};history=[];scoredDrives.clear();drive=1;
-    $("scoreBtn").disabled=false;startWindow(15);
-  };
-  startWindow(15);
+(()=>{
+const outcomes=[{value:"TD",label:"Touchdown",detail:"Offense scores a TD"},{value:"FG",label:"Field goal",detail:"Three points"},{value:"TURNOVER",label:"Turnover",detail:"Interception or fumble"},{value:"PUNT",label:"Punt",detail:"Possession changes"},{value:"DOWNS",label:"Turnover on downs",detail:"Failed fourth down"},{value:"OTHER",label:"Other",detail:"Safety or another outcome"}];
+const $=id=>document.getElementById(id);let drive=1,duration=15,remaining=15,interval=null,state="open",submitted=false,myPick="",scores={you:0,dad:0,bot:0},history=[],scoredDrives=new Set(),actual="",dadPick="",botPick="";
+const randomPick=()=>outcomes[Math.floor(Math.random()*outcomes.length)].value;const label=value=>outcomes.find(o=>o.value===value)?.label||value;
+function setStatus(message,kind=""){$("status").className="status "+kind;$("status").textContent=message;}
+function renderChoices(){$("choices").innerHTML="";outcomes.forEach(o=>{const b=document.createElement("button");b.className="choice"+(myPick===o.value?" selected":"");b.disabled=state!=="open"||submitted;const strong=document.createElement("strong");strong.textContent=o.label;const small=document.createElement("small");small.textContent=o.detail;b.append(strong,small);b.onclick=()=>{if(state!=="open"||submitted)return;myPick=o.value;$("submitBtn").disabled=false;renderChoices();};$("choices").appendChild(b);});}
+function renderTimer(){$("timer").innerHTML=Math.max(0,remaining)+"<span style='font-size:16px'>s</span>";$("timerLabel").textContent=state==="open"?(submitted?"PICK SUBMITTED":"PICKS OPEN"):(state==="locked"?"PICKS LOCKED":"DRIVE SCORED");$("timerBar").style.width=(duration?Math.max(0,remaining)/duration*100:0)+"%";$("windowType").textContent=(duration===8?"TURNOVER":"NORMAL DRIVE")+" · "+duration+" SEC";}
+function renderScores(){$("youPoints").textContent=scores.you;$("dadPoints").textContent=scores.dad;$("botPoints").textContent=scores.bot;$("driveLabel").textContent="Drive "+drive;$("history").textContent="";if(!history.length){$("history").textContent="No drives scored yet.";return;}history.slice().reverse().forEach(h=>{const line=document.createElement("div");line.textContent="Drive "+h.drive+": "+label(h.actual)+" — You "+(h.you?"+10":"0")+", Dad "+(h.dad?"+10":"0")+", ChatGPT "+(h.bot?"+10":"0");$("history").appendChild(line);});}
+function startWindow(seconds){clearInterval(interval);duration=seconds;remaining=seconds;state="open";submitted=false;myPick="";actual="";dadPick=randomPick();botPick=randomPick();$("revealArea").classList.add("hidden");$("resultSection").classList.add("hidden");$("resultStatus").classList.add("hidden");$("actualOutcome").value="";$("scoreBtn").disabled=false;$("submitBtn").disabled=true;$("lockBtn").disabled=false;$("openActions").classList.remove("hidden");$("lockBtn").textContent="Next play starts · Lock picks";$("driveTitle").textContent="Predict the next drive";$("driveDesc").textContent="Choose what you think will happen. Your pick stays hidden until the window closes.";$("quarter").textContent="Q1 · Demo game";setStatus(seconds===8?"Possession just changed. You have 8 seconds to predict.":"You have 15 seconds to predict the drive outcome.");renderChoices();renderTimer();renderScores();interval=setInterval(()=>{if(state!=="open"){clearInterval(interval);return;}remaining=Math.max(0,remaining-1);renderTimer();if(remaining<=0)lockPicks("Timer expired. Picks are now locked.");},1000);}
+function submitPick(){if(state!=="open"||submitted||!myPick)return;submitted=true;$("submitBtn").disabled=true;renderChoices();renderTimer();setStatus("Your pick is submitted and hidden. You cannot change it this drive.","good");}
+function lockPicks(reason){if(state!=="open")return;clearInterval(interval);state="locked";remaining=0;$("openActions").classList.add("hidden");renderChoices();renderTimer();$("pickList").innerHTML="";[{who:"You",pick:submitted?myPick:"NO PICK",color:"var(--green)"},{who:"Dad",pick:dadPick,color:"var(--blue)"},{who:"ChatGPT",pick:botPick,color:"var(--purple)"}].forEach(p=>{const row=document.createElement("div");row.className="pickrow";const left=document.createElement("span");left.className="who";left.style.color=p.color;left.textContent=p.who;const right=document.createElement("span");right.className="tag";right.textContent=p.pick==="NO PICK"?"No pick submitted":label(p.pick);row.append(left,right);$("pickList").appendChild(row);});$("revealArea").classList.remove("hidden");$("resultSection").classList.remove("hidden");$("driveTitle").textContent="Picks locked";$("driveDesc").textContent="Predictions are revealed. Choose the actual outcome below to test scoring.";setStatus(reason+" All players are locked; nobody gets extra time.","good");$("actualOutcome").innerHTML='<option value="">Choose actual drive outcome…</option>'+outcomes.map(o=>'<option value="'+o.value+'">'+o.label+'</option>').join("");}
+function scoreDrive(){if(state!=="locked")return;if(!actual){$("resultStatus").className="status warn";$("resultStatus").textContent="Choose the actual drive outcome first.";$("resultStatus").classList.remove("hidden");return;}if(scoredDrives.has(drive))return;const you=submitted&&myPick===actual,dad=dadPick===actual,bot=botPick===actual;if(you)scores.you+=10;if(dad)scores.dad+=10;if(bot)scores.bot+=10;scoredDrives.add(drive);history.push({drive,actual,you,dad,bot});state="scored";$("scoreBtn").disabled=true;$("resultStatus").className="status good";$("resultStatus").textContent="Drive scored once. You "+(you?"+10 points":"earned 0 points")+".";$("resultStatus").classList.remove("hidden");$("driveTitle").textContent="Drive "+drive+" scored";$("driveDesc").textContent="Start another drive below to continue testing.";renderTimer();renderScores();}
+$("submitBtn").onclick=submitPick;$("lockBtn").onclick=()=>lockPicks("Next play started. Picks locked immediately.");$("actualOutcome").onchange=e=>{actual=e.target.value;};$("scoreBtn").onclick=scoreDrive;$("normalBtn").onclick=()=>{drive++;startWindow(15);};$("turnoverBtn").onclick=()=>{drive++;startWindow(8);};$("resetBtn").onclick=()=>{clearInterval(interval);scores={you:0,dad:0,bot:0};history=[];scoredDrives.clear();drive=1;startWindow(15);};startWindow(15);
 })();
-</script>
-</body>
-</html>
+</script></body></html>
