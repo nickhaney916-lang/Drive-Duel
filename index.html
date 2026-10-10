@@ -263,3 +263,361 @@ async function copyCode() {
 
 async function shareInvite() {
   const url = location.href;
+
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: "Join my Drive Duel game",
+        text: "Drive Duel room code: " + roomCode,
+        url
+      });
+    } catch (error) {
+      console.log("Sharing cancelled or unavailable.");
+    }
+  } else {
+    try {
+      await navigator.clipboard.writeText(url);
+      toast("Invite link copied.");
+    } catch {
+      toast("Share this room code: " + roomCode);
+    }
+  }
+}
+
+// ============================================
+// PREDICTIONS
+// ============================================
+
+function choosePick(pick) {
+  if (locked || scored) {
+    toast("Your pick is locked for this drive.");
+    return;
+  }
+
+  selectedPick = pick;
+
+  document.querySelectorAll(".choice").forEach(button => {
+    button.classList.toggle(
+      "selected",
+      button.dataset.pick === pick
+    );
+  });
+}
+
+function lockPick() {
+  if (locked || scored) {
+    toast("Your pick is already locked.");
+    return;
+  }
+
+  if (!selectedPick) {
+    toast("Choose an outcome first.");
+    return;
+  }
+
+  const player =
+    players.find(p => p.id === currentPlayerId);
+
+  if (!player) return;
+
+  player.pick = selectedPick;
+  player.locked = true;
+  locked = true;
+
+  addFeed(
+    "Pick locked",
+    player.name + " locked a prediction."
+  );
+
+  renderPlayers();
+  renderDrive();
+
+  toast("Your prediction is locked.");
+}
+
+function revealPicks() {
+  revealed = true;
+
+  renderPlayers();
+  renderDrive();
+
+  addFeed(
+    "Predictions revealed",
+    "The local prototype picks are now visible."
+  );
+}
+
+// ============================================
+// SCORING
+// ============================================
+
+function scoreDrive() {
+  if (scored) {
+    toast("This drive has already been scored.");
+    return;
+  }
+
+  const actual = $("actualOutcome").value;
+  let correct = 0;
+
+  players.forEach(player => {
+    if (player.pick && player.pick === actual) {
+      player.score += 10;
+      correct++;
+    }
+  });
+
+  scored = true;
+  revealed = true;
+
+  stopTimer();
+
+  const note = $("driveNote").value.trim();
+
+  addFeed(
+    "Drive " + drive + ": " + actual,
+    correct + " correct prediction(s) earned 10 points." +
+    (note ? " " + note : "")
+  );
+
+  renderPlayers();
+  renderDrive();
+
+  toast(
+    "Drive scored. " + correct +
+    " correct prediction(s)."
+  );
+}
+
+function nextDrive() {
+  if (
+    !scored &&
+    !confirm("This drive has not been scored. Continue anyway?")
+  ) {
+    return;
+  }
+
+  drive++;
+
+  locked = false;
+  revealed = false;
+  scored = false;
+  selectedPick = "";
+
+  players.forEach(player => {
+    player.pick = "";
+    player.locked = false;
+  });
+
+  $("driveNote").value = "";
+
+  document.querySelectorAll(".choice").forEach(button => {
+    button.classList.remove("selected");
+  });
+
+  addFeed(
+    "Drive " + drive + " started",
+    "Predictions are open."
+  );
+
+  renderPlayers();
+  renderDrive();
+  startTimer(15);
+}
+
+function resetScores() {
+  if (!confirm("Reset all scores and return to drive 1?")) {
+    return;
+  }
+
+  players.forEach(player => {
+    player.score = 0;
+    player.pick = "";
+    player.locked = false;
+  });
+
+  drive = 1;
+  locked = false;
+  revealed = false;
+  scored = false;
+  selectedPick = "";
+  feedItems = [];
+
+  document.querySelectorAll(".choice").forEach(button => {
+    button.classList.remove("selected");
+  });
+
+  addFeed("Game reset", "All scores reset to zero.");
+
+  renderPlayers();
+  renderDrive();
+  startTimer(15);
+}
+
+function addDemoPlayer() {
+  const number = players.length + 1;
+
+  players.push({
+    id: makeId(),
+    name: "Demo Player " + number,
+    color: colors[players.length % colors.length],
+    score: 0,
+    pick: "",
+    locked: false
+  });
+
+  renderPlayers();
+
+  addFeed(
+    "Player added",
+    "Demo Player " + number + " was added locally."
+  );
+}
+
+// ============================================
+// MATCHUP AND DISPLAY
+// ============================================
+
+function updateMatchup() {
+  const away =
+    $("awayInput").value.trim() || "AWAY TEAM";
+
+  const home =
+    $("homeInput").value.trim() || "HOME TEAM";
+
+  $("awayTeam").textContent = away;
+  $("homeTeam").textContent = home;
+
+  addFeed(
+    "Matchup updated",
+    away + " vs " + home + "."
+  );
+}
+
+function renderPlayers() {
+  $("playerCount").textContent =
+    players.length +
+    " PLAYER" +
+    (players.length === 1 ? "" : "S");
+
+  const sorted =
+    [...players].sort((a, b) => b.score - a.score);
+
+  $("playerList").innerHTML = sorted.map(
+    (player, index) => {
+      let pickText;
+
+      if (revealed) {
+        pickText = escapeHtml(player.pick || "No pick");
+      } else if (player.locked) {
+        pickText = "Hidden until reveal";
+      } else {
+        pickText = "Waiting for pick";
+      }
+
+      return `
+        <div class="player-card"
+             style="--player-color:${player.color}">
+          <div class="player-top">
+            <div>
+              <div class="player-name">
+                ${escapeHtml(player.name)}
+                ${index === 0 && player.score > 0 ? " 👑" : ""}
+              </div>
+              <div class="small muted">
+                ${player.locked ? "PICK LOCKED" : "PICK PENDING"}
+              </div>
+            </div>
+            <div class="player-score">${player.score}</div>
+          </div>
+          <div class="player-pick">
+            Prediction: <strong>${pickText}</strong>
+          </div>
+        </div>
+      `;
+    }
+  ).join("");
+}
+
+function renderDrive() {
+  $("driveNumber").textContent = drive;
+
+  $("driveState").textContent =
+    scored ? "Drive scored" :
+    revealed ? "Predictions revealed" :
+    locked ? "Your pick is locked" :
+    "Predictions open";
+
+  $("lockButton").disabled = locked || scored;
+
+  $("timer").textContent = seconds;
+
+  $("timer").classList.toggle(
+    "urgent",
+    seconds <= 5
+  );
+}
+
+// ============================================
+// TIMER AND ACTIVITY FEED
+// ============================================
+
+function startTimer(value) {
+  stopTimer();
+
+  seconds = value;
+  renderDrive();
+
+  timerHandle = setInterval(() => {
+    seconds--;
+
+    if (seconds <= 0) {
+      seconds = 0;
+      stopTimer();
+
+      addFeed(
+        "Timer ended",
+        "The prediction timer reached zero."
+      );
+    }
+
+    renderDrive();
+  }, 1000);
+}
+
+function stopTimer() {
+  if (timerHandle) {
+    clearInterval(timerHandle);
+    timerHandle = null;
+  }
+}
+
+function addFeed(title, detail) {
+  feedItems.unshift({ title, detail });
+  feedItems = feedItems.slice(0, 25);
+
+  renderFeed();
+}
+
+function renderFeed() {
+  $("feed").innerHTML = feedItems.map(item => `
+    <div class="feed-item">
+      <strong>${escapeHtml(item.title)}</strong>
+      ${escapeHtml(item.detail)}
+    </div>
+  `).join("") ||
+  '<div class="feed-item">No activity yet.</div>';
+}
+
+// ============================================
+// RESTORE ROOM CODE FROM INVITE LINK
+// ============================================
+
+const requestedRoom =
+  new URLSearchParams(location.search).get("room");
+
+if (requestedRoom) {
+  $("joinCode").value = requestedRoom.toUpperCase();
+}
+
+</script>
