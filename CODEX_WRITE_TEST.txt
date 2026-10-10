@@ -1,1 +1,0 @@
-Temporary test file to verify GitHub write access. This file will be removed after the test.
