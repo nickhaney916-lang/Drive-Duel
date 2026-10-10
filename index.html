@@ -73,7 +73,7 @@ async function refreshGame(){
    $('summary').textContent=(e.lastPlay?e.lastPlay+' · ':'')+e.status+'. This feed does not automatically score a drive.';
    $('trackerStatus').textContent=e.state==='in'?'LIVE · VERIFIED':'UPDATED · VERIFIED';
    $('feedStatus').dataset.verified='true';
-   $('feedStatus').innerHTML='<strong>Live feed:</strong> '+esc(e.provider)+' · last checked '+new Date(e.fetchedAt).toLocaleTimeString()+'<br><span style="color:var(--muted)">Primary feed tried first; backup endpoint used only if primary fails. Score changes are checked for team identity and regressions. Final drive results still require human confirmation.</span>';
+   $('feedStatus').innerHTML='<strong>Live feed:</strong> '+esc(e.provider)+' · last checked '+new Date(e.fetchedAt).toLocaleTimeString()+'<br><span style="color:var(--muted)">ESPN primary → ESPN backup → independent NFL scoreboard (NFL games only). The NFL backup may not provide possession, down/distance or play-by-play. Score changes are checked for team identity and regressions; final drive results still require human confirmation.</span>';
  }catch(err){
    $('feedStatus').dataset.verified='false';
    $('trackerStatus').textContent='FEED UNVERIFIED';
