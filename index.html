@@ -1,436 +1,594 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#101827">
 <title>Drive Duel</title>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <style>
 :root {
-  --bg: #101827;
-  --panel: #1b2638;
-  --panel2: #243248;
-  --text: #f7f9fc;
-  --muted: #aebbd0;
-  --green: #27c477;
-  --blue: #4d9cff;
-  --purple: #ad83ff;
-  --red: #ff6474;
-  --gold: #ffd166;
+  color-scheme: dark;
+  --bg:#0b1220; --panel:#141f30; --line:#304158;
+  --text:#f3f6fb; --muted:#a8b5c7; --green:#39d98a;
+  --blue:#63a8ff; --purple:#c29aff;
 }
-* { box-sizing: border-box; }
+* { box-sizing:border-box; }
 body {
-  margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
-  background: var(--bg);
-  color: var(--text);
+  margin:0; background:var(--bg); color:var(--text);
+  font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
 }
-header {
-  padding: 20px 16px;
-  text-align: center;
-  background: #0a101b;
-  border-bottom: 3px solid var(--green);
-}
-.logo {
-  font-size: 30px;
-  font-weight: 900;
-  letter-spacing: 1px;
-}
-.logo span { color: var(--green); }
-.tagline {
-  color: var(--muted);
-  font-size: 13px;
-  margin-top: 5px;
-}
-main {
-  width: 100%;
-  max-width: 760px;
-  margin: auto;
-  padding: 16px;
-}
-.card {
-  background: var(--panel);
-  border: 1px solid #33445d;
-  border-radius: 14px;
-  padding: 16px;
-  margin-bottom: 16px;
-}
-h2 { margin: 0 0 14px; font-size: 20px; }
-h3 { margin: 0 0 10px; font-size: 16px; }
-label {
-  display: block;
-  color: var(--muted);
-  font-size: 13px;
-  margin: 12px 0 6px;
-}
-input, select, button, textarea {
-  width: 100%;
-  border-radius: 9px;
-  padding: 12px;
-  font: inherit;
-}
-input, select, textarea {
-  color: var(--text);
-  background: #0f1827;
-  border: 1px solid #40516b;
-}
+main { max-width:850px; margin:auto; padding:16px 12px 32px; }
+header,.row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+header { justify-content:space-between; margin-bottom:16px; }
+.brand { font-weight:900; letter-spacing:.12em; }
+.brand span { color:var(--green); }
+.muted, label, footer { color:var(--muted); }
+.small { font-size:.84rem; }
+button,input,select { font:inherit; }
 button {
-  cursor: pointer;
-  font-weight: 800;
-  border: 0;
-  color: #08140f;
-  background: var(--green);
-  margin-top: 10px;
+  min-height:44px; padding:10px 13px; border:1px solid var(--line);
+  border-radius:11px; color:var(--text); background:#1b2a3e;
+  cursor:pointer;
 }
-button.secondary {
-  color: var(--text);
-  background: #34445d;
+button:disabled { opacity:.55; }
+button.primary,.tabs button.active {
+  background:var(--green); color:#07170f; border-color:var(--green);
+  font-weight:800;
 }
-button.blue { background: var(--blue); color: #071324; }
-button.purple { background: var(--purple); color: #180c2d; }
-button.danger { background: var(--red); color: #26080c; }
-button:disabled { opacity: .45; cursor: not-allowed; }
-.small {
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.5;
+button:focus-visible,input:focus-visible,select:focus-visible {
+  outline:3px solid var(--green); outline-offset:2px;
 }
-.row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+input,select {
+  width:100%; min-height:44px; padding:9px;
+  border-radius:10px; border:1px solid var(--line);
+  background:#0b1422; color:var(--text);
 }
-.hidden { display: none !important; }
-.status {
-  padding: 10px;
-  border-radius: 8px;
-  background: #0e1725;
-  color: var(--muted);
-  font-size: 13px;
-  margin-top: 10px;
-  overflow-wrap: anywhere;
+label { display:block; font-size:.84rem; margin-bottom:5px; }
+h1 { font-size:1.5rem; margin:0 0 5px; }
+h2 { font-size:1.1rem; margin:0 0 10px; }
+h3 { font-size:1rem; margin:0 0 8px; }
+p { margin-top:0; }
+.panel {
+  background:var(--panel); border:1px solid var(--line);
+  border-radius:16px; padding:15px; margin:12px 0;
 }
-.status.good { color: var(--green); }
-.status.bad { color: #ff8b98; }
-.game-option {
-  display: block;
-  text-align: left;
-  padding: 13px;
-  border: 1px solid #40516b;
-  border-radius: 10px;
-  background: #111c2c;
-  color: var(--text);
-  margin-top: 9px;
+.tabs { display:flex; gap:8px; margin:12px 0; }
+.tabs button { flex:1; }
+.filters { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.game-list { display:grid; gap:10px; }
+.game {
+  background:#101b2b; border:1px solid var(--line);
+  border-radius:14px; padding:13px;
 }
-.game-option.selected {
-  border: 2px solid var(--green);
-  background: #183629;
+.gamehead { display:flex; justify-content:space-between; gap:8px; }
+.badge {
+  background:#26364b; border-radius:20px; padding:3px 8px;
+  font-size:.75rem; white-space:nowrap;
 }
-.matchup {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  gap: 10px;
-  align-items: center;
-  text-align: center;
-  padding: 16px 6px;
-  background: #111c2c;
-  border-radius: 10px;
+.badge.live { background:#572b32; color:#ffb6b6; }
+.teamrow {
+  display:flex; justify-content:space-between; gap:10px;
+  padding:8px 0; border-bottom:1px solid #26364b;
 }
-.team-name {
-  font-weight: 900;
-  overflow-wrap: anywhere;
+.team { font-weight:750; }
+.score { font-weight:900; font-size:1.2rem; }
+.venue { font-size:.82rem; color:var(--muted); margin:8px 0 12px; }
+.game button { width:100%; }
+.status { font-size:.86rem; color:var(--muted); margin:9px 0; }
+.notice {
+  border:1px solid var(--line); background:#202d40;
+  border-radius:11px; padding:11px; font-size:.87rem; margin:10px 0;
+  overflow-wrap:anywhere;
 }
-.vs { color: var(--gold); font-weight: 900; }
-.score-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+.notice.error { border-color:#754044; background:#301d25; }
+.notice.warn { border-color:#775d25; background:#302817; }
+.hidden { display:none!important; }
+.spread { justify-content:space-between; }
+.scoreboard {
+  display:grid; grid-template-columns:1fr auto 1fr;
+  align-items:center; gap:8px; text-align:center;
 }
-.score-box {
-  border-radius: 10px;
-  background: #111c2c;
-  padding: 12px 6px;
-  text-align: center;
-}
-.score-box strong {
-  display: block;
-  font-size: 25px;
-  margin-top: 5px;
-}
-.you { color: var(--green); }
-.dad { color: var(--blue); }
-.ai { color: var(--purple); }
-.prediction-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-.prediction-grid button { margin: 0; }
-.feed-item {
-  padding: 10px 0;
-  border-bottom: 1px solid #34445d;
-  font-size: 13px;
-  line-height: 1.5;
-}
-.feed-item:last-child { border-bottom: 0; }
-.pill {
-  display: inline-block;
-  border-radius: 20px;
-  padding: 4px 9px;
-  font-size: 11px;
-  font-weight: bold;
-  background: #34445d;
-  color: var(--text);
-}
-.live-score {
-  font-size: 32px;
-  font-weight: 900;
-  margin-top: 4px;
-}
-.live-detail {
-  background: #111c2c;
-  border-radius: 10px;
-  padding: 12px;
-  margin-top: 12px;
-}
-.live-label {
-  color: var(--muted);
-  font-size: 11px;
-  margin-bottom: 5px;
-}
-.live-value {
-  font-weight: 800;
-  overflow-wrap: anywhere;
-}
-@media (max-width: 430px) {
-  main { padding: 10px; }
-  .card { padding: 13px; }
-  .row { grid-template-columns: 1fr; gap: 0; }
-  .logo { font-size: 26px; }
+.club { font-weight:800; overflow-wrap:anywhere; }
+.bigscore { font-size:2rem; font-weight:950; }
+.stats { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.stat { background:#0f1928; border:1px solid #26364b; padding:10px; border-radius:11px; }
+.stat .value { font-weight:800; overflow-wrap:anywhere; }
+.scorecards { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:12px 0; }
+.scorecard { text-align:center; padding:10px 4px; background:#101b2b; border:1px solid var(--line); border-radius:12px; }
+.scorecard strong { display:block; font-size:1.4rem; }
+.you { color:var(--green); }
+.dad { color:var(--blue); }
+.chatgpt { color:var(--purple); }
+.playerpicks { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.pickbox { border:1px solid var(--line); border-radius:12px; padding:10px; min-width:0; }
+.pickgrid { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+.pickgrid button { padding:8px 4px; font-size:.86rem; }
+.pickgrid button.selected { border-color:var(--green); background:#173c31; }
+footer { font-size:.78rem; padding:10px 2px; }
+@media(max-width:520px) {
+  .filters,.playerpicks { grid-template-columns:1fr; }
+  .panel { padding:12px; }
+  .bigscore { font-size:1.65rem; }
 }
 </style>
 </head>
-
 <body>
+<main>
 <header>
-  <div class="logo">DRIVE <span>DUEL</span></div>
-  <div class="tagline">Pick the drive. Beat the competition.</div>
+  <div>
+    <div class="brand">DRIVE <span>DUEL</span></div>
+    <div class="muted small">Predict the drive. Track the game.</div>
+  </div>
+  <button id="backButton" class="hidden">← Games</button>
 </header>
 
-<main>
-  <section id="lobbyScreen">
-    <div class="card">
-      <h2>1. Choose a real game</h2>
-
-      <label for="league">Football league</label>
-      <select id="league">
-        <option value="nfl">NFL</option>
-        <option value="college">College Football (FBS)</option>
-      </select>
-
-      <label for="gameDate">Game date</label>
-      <input id="gameDate" type="date">
-
-      <button id="loadGamesButton" onclick="loadGames()">Load Actual Games</button>
-      <div id="scheduleStatus" class="status">
-        Choose a league and date, then load the schedule.
+<section id="gamesScreen">
+  <div class="panel">
+    <h1>Choose a game</h1>
+    <p class="muted small">Choose a real matchup to open its tracker. No separate room-selection step.</p>
+    <div class="tabs">
+      <button id="nflTab" class="active">NFL</button>
+      <button id="collegeTab">College Football</button>
+    </div>
+    <div class="filters">
+      <div>
+        <label for="startDate">Start date</label>
+        <input type="date" id="startDate">
       </div>
-      <div id="gamesList"></div>
-
-      <div id="selectedGameBox" class="hidden">
-        <label>Selected matchup</label>
-        <div class="matchup">
-          <div>
-            <div class="small">AWAY</div>
-            <div id="selectedAway" class="team-name">—</div>
-          </div>
-          <div class="vs">VS</div>
-          <div>
-            <div class="small">HOME</div>
-            <div id="selectedHome" class="team-name">—</div>
-          </div>
-        </div>
-        <div id="selectedKickoff" class="small"></div>
-        <div id="selectedVenue" class="small"></div>
+      <div>
+        <label for="dayCount">Date range</label>
+        <select id="dayCount">
+          <option value="1">1 day</option>
+          <option value="3">3 days</option>
+          <option value="8" selected>8 days</option>
+          <option value="14">14 days</option>
+        </select>
       </div>
     </div>
+    <div class="row" style="margin-top:12px">
+      <button id="refreshGames" class="primary">Refresh Games</button>
+      <span id="scheduleStatus" class="status" aria-live="polite">Loading schedule…</span>
+    </div>
+  </div>
+  <div id="scheduleNotice" class="notice hidden"></div>
+  <div id="gamesList" class="game-list"></div>
+</section>
 
-    <div class="card">
-      <h2>2. Create a room</h2>
-      <label for="creatorName">Your name</label>
-      <input id="creatorName" maxlength="30" placeholder="Enter your name">
+<section id="trackerScreen" class="hidden">
+  <div class="row spread">
+    <div>
+      <h1 id="gameTitle">Game Tracker</h1>
+      <div id="gameMeta" class="muted small"></div>
+    </div>
+    <button id="refreshGame" class="primary">Refresh Game</button>
+  </div>
 
-      <label for="roomName">Room name</label>
-      <input id="roomName" maxlength="40" placeholder="Sunday Football Showdown">
-
-      <button onclick="createRoom()">Create Drive Duel Room</button>
-      <div class="small" style="margin-top:8px">
-        Choose a real matchup above before creating your room.
+  <div class="panel">
+    <div class="scoreboard">
+      <div>
+        <div id="awayName" class="club">Away</div>
+        <div id="awayScore" class="bigscore">—</div>
+      </div>
+      <div class="muted small">VS</div>
+      <div>
+        <div id="homeName" class="club">Home</div>
+        <div id="homeScore" class="bigscore">—</div>
       </div>
     </div>
+    <div id="gameStatus" class="status" style="text-align:center">Waiting for ESPN…</div>
+    <div class="stats">
+      <div class="stat"><div class="muted small">Possession</div><div id="possession" class="value">Unknown</div></div>
+      <div class="stat"><div class="muted small">Down & distance</div><div id="downDistance" class="value">Unknown</div></div>
+      <div class="stat"><div class="muted small">Field position</div><div id="fieldPosition" class="value">Unknown</div></div>
+      <div class="stat"><div class="muted small">Quarter / clock</div><div id="clock" class="value">Unknown</div></div>
+    </div>
+    <div style="margin-top:12px">
+      <div class="muted small">Latest play</div>
+      <div id="latestPlay">Waiting for play-by-play…</div>
+    </div>
+    <div id="feedNotice" class="notice warn">Checking ESPN. Scoring is paused until data can be verified.</div>
+  </div>
 
-    <div class="card">
-      <h2>Join a room</h2>
-      <label for="joinName">Your name</label>
-      <input id="joinName" maxlength="30" placeholder="Enter your name">
+  <div class="scorecards">
+    <div class="scorecard"><span class="you">You</span><strong id="youScore" class="you">0</strong><span class="muted small">points</span></div>
+    <div class="scorecard"><span class="dad">Dad</span><strong id="dadScore" class="dad">0</strong><span class="muted small">points</span></div>
+    <div class="scorecard"><span class="chatgpt">ChatGPT</span><strong id="chatgptScore" class="chatgpt">0</strong><span class="muted small">points</span></div>
+  </div>
 
-      <label for="joinCode">Room code</label>
-      <input id="joinCode" maxlength="12" placeholder="Enter room code">
-
-      <button class="secondary" onclick="joinRoom()">Join Room</button>
-      <div class="small" style="margin-top:8px">
-        This version stores rooms on this device. Shared rooms across
-        different phones require additional database functionality.
+  <div class="panel">
+    <h2>Predict the current drive</h2>
+    <p class="muted small">Pick the expected drive outcome. Picks currently stay on this device. Shared rooms and automatic scoring are not connected yet.</p>
+    <div class="playerpicks">
+      <div class="pickbox">
+        <h3><span class="you">You</span> · <span id="youLock" class="muted small">Not locked</span></h3>
+        <div id="youPicks" class="pickgrid"></div>
+      </div>
+      <div class="pickbox">
+        <h3><span class="dad">Dad</span> · <span id="dadLock" class="muted small">Not locked</span></h3>
+        <div id="dadPicks" class="pickgrid"></div>
       </div>
     </div>
-
-    <div id="connectionStatus" class="status">
-      Checking database connection…
+    <div class="row" style="margin-top:12px">
+      <button id="lockPicks" class="primary">Lock Picks</button>
+      <button id="clearPicks">Clear Picks</button>
     </div>
-  </section>
+    <div id="pickStatus" class="status" aria-live="polite">Choose predictions for both players.</div>
+  </div>
+  <div class="notice">ESPN may delay or omit live data. Missing information is shown as Unknown. This version does not award points automatically.</div>
+</section>
 
-  <section id="gameScreen" class="hidden">
-    <div class="card">
-      <div class="row">
-        <div>
-          <h2 id="activeRoomName">Drive Duel</h2>
-          <div class="small">Room code: <strong id="activeRoomCode">—</strong></div>
-        </div>
-        <div style="text-align:right">
-          <span id="leagueBadge" class="pill">NFL</span>
-          <div id="playerCount" class="small" style="margin-top:8px">1 player</div>
-        </div>
+<footer>Drive Duel prototype · Public ESPN feed · Shared scores and automatic drive detection are not implemented yet.</footer>
+</main>
+
+<script>
+(function(){
+"use strict";
+
+const $ = id => document.getElementById(id);
+const ESPN = "https://site.api.espn.com/apis/site/v2/sports/football/";
+const choices = ["Touchdown","Field Goal","Punt","Turnover","Other"];
+
+const state = {
+  league:"nfl",
+  events:[],
+  selected:null,
+  timer:null,
+  busy:false,
+  picks:{You:null,Dad:null},
+  locked:false,
+  scores:{You:0,Dad:0,ChatGPT:0}
+};
+
+function localDateString(date){
+  return date.getFullYear()+"-"+
+    String(date.getMonth()+1).padStart(2,"0")+"-"+
+    String(date.getDate()).padStart(2,"0");
+}
+$("startDate").value = localDateString(new Date());
+
+function dateStamp(date){
+  return date.getFullYear()+
+    String(date.getMonth()+1).padStart(2,"0")+
+    String(date.getDate()).padStart(2,"0");
+}
+function parseDate(value){
+  const parts=value.split("-").map(Number);
+  return new Date(parts[0],parts[1]-1,parts[2],12);
+}
+function escapeHTML(value){
+  return String(value ?? "").replace(/[&<>"']/g, ch => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  })[ch]);
+}
+function eventId(event){ return event.id || ""; }
+function competitors(event){ return event.competitions?.[0]?.competitors || []; }
+function teams(event){
+  const list=competitors(event);
+  return {
+    away:list.find(c=>c.homeAway==="away") || list[0],
+    home:list.find(c=>c.homeAway==="home") || list[1]
+  };
+}
+function teamName(team){
+  return team?.team?.displayName || team?.team?.name || "Team unavailable";
+}
+function scoreOf(team){ return team?.score ?? "—"; }
+function eventStatus(event){
+  return event.status?.type?.shortDetail ||
+    event.status?.type?.detail ||
+    event.status?.type?.name || "Scheduled";
+}
+function isLive(event){ return event.status?.type?.state==="in"; }
+function eventDate(event){
+  const d=new Date(event.date);
+  if(Number.isNaN(d.getTime())) return "Time unavailable";
+  return d.toLocaleString([],{
+    weekday:"short",month:"short",day:"numeric",
+    hour:"numeric",minute:"2-digit"
+  });
+}
+function venueName(event){
+  const venue=event.competitions?.[0]?.venue;
+  const address=venue?.address || {};
+  return [venue?.fullName,address.city,address.state]
+    .filter(Boolean).join(" · ") || "Venue information unavailable";
+}
+async function getJSON(url){
+  const response=await fetch(url,{cache:"no-store"});
+  if(!response.ok) throw new Error("HTTP "+response.status);
+  return response.json();
+}
+function notice(message,kind){
+  const el=$("scheduleNotice");
+  el.textContent=message;
+  el.className="notice "+(kind==="error"?"error":kind==="warn"?"warn":"");
+}
+function setLeague(league){
+  state.league=league;
+  $("nflTab").classList.toggle("active",league==="nfl");
+  $("collegeTab").classList.toggle("active",league==="college");
+  loadGames();
+}
+
+async function loadGames(){
+  if(state.busy)return;
+  state.busy=true;
+  $("refreshGames").disabled=true;
+  $("scheduleStatus").textContent="Loading ESPN schedule…";
+  $("scheduleNotice").classList.add("hidden");
+  $("gamesList").replaceChildren();
+
+  try{
+    const start=parseDate($("startDate").value || localDateString(new Date()));
+    const count=Number($("dayCount").value)||8;
+    const end=new Date(start);
+    end.setDate(end.getDate()+count-1);
+
+    const sport=state.league==="nfl"?"nfl":"college-football";
+    const extra=state.league==="college"?"&groups=80&limit=200":"";
+    const range=dateStamp(start)+"-"+dateStamp(end);
+    const data=await getJSON(ESPN+sport+"/scoreboard?dates="+range+extra);
+    let events=data.events||[];
+
+    if(!events.length){
+      const requests=[];
+      for(let i=0;i<count;i++){
+        const d=new Date(start);
+        d.setDate(d.getDate()+i);
+        requests.push(
+          getJSON(ESPN+sport+"/scoreboard?dates="+dateStamp(d)+extra)
+            .catch(()=>null)
+        );
+      }
+      const results=await Promise.all(requests);
+      events=results.flatMap(result=>result?.events||[]);
+    }
+
+    const unique=new Map();
+    events.forEach(event=>{
+      if(eventId(event)) unique.set(eventId(event),event);
+    });
+    state.events=Array.from(unique.values())
+      .sort((a,b)=>new Date(a.date)-new Date(b.date));
+
+    renderGames();
+    $("scheduleStatus").textContent=state.events.length
+      ? state.events.length+" matchup(s) found"
+      : "No games found";
+
+    if(!state.events.length){
+      notice("ESPN returned no matchups for these dates. Try a different date range. No sample games are displayed.","warn");
+    }
+  }catch(error){
+    $("scheduleStatus").textContent="Schedule unavailable";
+    notice("Could not load ESPN games. Check your connection and press Refresh Games. "+error.message,"error");
+  }finally{
+    state.busy=false;
+    $("refreshGames").disabled=false;
+  }
+}
+
+function renderGames(){
+  const list=$("gamesList");
+  list.replaceChildren();
+
+  state.events.forEach(event=>{
+    const {away,home}=teams(event);
+    const card=document.createElement("article");
+    card.className="game";
+    card.innerHTML=`
+      <div class="gamehead">
+        <span class="muted small">${escapeHTML(eventDate(event))}</span>
+        <span class="badge ${isLive(event)?"live":""}">${escapeHTML(eventStatus(event))}</span>
       </div>
+      <div class="teamrow"><span class="team">${escapeHTML(teamName(away))}</span><span class="score">${escapeHTML(scoreOf(away))}</span></div>
+      <div class="teamrow"><span class="team">${escapeHTML(teamName(home))}</span><span class="score">${escapeHTML(scoreOf(home))}</span></div>
+      <div class="venue">${escapeHTML(venueName(event))}</div>
+      <button class="primary" type="button">Open Drive Duel Tracker</button>`;
+    card.querySelector("button").addEventListener("click",()=>openGame(event));
+    list.appendChild(card);
+  });
+}
 
-      <div class="matchup" style="margin-top:12px">
-        <div>
-          <div class="small">AWAY</div>
-          <div id="awayTeam" class="team-name">Away team</div>
-          <div id="awayInput" class="small"></div>
-        </div>
-        <div class="vs">VS</div>
-        <div>
-          <div class="small">HOME</div>
-          <div id="homeTeam" class="team-name">Home team</div>
-          <div id="homeInput" class="small"></div>
-        </div>
-      </div>
+function openGame(event){
+  state.selected=event;
+  $("gamesScreen").classList.add("hidden");
+  $("trackerScreen").classList.remove("hidden");
+  $("backButton").classList.remove("hidden");
 
-      <div id="gameKickoff" class="small" style="text-align:center;margin-top:8px"></div>
-      <div id="gameVenue" class="small" style="text-align:center;margin-top:4px"></div>
+  $("gameTitle").textContent=event.shortName||event.name||"Game Tracker";
+  $("gameMeta").textContent=eventDate(event)+" · "+venueName(event);
 
-      <button class="secondary" onclick="copyRoomLink()">Copy Room Link</button>
-      <button class="secondary" onclick="returnToLobby()">Back to Lobby</button>
-    </div>
+  const {away,home}=teams(event);
+  $("awayName").textContent=teamName(away);
+  $("homeName").textContent=teamName(home);
+  $("awayScore").textContent=scoreOf(away);
+  $("homeScore").textContent=scoreOf(home);
 
-    <div class="card" id="liveTracker">
-      <h2>Live Game Tracker</h2>
+  renderPicks();
+  renderScores();
+  refreshGame();
 
-      <div id="liveStatus" class="status">
-        Waiting for ESPN game data…
-      </div>
+  if(state.timer)clearInterval(state.timer);
+  state.timer=setInterval(()=>{
+    if(state.selected && isLive(state.selected)) refreshGame();
+  },15000);
+}
+function goHome(){
+  if(state.timer)clearInterval(state.timer);
+  state.timer=null;
+  state.selected=null;
+  $("trackerScreen").classList.add("hidden");
+  $("gamesScreen").classList.remove("hidden");
+  $("backButton").classList.add("hidden");
+}
 
-      <div class="matchup" style="margin-top:12px">
-        <div>
-          <div id="liveAwayName" class="team-name">AWAY</div>
-          <div id="liveAwayScore" class="live-score">—</div>
-        </div>
-        <div class="vs">@</div>
-        <div>
-          <div id="liveHomeName" class="team-name">HOME</div>
-          <div id="liveHomeScore" class="live-score">—</div>
-        </div>
-      </div>
+function renderPicks(){
+  ["You","Dad"].forEach(player=>{
+    const host=$(player==="You"?"youPicks":"dadPicks");
+    host.replaceChildren();
+    choices.forEach(choice=>{
+      const button=document.createElement("button");
+      button.type="button";
+      button.textContent=choice;
+      button.classList.toggle("selected",state.picks[player]===choice);
+      button.disabled=state.locked;
+      button.addEventListener("click",()=>{
+        if(state.locked)return;
+        state.picks[player]=choice;
+        renderPicks();
+      });
+      host.appendChild(button);
+    });
+    $(player==="You"?"youLock":"dadLock").textContent=
+      state.locked?"Locked":state.picks[player]?"Selected":"Not locked";
+  });
+}
+function renderScores(){
+  $("youScore").textContent=state.scores.You;
+  $("dadScore").textContent=state.scores.Dad;
+  $("chatgptScore").textContent=state.scores.ChatGPT;
+}
+function lockPicks(){
+  if(state.locked){
+    $("pickStatus").textContent="Picks are already locked.";
+    return;
+  }
+  if(!state.picks.You||!state.picks.Dad){
+    $("pickStatus").textContent="Select a prediction for both You and Dad first.";
+    return;
+  }
+  state.locked=true;
+  renderPicks();
+  $("pickStatus").textContent="Picks locked on this device. Automatic scoring is not enabled yet.";
+}
+function clearPicks(){
+  state.locked=false;
+  state.picks={You:null,Dad:null};
+  renderPicks();
+  $("pickStatus").textContent="Picks cleared.";
+}
+function showUnknown(){
+  ["possession","downDistance","fieldPosition","clock"].forEach(id=>{
+    $(id).textContent="Unknown";
+  });
+  $("latestPlay").textContent="Play-by-play unavailable.";
+}
+function feedNotice(message,kind){
+  const el=$("feedNotice");
+  el.textContent=message;
+  el.className="notice "+(kind==="error"?"error":kind==="warn"?"warn":"");
+}
 
-      <div class="live-detail">
-        <div class="row">
-          <div>
-            <div class="live-label">QUARTER / CLOCK</div>
-            <div id="liveClock" class="live-value">Waiting for data</div>
-          </div>
-          <div>
-            <div class="live-label">POSSESSION</div>
-            <div id="livePossession" class="live-value">Unknown</div>
-          </div>
-        </div>
+async function refreshGame(){
+  if(!state.selected)return;
+  const event=state.selected;
+  if(!eventId(event))return;
 
-        <div style="margin-top:14px">
-          <div class="live-label">DOWN & DISTANCE</div>
-          <div id="liveDownDistance" class="live-value">Unavailable</div>
-        </div>
+  $("refreshGame").disabled=true;
+  try{
+    const sport=state.league==="nfl"?"nfl":"college-football";
+    const data=await getJSON(
+      ESPN+sport+"/summary?event="+encodeURIComponent(eventId(event))
+    );
 
-        <div style="margin-top:14px">
-          <div class="live-label">FIELD POSITION</div>
-          <div id="liveFieldPosition" class="live-value">Unavailable</div>
-        </div>
+    const header=data.header||{};
+    const competition=header.competitions?.[0]||{};
+    const liveTeams=competition.competitors||teams(event);
+    const away=liveTeams.find(c=>c.homeAway==="away")||liveTeams[0];
+    const home=liveTeams.find(c=>c.homeAway==="home")||liveTeams[1];
 
-        <div style="margin-top:14px">
-          <div class="live-label">LATEST PLAY</div>
-          <div id="liveLastPlay" style="margin-top:5px">Waiting for play-by-play…</div>
-        </div>
+    if(away){
+      $("awayName").textContent=teamName(away);
+      $("awayScore").textContent=scoreOf(away);
+    }
+    if(home){
+      $("homeName").textContent=teamName(home);
+      $("homeScore").textContent=scoreOf(home);
+    }
 
-        <div id="liveUpdated" class="small" style="margin-top:12px">
-          Not yet updated
-        </div>
-      </div>
+    const status=competition.status||header.status||event.status;
+    $("gameStatus").textContent=
+      status?.type?.shortDetail||status?.type?.detail||
+      status?.type?.name||"Status unavailable";
 
-      <button type="button" onclick="refreshLiveGame()">Refresh Live Game</button>
+    const situation=data.situation||competition.situation||{};
+    const possession=situation.possession;
+    let possessionName="Unknown";
 
-      <div class="small" style="margin-top:8px">
-        ESPN is the primary data source. If live data is missing or uncertain,
-        the tracker will display a warning. Drive outcomes are not yet scored
-        automatically from ESPN.
-      </div>
-    </div>
+    if(possession && typeof possession==="object"){
+      possessionName=possession.displayName||
+        possession.name||possession.team?.displayName||"Unknown";
+    }else if(possession){
+      const matching=liveTeams.find(team=>
+        String(team.id||team.team?.id)===String(possession)
+      );
+      if(matching) possessionName=teamName(matching);
+      else if(situation.possessionText) possessionName=situation.possessionText;
+    }
+    $("possession").textContent=possessionName;
 
-    <div class="card">
-      <h2>Scoreboard</h2>
-      <div class="score-grid">
-        <div class="score-box"><span class="you">YOU</span><strong id="scoreYou">0</strong></div>
-        <div class="score-box"><span class="dad">DAD</span><strong id="scoreDad">0</strong></div>
-        <div class="score-box"><span class="ai">CHATGPT</span><strong id="scoreAI">0</strong></div>
-      </div>
-      <div class="small" style="margin-top:10px">
-        Correct prediction = 10 points. Each drive should be scored once.
-      </div>
-    </div>
+    const down=situation.down;
+    const distance=situation.distance;
+    const ordinal={1:"1st",2:"2nd",3:"3rd",4:"4th"};
+    $("downDistance").textContent=
+      down!=null&&distance!=null
+      ?(ordinal[Number(down)]||down)+" & "+distance+" yd"
+      :"Unknown";
 
-    <div class="card">
-      <h2>Drive <span id="driveNumber">1</span></h2>
-      <div id="driveState" class="status">Ready for the next drive.</div>
-      <div id="timer" class="small" style="margin-top:8px">
-        Waiting for live game data.
-      </div>
+    $("fieldPosition").textContent=
+      situation.yardLineText||
+      (situation.yardLine!=null?String(situation.yardLine):"Unknown");
 
-      <label for="possessionTeam">Team with possession</label>
-      <select id="possessionTeam">
-        <option value="away">Away team</option>
-        <option value="home">Home team</option>
-      </select>
+    const period=situation.period||status?.period;
+    const clock=situation.clock?.displayValue||
+      (typeof situation.clock==="string"?situation.clock:null)||
+      status?.displayClock;
 
-      <label>Your prediction</label>
-      <div class="prediction-grid">
-        <button onclick="makePick('Touchdown')">Touchdown</button>
-        <button onclick="makePick('Field Goal')">Field Goal</button>
-        <button onclick="makePick('Punt')">Punt</button>
-        <button onclick="makePick('Turnover')">Turnover</button>
-        <button class="secondary" onclick="makePick('Other')">Other</button>
-      </div>
+    $("clock").textContent=
+      (period?"Q"+period:"Quarter unknown")+
+      (clock?" · "+clock:"");
 
-      <div id="yourPick" class="status">Your pick: not locked</div>
+    let play=null;
+    const plays=data.plays?.allPlays||data.plays?.current||data.plays;
+    if(Array.isArray(plays)&&plays.length)play=plays[plays.length-1];
 
-      <label for="actualOutcome">Actual drive result</label>
-      <select id="actualOutcome">
-        <option value="">Select after the drive ends</option>
-        <option>Touchdown</option>
-        <option>Field Goal</option>
-        <option>Punt</option>
-        <option>Turnover</option>
-        <option>Other</option>
-      </select>
+    if(data.drives?.current?.plays?.length){
+      const drivePlays=data.drives.current.plays;
+      play=drivePlays[drivePlays.length-1];
+    }
 
-      <label for="driveNote">Drive notes (optional)</label>
-      <input id="driveNote" maxlength="120" placeholder="
+    $("latestPlay").textContent=
+      play?.text||play?.description||"Latest play unavailable.";
+
+    feedNotice(
+      "ESPN summary loaded. Missing situation fields remain Unknown. No points were awarded.",
+      "ok"
+    );
+  }catch(error){
+    showUnknown();
+    feedNotice(
+      "Live data could not be verified. Scoring remains paused. No points were changed. "+error.message,
+      "error"
+    );
+  }finally{
+    $("refreshGame").disabled=false;
+  }
+}
+
+$("nflTab").addEventListener("click",()=>setLeague("nfl"));
+$("collegeTab").addEventListener("click",()=>setLeague("college"));
+$("refreshGames").addEventListener("click",loadGames);
+$("startDate").addEventListener("change",loadGames);
+$("dayCount").addEventListener("change",loadGames);
+$("backButton").addEventListener("click",goHome);
+$("refreshGame").addEventListener("click",refreshGame);
+$("lockPicks").addEventListener("click",lockPicks);
+$("clearPicks").addEventListener("click",clearPicks);
+
+loadGames();
+})();
+</script>
+</body>
+</html>
