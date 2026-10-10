@@ -1,582 +1,23 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#080d18">
-<title>Drive Duel | Football Prediction Game</title>
-
-<style>
-:root {
-  --bg: #080d18;
-  --panel: #111a2b;
-  --panel2: #172238;
-  --line: #293650;
-  --text: #f4f7ff;
-  --muted: #aab6cc;
-  --green: #31d58b;
-  --blue: #55a6ff;
-  --purple: #b48aff;
-  --gold: #ffcf66;
-  --red: #ff7777;
-}
-
-* { box-sizing: border-box; }
-
-body {
-  margin: 0;
-  min-height: 100vh;
-  background: radial-gradient(ellipse at top, #172746, var(--bg) 60%);
-  color: var(--text);
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-}
-
-button, input, select { font: inherit; }
-
-button {
-  cursor: pointer;
-  border: 1px solid var(--line);
-  border-radius: 11px;
-  padding: 11px 14px;
-  background: #22314d;
-  color: var(--text);
-  font-weight: 750;
-}
-
-button:hover { filter: brightness(1.15); }
-
-button:disabled {
-  opacity: .45;
-  cursor: not-allowed;
-}
-
-.primary {
-  background: var(--green);
-  color: #062117;
-  border-color: transparent;
-}
-
-.secondary { background: transparent; }
-
-input, select {
-  width: 100%;
-  padding: 12px;
-  border-radius: 10px;
-  border: 1px solid var(--line);
-  background: #0b1322;
-  color: var(--text);
-}
-
-label {
-  display: block;
-  margin-bottom: 7px;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 850;
-  letter-spacing: .09em;
-  text-transform: uppercase;
-}
-
-h1 {
-  font-size: clamp(28px, 5vw, 43px);
-  letter-spacing: -.04em;
-  line-height: 1.08;
-  margin: 0 0 10px;
-}
-
-h2 { font-size: 20px; margin: 0 0 15px; }
-h3 { font-size: 15px; }
-p { line-height: 1.5; }
-
-.muted { color: var(--muted); }
-.small { font-size: 12px; }
-
-.wrap {
-  max-width: 1150px;
-  margin: auto;
-  padding: 20px 15px 40px;
-}
-
-.topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 30px;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  font-weight: 950;
-  letter-spacing: .04em;
-}
-
-.logo {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 13px;
-  background: var(--green);
-  color: #061b12;
-  font-size: 24px;
-}
-
-.badge {
-  display: inline-block;
-  border: 1px solid var(--line);
-  border-radius: 30px;
-  padding: 6px 10px;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 850;
-}
-
-.hero { margin-bottom: 25px; }
-.hero p { max-width: 650px; color: var(--muted); }
-
-.panel {
-  padding: 19px;
-  background: linear-gradient(180deg, #152036, #101827);
-  border: 1px solid var(--line);
-  border-radius: 17px;
-  box-shadow: 0 12px 35px #0002;
-}
-
-.grid { display: grid; gap: 16px; }
-
-.lobby-grid {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr));
-}
-
-.field { margin-bottom: 14px; }
-
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 9px;
-}
-
-.note {
-  padding: 12px;
-  margin-top: 14px;
-  border: 1px solid #544b2c;
-  border-radius: 11px;
-  background: #2a2517;
-  color: #f3d88d;
-  font-size: 12px;
-}
-
-#gameScreen { display: none; }
-
-.gamehead {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 15px;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
-}
-
-.room-code {
-  color: var(--green);
-  font-size: 23px;
-  font-weight: 950;
-  letter-spacing: .13em;
-}
-
-.game-grid {
-  grid-template-columns: minmax(0, 1.35fr) minmax(270px, .85fr);
-}
-
-.matchup {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 10px;
-  text-align: center;
-  padding: 18px 10px;
-  margin-bottom: 17px;
-  background: #0b1322;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-}
-
-.team {
-  font-size: clamp(16px, 3vw, 25px);
-  font-weight: 950;
-  overflow-wrap: anywhere;
-}
-
-.team small {
-  display: block;
-  margin-top: 5px;
-  color: var(--muted);
-  font-size: 10px;
-  letter-spacing: .1em;
-}
-
-.vs { color: var(--muted); font-weight: 900; }
-
-.inline-fields {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.status-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 12px 0 18px;
-}
-
-.status {
-  padding: 8px 10px;
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  background: #0b1322;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.status strong { color: var(--text); }
-
-.drive-title {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-
-.timer {
-  color: var(--gold);
-  font-size: 30px;
-  font-weight: 950;
-  font-variant-numeric: tabular-nums;
-}
-
-.timer.urgent { color: var(--red); }
-
-.choices {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 9px;
-  margin: 14px 0;
-}
-
-.choice {
-  min-height: 55px;
-  text-align: left;
-}
-
-.choice.selected {
-  background: #123d31;
-  border-color: var(--green);
-  box-shadow: inset 0 0 0 1px var(--green);
-}
-
-.choice small { color: var(--muted); }
-
-.divider {
-  height: 1px;
-  margin: 19px 0;
-  background: var(--line);
-}
-
-.player-list { display: grid; gap: 10px; }
-
-.player-card {
-  padding: 13px;
-  border: 1px solid var(--line);
-  border-left: 5px solid var(--player-color);
-  border-radius: 12px;
-  background: #0b1322;
-}
-
-.player-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-}
-
-.player-name { font-weight: 900; overflow-wrap: anywhere; }
-.player-score { font-size: 24px; font-weight: 950; }
-
-.player-pick {
-  margin-top: 7px;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.player-pick strong { color: var(--text); }
-
-.score-pill {
-  padding: 4px 8px;
-  border-radius: 20px;
-  background: #202d44;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 850;
-}
-
-.feed { display: grid; gap: 8px; }
-
-.feed-item {
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: #0b1322;
-  font-size: 12px;
-}
-
-.feed-item strong { display: block; margin-bottom: 3px; }
-
-footer {
-  margin-top: 25px;
-  color: #8290a9;
-  text-align: center;
-  font-size: 11px;
-}
-
-.toast {
-  display: none;
-  position: fixed;
-  bottom: 18px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
-  max-width: 90%;
-  padding: 12px 16px;
-  border-radius: 11px;
-  background: #e9fff5;
-  color: #09281b;
-  font-weight: 850;
-  box-shadow: 0 8px 30px #0007;
-}
-
-@media(max-width:760px) {
-  .game-grid { grid-template-columns: 1fr; }
-  .wrap { padding: 14px 11px 30px; }
-  .panel { padding: 15px; }
-}
-
-@media(max-width:390px) {
-  .choices, .inline-fields { grid-template-columns: 1fr; }
-}
-</style>
-</head>
-
-<body>
-<div class="wrap">
-
-<header class="topbar">
-  <div class="brand">
-    <div class="logo">🏈</div>
-    <div>
-      DRIVE <span style="color:var(--green)">DUEL</span>
-      <div class="small muted">PREDICT EVERY DRIVE</div>
-    </div>
-  </div>
-  <div class="badge">FOOTBALL GAME</div>
-</header>
-
-<section class="hero">
-  <h1>Every drive is a duel.</h1>
-  <p>Predict the outcome of every football drive. Challenge your family, compare scores, and see who knows the game best.</p>
-</section>
-
-<section id="lobbyScreen" class="grid lobby-grid">
-
-  <div class="panel">
-    <h2>🏟️ Create a game room</h2>
-    <div class="field">
-      <label for="roomName">Room name</label>
-      <input id="roomName" value="Drive Duel Game Night" maxlength="48">
-    </div>
-    <div class="field">
-      <label for="creatorName">Your player name</label>
-      <input id="creatorName" placeholder="Enter your name" maxlength="24">
-    </div>
-    <div class="field">
-      <label for="league">League</label>
-      <select id="league">
-        <option>NFL</option>
-        <option>College Football</option>
-        <option>Practice / Demo</option>
-      </select>
-    </div>
-    <button class="primary" style="width:100%" onclick="createRoom()">Create Room →</button>
-  </div>
-
-  <div class="panel">
-    <h2>🔑 Join a game room</h2>
-    <div class="field">
-      <label for="joinName">Your player name</label>
-      <input id="joinName" placeholder="Enter your name" maxlength="24">
-    </div>
-    <div class="field">
-      <label for="joinCode">Room code</label>
-      <input id="joinCode" placeholder="Enter room code" maxlength="8">
-    </div>
-    <button style="width:100%" onclick="joinRoom()">Join Room →</button>
-    <p class="small muted" style="margin-top:12px">Shared rooms across different phones are the next development stage.</p>
-  </div>
-
-  <div class="panel">
-    <h2>How to play</h2>
-    <p class="muted">1. Predict what the offense will do on the drive.</p>
-    <p class="muted">2. Lock your pick before the reveal.</p>
-    <p class="muted">3. Reveal predictions when the drive ends.</p>
-    <p class="muted">4. Enter the actual outcome and score the drive.</p>
-    <p class="muted">5. Start the next drive and compete for the lead.</p>
-    <div class="note">Prototype status: the dashboard works locally. Shared rooms, synchronized scores, and automatic live game data still need to be connected.</div>
-  </div>
-
-</section>
-
-<section id="gameScreen">
-
-  <div class="gamehead">
-    <div>
-      <div class="badge" id="leagueBadge">NFL · GAME ROOM</div>
-      <h1 id="activeRoomName" style="margin-top:12px">Drive Duel</h1>
-      <div class="muted small">ROOM CODE <span class="room-code" id="activeRoomCode">------</span></div>
-    </div>
-    <div class="actions">
-      <button onclick="copyCode()">Copy Code</button>
-      <button onclick="shareInvite()">Share Invite</button>
-      <button class="secondary" onclick="leaveRoom()">Leave Room</button>
-    </div>
-  </div>
-
-  <div class="grid game-grid">
-
-    <main class="panel">
-
-      <div class="matchup">
-        <div class="team"><span id="awayTeam">AWAY TEAM</span><small>OFFENSE</small></div>
-        <div class="vs">VS</div>
-        <div class="team"><span id="homeTeam">HOME TEAM</span><small>DEFENSE</small></div>
-      </div>
-
-      <div class="inline-fields">
-        <div class="field">
-          <label for="awayInput">Away / offense</label>
-          <input id="awayInput" value="AWAY TEAM" maxlength="28">
-        </div>
-        <div class="field">
-          <label for="homeInput">Home / defense</label>
-          <input id="homeInput" value="HOME TEAM" maxlength="28">
-        </div>
-      </div>
-
-      <button class="secondary" onclick="updateMatchup()">Update Matchup</button>
-
-      <div class="divider"></div>
-
-      <div class="drive-title">
-        <div>
-          <h2 style="margin-bottom:3px">Drive <span id="driveNumber">1</span></h2>
-          <div class="muted small" id="driveState">Predictions open</div>
-        </div>
-        <div id="timer" class="timer">15</div>
-      </div>
-
-      <div class="status-row">
-        <div class="status">Quarter: <strong id="quarter">1</strong></div>
-        <div class="status">Ball: <strong id="ballLocation">Own 25</strong></div>
-        <div class="status">Down: <strong id="downDistance">1st &amp; 10</strong></div>
-      </div>
-
-      <h3>Predict the drive outcome</h3>
-
-      <div class="choices">
-        <button class="choice" data-pick="Touchdown" onclick="choosePick('Touchdown')">🏈 Touchdown<br><small>6 football points</small></button>
-        <button class="choice" data-pick="Field Goal" onclick="choosePick('Field Goal')">🥅 Field Goal<br><small>3 football points</small></button>
-        <button class="choice" data-pick="Punt" onclick="choosePick('Punt')">🦶 Punt</button>
-        <button class="choice" data-pick="Turnover" onclick="choosePick('Turnover')">🔄 Turnover</button>
-        <button class="choice" data-pick="Turnover on Downs" onclick="choosePick('Turnover on Downs')">🛑 Turnover on Downs</button>
-        <button class="choice" data-pick="Other" onclick="choosePick('Other')">❔ Other / Safety</button>
-      </div>
-
-      <div class="actions">
-        <button class="primary" id="lockButton" onclick="lockPick()">Lock My Pick</button>
-        <button onclick="startTimer(15)">Restart Timer</button>
-        <button class="secondary" onclick="revealPicks()">Reveal Picks</button>
-      </div>
-
-      <div class="divider"></div>
-
-      <h3>Record the actual result</h3>
-
-      <div class="inline-fields">
-        <div class="field">
-          <label for="actualOutcome">Actual outcome</label>
-          <select id="actualOutcome">
-            <option>Touchdown</option>
-            <option>Field Goal</option>
-            <option>Punt</option>
-            <option>Turnover</option>
-            <option>Turnover on Downs</option>
-            <option>Other</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="driveNote">Drive notes</label>
-          <input id="driveNote" placeholder="Optional play summary">
-        </div>
-      </div>
-
-      <div class="actions">
-        <button class="primary" onclick="scoreDrive()">Score Drive (+10)</button>
-        <button onclick="nextDrive()">Next Drive →</button>
-      </div>
-
-      <p class="small muted" style="margin-top:12px">Scoring is manual in this prototype. A correct prediction earns 10 game points.</p>
-
-    </main>
-
-    <aside class="grid" style="align-content:start">
-
-      <div class="panel">
-        <div class="drive-title">
-          <h2>🏆 Player Standings</h2>
-          <span class="score-pill" id="playerCount">1 PLAYER</span>
-        </div>
-
-        <div id="playerList" class="player-list"></div>
-
-        <div class="divider"></div>
-
-        <div class="actions">
-          <button onclick="addDemoPlayer()">+ Add Demo Player</button>
-          <button class="secondary" onclick="resetScores()">Reset Scores</button>
-        </div>
-
-        <p class="small muted" style="margin-top:10px">Each joined player will have a separate tile. Demo players are only local test players.</p>
-      </div>
-
-      <div class="panel">
-        <h2>📣 Drive Activity</h2>
-        <div id="feed" class="feed"></div>
-      </div>
-
-    </aside>
-
-  </div>
-</section>
-
-<footer>DRIVE DUEL · Football predictions · Prototype build</footer>
-</div>
-
-<div id="toast" class="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
+"use strict";
+
+// ============================================
+// DRIVE DUEL — SUPABASE-ENABLED GAME SCRIPT
+// ============================================
+
 const $ = id => document.getElementById(id);
+
+const SUPABASE_URL =
+  "https://qlwotqbqxpgkheitsboe.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_t26TKuxteJbxsGkAkGDzeQ_d8oisCzg";
+
+let supabaseClient = null;
+let driveDuelUser = null;
+let connectionReady = false;
 
 const colors = [
   "#31d58b", "#55a6ff", "#b48aff", "#ffcf66",
@@ -598,7 +39,8 @@ let timerHandle = null;
 let feedItems = [];
 
 function makeCode() {
-  return Math.random().toString(36).slice(2, 8).toUpperCase().padEnd(6, "X");
+  return Math.random().toString(36)
+    .slice(2, 8).toUpperCase().padEnd(6, "X");
 }
 
 function makeId() {
@@ -620,14 +62,89 @@ function toast(message) {
   box.textContent = message;
   box.style.display = "block";
   clearTimeout(toast.handle);
-  toast.handle = setTimeout(() => box.style.display = "none", 2500);
+  toast.handle = setTimeout(
+    () => box.style.display = "none",
+    3500
+  );
 }
 
-function createRoom() {
-  const name = $("creatorName").value.trim() || "Player 1";
+// ============================================
+// SUPABASE CONNECTION
+// ============================================
 
-  roomName = $("roomName").value.trim() || "Drive Duel Game Night";
+async function connectDriveDuel() {
+  try {
+    if (!window.supabase) {
+      throw new Error("Supabase library did not load.");
+    }
+
+    supabaseClient = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
+
+    const { data, error } =
+      await supabaseClient.auth.getSession();
+
+    if (error) throw error;
+
+    if (data.session && data.session.user) {
+      driveDuelUser = data.session.user;
+    } else {
+      const { data: loginData, error: loginError } =
+        await supabaseClient.auth.signInAnonymously();
+
+      if (loginError) throw loginError;
+
+      driveDuelUser = loginData.user;
+    }
+
+    connectionReady = true;
+
+    console.log(
+      "Drive Duel connected to Supabase.",
+      "User ID:",
+      driveDuelUser.id
+    );
+
+    toast("Database connected successfully.");
+
+  } catch (error) {
+    connectionReady = false;
+
+    console.error(
+      "Drive Duel connection error:",
+      error.message
+    );
+
+    toast("Database connection failed: " + error.message);
+  }
+}
+
+// Start connecting as soon as the page loads.
+connectDriveDuel();
+
+// ============================================
+// CREATE AND JOIN ROOMS
+// ============================================
+
+async function createRoom() {
+  if (!connectionReady) {
+    toast("Connecting to the database. Please try again shortly.");
+    return;
+  }
+
+  const name =
+    $("creatorName").value.trim() || "Player 1";
+
+  roomName =
+    $("roomName").value.trim() || "Drive Duel Game Night";
+
   league = $("league").value;
+
+  // This stage still creates a local prototype room.
+  // Database room creation will be added after secure
+  // room-creation permissions are configured.
   roomCode = makeCode();
 
   players = [{
@@ -640,6 +157,7 @@ function createRoom() {
   }];
 
   currentPlayerId = players[0].id;
+
   drive = 1;
   locked = false;
   revealed = false;
@@ -647,19 +165,30 @@ function createRoom() {
   selectedPick = "";
   feedItems = [];
 
-  addFeed("Room created", name + " created " + roomName + ".");
+  addFeed(
+    "Local prototype room created",
+    name + " created " + roomName +
+    ". The room is not yet shared through the database."
+  );
+
   showGame();
+
+  toast("Game opened. Shared room creation is the next step.");
 }
 
 function joinRoom() {
-  const name = $("joinName").value.trim() || "Player";
-  const code = $("joinCode").value.trim().toUpperCase();
+  const name =
+    $("joinName").value.trim() || "Player";
+
+  const code =
+    $("joinCode").value.trim().toUpperCase();
 
   if (!code) {
     toast("Enter a room code.");
     return;
   }
 
+  // Cross-device joining is not enabled yet.
   roomCode = code;
   roomName = "Joined Room";
   league = "Practice";
@@ -674,6 +203,7 @@ function joinRoom() {
   }];
 
   currentPlayerId = players[0].id;
+
   drive = 1;
   locked = false;
   revealed = false;
@@ -681,10 +211,15 @@ function joinRoom() {
   selectedPick = "";
   feedItems = [];
 
-  addFeed("Local preview", name + " entered code " + code + ".");
+  addFeed(
+    "Local preview",
+    name + " entered code " + code +
+    ". Shared joining is not enabled yet."
+  );
+
   showGame();
 
-  toast("Local preview opened. Cross-phone joining is not connected yet.");
+  toast("Local preview opened. Shared joining is coming next.");
 }
 
 function showGame() {
@@ -693,20 +228,27 @@ function showGame() {
 
   $("activeRoomName").textContent = roomName;
   $("activeRoomCode").textContent = roomCode;
-  $("leagueBadge").textContent = league.toUpperCase() + " · ROOM";
+  $("leagueBadge").textContent =
+    league.toUpperCase() + " · ROOM";
 
   renderPlayers();
   renderFeed();
   renderDrive();
   startTimer(15);
 
-  history.replaceState(null, "", location.pathname + "?room=" + roomCode);
+  history.replaceState(
+    null,
+    "",
+    location.pathname + "?room=" + roomCode
+  );
 }
 
 function leaveRoom() {
   stopTimer();
+
   $("gameScreen").style.display = "none";
   $("lobbyScreen").style.display = "grid";
+
   history.replaceState(null, "", location.pathname);
 }
 
@@ -721,282 +263,3 @@ async function copyCode() {
 
 async function shareInvite() {
   const url = location.href;
-
-  if (navigator.share) {
-    try {
-      await navigator.share({
-        title: "Join my Drive Duel game",
-        text: "Drive Duel room code: " + roomCode,
-        url
-      });
-    } catch {}
-  } else {
-    try {
-      await navigator.clipboard.writeText(url);
-      toast("Invite link copied.");
-    } catch {
-      toast("Share this room code: " + roomCode);
-    }
-  }
-}
-
-function choosePick(pick) {
-  if (locked || scored) {
-    toast("Your pick is locked for this drive.");
-    return;
-  }
-
-  selectedPick = pick;
-
-  document.querySelectorAll(".choice").forEach(button => {
-    button.classList.toggle("selected", button.dataset.pick === pick);
-  });
-}
-
-function lockPick() {
-  if (locked || scored) {
-    toast("Your pick is already locked.");
-    return;
-  }
-
-  if (!selectedPick) {
-    toast("Choose an outcome first.");
-    return;
-  }
-
-  const player = players.find(p => p.id === currentPlayerId);
-  if (!player) return;
-
-  player.pick = selectedPick;
-  player.locked = true;
-  locked = true;
-
-  addFeed("Pick locked", player.name + " locked a prediction.");
-  renderPlayers();
-  renderDrive();
-
-  toast("Your prediction is locked.");
-}
-
-function revealPicks() {
-  revealed = true;
-  renderPlayers();
-  renderDrive();
-  addFeed("Predictions revealed", "The picks are now visible.");
-}
-
-function scoreDrive() {
-  if (scored) {
-    toast("This drive has already been scored.");
-    return;
-  }
-
-  const actual = $("actualOutcome").value;
-  let correct = 0;
-
-  players.forEach(player => {
-    if (player.pick && player.pick === actual) {
-      player.score += 10;
-      correct++;
-    }
-  });
-
-  scored = true;
-  revealed = true;
-  stopTimer();
-
-  const note = $("driveNote").value.trim();
-
-  addFeed(
-    "Drive " + drive + ": " + actual,
-    correct + " correct prediction(s) earned 10 points." +
-      (note ? " " + note : "")
-  );
-
-  renderPlayers();
-  renderDrive();
-
-  toast("Drive scored. " + correct + " correct prediction(s).");
-}
-
-function nextDrive() {
-  if (!scored && !confirm("This drive has not been scored. Continue anyway?")) {
-    return;
-  }
-
-  drive++;
-  locked = false;
-  revealed = false;
-  scored = false;
-  selectedPick = "";
-
-  players.forEach(player => {
-    player.pick = "";
-    player.locked = false;
-  });
-
-  $("driveNote").value = "";
-
-  document.querySelectorAll(".choice").forEach(button => {
-    button.classList.remove("selected");
-  });
-
-  addFeed("Drive " + drive + " started", "Predictions are open.");
-  renderPlayers();
-  renderDrive();
-  startTimer(15);
-}
-
-function resetScores() {
-  if (!confirm("Reset all scores and return to drive 1?")) return;
-
-  players.forEach(player => {
-    player.score = 0;
-    player.pick = "";
-    player.locked = false;
-  });
-
-  drive = 1;
-  locked = false;
-  revealed = false;
-  scored = false;
-  selectedPick = "";
-  feedItems = [];
-
-  document.querySelectorAll(".choice").forEach(button => {
-    button.classList.remove("selected");
-  });
-
-  addFeed("Game reset", "All scores reset to zero.");
-  renderPlayers();
-  renderDrive();
-  startTimer(15);
-}
-
-function addDemoPlayer() {
-  const number = players.length + 1;
-
-  players.push({
-    id: makeId(),
-    name: "Demo Player " + number,
-    color: colors[players.length % colors.length],
-    score: 0,
-    pick: "",
-    locked: false
-  });
-
-  renderPlayers();
-  addFeed("Player added", "Demo Player " + number + " was added locally.");
-}
-
-function updateMatchup() {
-  const away = $("awayInput").value.trim() || "AWAY TEAM";
-  const home = $("homeInput").value.trim() || "HOME TEAM";
-
-  $("awayTeam").textContent = away;
-  $("homeTeam").textContent = home;
-
-  addFeed("Matchup updated", away + " vs " + home + ".");
-}
-
-function renderPlayers() {
-  $("playerCount").textContent =
-    players.length + " PLAYER" + (players.length === 1 ? "" : "S");
-
-  const sorted = [...players].sort((a, b) => b.score - a.score);
-
-  $("playerList").innerHTML = sorted.map((player, index) => {
-    let pickText;
-
-    if (revealed) {
-      pickText = escapeHtml(player.pick || "No pick");
-    } else if (player.locked) {
-      pickText = "Hidden until reveal";
-    } else {
-      pickText = "Waiting for pick";
-    }
-
-    return `
-      <div class="player-card" style="--player-color:${player.color}">
-        <div class="player-top">
-          <div>
-            <div class="player-name">
-              ${escapeHtml(player.name)}
-              ${index === 0 && player.score > 0 ? " 👑" : ""}
-            </div>
-            <div class="small muted">
-              ${player.locked ? "PICK LOCKED" : "PICK PENDING"}
-            </div>
-          </div>
-          <div class="player-score">${player.score}</div>
-        </div>
-        <div class="player-pick">Prediction: <strong>${pickText}</strong></div>
-      </div>
-    `;
-  }).join("");
-}
-
-function renderDrive() {
-  $("driveNumber").textContent = drive;
-
-  $("driveState").textContent =
-    scored ? "Drive scored" :
-    revealed ? "Predictions revealed" :
-    locked ? "Your pick is locked" :
-    "Predictions open";
-
-  $("lockButton").disabled = locked || scored;
-
-  $("timer").textContent = seconds;
-  $("timer").classList.toggle("urgent", seconds <= 5);
-}
-
-function startTimer(value) {
-  stopTimer();
-
-  seconds = value;
-  renderDrive();
-
-  timerHandle = setInterval(() => {
-    seconds--;
-
-    if (seconds <= 0) {
-      seconds = 0;
-      stopTimer();
-      addFeed("Timer ended", "The prediction timer reached zero.");
-    }
-
-    renderDrive();
-  }, 1000);
-}
-
-function stopTimer() {
-  if (timerHandle) {
-    clearInterval(timerHandle);
-    timerHandle = null;
-  }
-}
-
-function addFeed(title, detail) {
-  feedItems.unshift({ title, detail });
-  feedItems = feedItems.slice(0, 25);
-  renderFeed();
-}
-
-function renderFeed() {
-  $("feed").innerHTML = feedItems.map(item => `
-    <div class="feed-item">
-      <strong>${escapeHtml(item.title)}</strong>
-      ${escapeHtml(item.detail)}
-    </div>
-  `).join("") || '<div class="feed-item">No activity yet.</div>';
-}
-
-const requestedRoom = new URLSearchParams(location.search).get("room");
-
-if (requestedRoom) {
-  $("joinCode").value = requestedRoom.toUpperCase();
-}
-</script>
-</body>
-</html>
