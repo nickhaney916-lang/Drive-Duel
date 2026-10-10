@@ -1,1 +1,114 @@
-a
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Drive Duel - Connection Test</title>
+
+  <style>
+    body {
+      background: #10131c;
+      color: #ffffff;
+      font-family: Arial, sans-serif;
+      padding: 24px;
+      line-height: 1.6;
+    }
+
+    .card {
+      max-width: 500px;
+      margin: 30px auto;
+      padding: 24px;
+      background: #1c2230;
+      border-radius: 16px;
+    }
+
+    h1 {
+      color: #63a4ff;
+    }
+
+    #status {
+      padding: 14px;
+      border-radius: 8px;
+      background: #10131c;
+      overflow-wrap: anywhere;
+    }
+
+    button {
+      padding: 12px 18px;
+      border: 0;
+      border-radius: 8px;
+      background: #63a4ff;
+      color: #10131c;
+      font-weight: bold;
+      font-size: 16px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <h1>🏈 Drive Duel</h1>
+    <h2>Database Connection Test</h2>
+
+    <p id="status">Connecting to Supabase...</p>
+
+    <button onclick="testConnection()">Test Again</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    const SUPABASE_URL =
+      "https://qlwotqbqxpgkheitsboe.supabase.co";
+
+    const SUPABASE_PUBLISHABLE_KEY =
+      "sb_publishable_t26TKuxteJbxsGkAkGDzeQ_d8oisCzg";
+
+    const supabase = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY
+    );
+
+    const statusBox = document.getElementById("status");
+
+    async function testConnection() {
+      statusBox.textContent = "Testing connection...";
+
+      try {
+        // Verify that Supabase accepts the project credentials.
+        const { data: healthData, error: healthError } =
+          await supabase.from("rooms").select("id").limit(1);
+
+        if (healthError) {
+          statusBox.textContent =
+            "Database request failed: " + healthError.message;
+          return;
+        }
+
+        // Create an anonymous session so the app can later
+        // identify a player without requiring an email address.
+        const { data: authData, error: authError } =
+          await supabase.auth.signInAnonymously();
+
+        if (authError) {
+          statusBox.textContent =
+            "Database connection succeeded, but anonymous sign-in failed: " +
+            authError.message;
+          return;
+        }
+
+        statusBox.textContent =
+          "SUCCESS! Supabase is connected. " +
+          "The rooms table responded, and anonymous sign-in worked. " +
+          "Player session: " +
+          authData.user.id;
+      } catch (error) {
+        statusBox.textContent =
+          "Connection test failed: " + error.message;
+      }
+    }
+
+    testConnection();
+  </script>
+</body>
+</html>
