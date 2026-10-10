@@ -93,7 +93,11 @@ button.blue { background: var(--blue); color: #071324; }
 button.purple { background: var(--purple); color: #180c2d; }
 button.danger { background: var(--red); color: #26080c; }
 button:disabled { opacity: .45; cursor: not-allowed; }
-.small { color: var(--muted); font-size: 12px; line-height: 1.5; }
+.small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
 .row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -135,7 +139,10 @@ button:disabled { opacity: .45; cursor: not-allowed; }
   background: #111c2c;
   border-radius: 10px;
 }
-.team-name { font-weight: 900; overflow-wrap: anywhere; }
+.team-name {
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
 .vs { color: var(--gold); font-weight: 900; }
 .score-grid {
   display: grid;
@@ -178,11 +185,25 @@ button:disabled { opacity: .45; cursor: not-allowed; }
   background: #34445d;
   color: var(--text);
 }
-footer {
-  text-align: center;
+.live-score {
+  font-size: 32px;
+  font-weight: 900;
+  margin-top: 4px;
+}
+.live-detail {
+  background: #111c2c;
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 12px;
+}
+.live-label {
   color: var(--muted);
   font-size: 11px;
-  padding: 20px;
+  margin-bottom: 5px;
+}
+.live-value {
+  font-weight: 800;
+  overflow-wrap: anywhere;
 }
 @media (max-width: 430px) {
   main { padding: 10px; }
@@ -214,7 +235,9 @@ footer {
       <input id="gameDate" type="date">
 
       <button id="loadGamesButton" onclick="loadGames()">Load Actual Games</button>
-      <div id="scheduleStatus" class="status">Choose a league and date, then load the schedule.</div>
+      <div id="scheduleStatus" class="status">
+        Choose a league and date, then load the schedule.
+      </div>
       <div id="gamesList"></div>
 
       <div id="selectedGameBox" class="hidden">
@@ -231,6 +254,7 @@ footer {
           </div>
         </div>
         <div id="selectedKickoff" class="small"></div>
+        <div id="selectedVenue" class="small"></div>
       </div>
     </div>
 
@@ -258,12 +282,14 @@ footer {
 
       <button class="secondary" onclick="joinRoom()">Join Room</button>
       <div class="small" style="margin-top:8px">
-        This standalone version stores rooms on this device. Shared rooms across
-        different phones require the database room functions to be configured.
+        This version stores rooms on this device. Shared rooms across
+        different phones require additional database functionality.
       </div>
     </div>
 
-    <div id="connectionStatus" class="status">Checking database connection…</div>
+    <div id="connectionStatus" class="status">
+      Checking database connection…
+    </div>
   </section>
 
   <section id="gameScreen" class="hidden">
@@ -292,9 +318,72 @@ footer {
           <div id="homeInput" class="small"></div>
         </div>
       </div>
+
       <div id="gameKickoff" class="small" style="text-align:center;margin-top:8px"></div>
+      <div id="gameVenue" class="small" style="text-align:center;margin-top:4px"></div>
+
       <button class="secondary" onclick="copyRoomLink()">Copy Room Link</button>
       <button class="secondary" onclick="returnToLobby()">Back to Lobby</button>
+    </div>
+
+    <div class="card" id="liveTracker">
+      <h2>Live Game Tracker</h2>
+
+      <div id="liveStatus" class="status">
+        Waiting for ESPN game data…
+      </div>
+
+      <div class="matchup" style="margin-top:12px">
+        <div>
+          <div id="liveAwayName" class="team-name">AWAY</div>
+          <div id="liveAwayScore" class="live-score">—</div>
+        </div>
+        <div class="vs">@</div>
+        <div>
+          <div id="liveHomeName" class="team-name">HOME</div>
+          <div id="liveHomeScore" class="live-score">—</div>
+        </div>
+      </div>
+
+      <div class="live-detail">
+        <div class="row">
+          <div>
+            <div class="live-label">QUARTER / CLOCK</div>
+            <div id="liveClock" class="live-value">Waiting for data</div>
+          </div>
+          <div>
+            <div class="live-label">POSSESSION</div>
+            <div id="livePossession" class="live-value">Unknown</div>
+          </div>
+        </div>
+
+        <div style="margin-top:14px">
+          <div class="live-label">DOWN & DISTANCE</div>
+          <div id="liveDownDistance" class="live-value">Unavailable</div>
+        </div>
+
+        <div style="margin-top:14px">
+          <div class="live-label">FIELD POSITION</div>
+          <div id="liveFieldPosition" class="live-value">Unavailable</div>
+        </div>
+
+        <div style="margin-top:14px">
+          <div class="live-label">LATEST PLAY</div>
+          <div id="liveLastPlay" style="margin-top:5px">Waiting for play-by-play…</div>
+        </div>
+
+        <div id="liveUpdated" class="small" style="margin-top:12px">
+          Not yet updated
+        </div>
+      </div>
+
+      <button type="button" onclick="refreshLiveGame()">Refresh Live Game</button>
+
+      <div class="small" style="margin-top:8px">
+        ESPN is the primary data source. If live data is missing or uncertain,
+        the tracker will display a warning. Drive outcomes are not yet scored
+        automatically from ESPN.
+      </div>
     </div>
 
     <div class="card">
@@ -305,14 +394,16 @@ footer {
         <div class="score-box"><span class="ai">CHATGPT</span><strong id="scoreAI">0</strong></div>
       </div>
       <div class="small" style="margin-top:10px">
-        Correct prediction = 10 points. Each drive is scored once.
+        Correct prediction = 10 points. Each drive should be scored once.
       </div>
     </div>
 
     <div class="card">
       <h2>Drive <span id="driveNumber">1</span></h2>
       <div id="driveState" class="status">Ready for the next drive.</div>
-      <div id="timer" class="small" style="margin-top:8px">No live game clock connected.</div>
+      <div id="timer" class="small" style="margin-top:8px">
+        Waiting for live game data.
+      </div>
 
       <label for="possessionTeam">Team with possession</label>
       <select id="possessionTeam">
@@ -328,6 +419,7 @@ footer {
         <button onclick="makePick('Turnover')">Turnover</button>
         <button class="secondary" onclick="makePick('Other')">Other</button>
       </div>
+
       <div id="yourPick" class="status">Your pick: not locked</div>
 
       <label for="actualOutcome">Actual drive result</label>
@@ -341,559 +433,4 @@ footer {
       </select>
 
       <label for="driveNote">Drive notes (optional)</label>
-      <input id="driveNote" maxlength="120" placeholder="Example: Interception on third down">
-
-      <button id="lockButton" onclick="lockDrive()">End Drive & Score Predictions</button>
-      <button class="secondary" onclick="newDrive()">Start Next Drive Without Scoring</button>
-    </div>
-
-    <div class="card">
-      <h2>Players</h2>
-      <div id="playerList" class="small"></div>
-    </div>
-
-    <div class="card">
-      <h2>Activity Feed</h2>
-      <div id="feed"><div class="small">Room created. Make your first prediction!</div></div>
-    </div>
-  </section>
-
-  <div id="toast" class="status hidden"></div>
-</main>
-
-<footer>
-  Drive Duel · Schedule data supplied by ESPN's public scoreboard service.
-  This version does not automatically track live plays or synchronize rooms.
-</footer>
-
-<script>
-"use strict";
-
-/* Supabase connection settings */
-const SUPABASE_URL = "https://qlwotqbqxpgkheitsboe.supabase.co";
-const SUPABASE_KEY = "sb_publishable_t26TKuxteJbxsGkAkGDzeQ_d8oisCzg";
-
-let supabaseClient = null;
-let connectionReady = false;
-
-let selectedGame = null;
-let currentRoom = null;
-let currentPlayer = "You";
-let currentPick = "";
-let driveNumber = 1;
-let driveScored = false;
-let players = [];
-let scores = { You: 0, Dad: 0, ChatGPT: 0 };
-let feedItems = [];
-let pickedGames = [];
-let gameLoadRequest = 0;
-
-function el(id) {
-  return document.getElementById(id);
-}
-
-function escapeHTML(value) {
-  return String(value ?? "").replace(/[&<>"']/g, function(c) {
-    return {
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-    }[c];
-  });
-}
-
-function showToast(message, bad = false) {
-  const box = el("toast");
-  box.textContent = message;
-  box.className = "status" + (bad ? " bad" : " good");
-  window.clearTimeout(showToast.timeout);
-  showToast.timeout = window.setTimeout(() => {
-    box.classList.add("hidden");
-  }, 4500);
-}
-
-function setStatus(id, message, kind = "") {
-  const box = el(id);
-  box.textContent = message;
-  box.className = "status" + (kind ? " " + kind : "");
-}
-
-function localDateString(date = new Date()) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-async function connectDriveDuel() {
-  const status = el("connectionStatus");
-
-  try {
-    if (!window.supabase || !window.supabase.createClient) {
-      throw new Error("Supabase library did not load.");
-    }
-
-    supabaseClient = window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_KEY
-    );
-
-    const { error } = await supabaseClient.auth.getSession();
-    if (error) throw error;
-
-    connectionReady = true;
-    status.textContent =
-      "Supabase client initialized. Room creation and scoring in this version are local only.";
-    status.className = "status good";
-  } catch (error) {
-    connectionReady = false;
-    status.textContent =
-      "Database connection unavailable. Local room features may still work. " +
-      (error.message || "");
-    status.className = "status bad";
-  }
-}
-
-/* Real schedules */
-async function loadGames() {
-  const requestNumber = ++gameLoadRequest;
-  const league = el("league").value;
-  const date = el("gameDate").value || localDateString();
-
-  el("gamesList").innerHTML = "";
-  el("selectedGameBox").classList.add("hidden");
-  selectedGame = null;
-
-  setStatus("scheduleStatus", "Loading the official matchup list…");
-
-  let url;
-
-  if (league === "nfl") {
-    url = `https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=${encodeURIComponent(date.replaceAll("-", ""))}`;
-  } else {
-    url = `https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=200&dates=${encodeURIComponent(date.replaceAll("-", ""))}`;
-  }
-
-  try {
-    const response = await fetch(url, { cache: "no-store" });
-    if (!response.ok) {
-      throw new Error(`Schedule request failed (${response.status}).`);
-    }
-
-    const data = await response.json();
-
-    if (requestNumber !== gameLoadRequest) return;
-
-    const events = Array.isArray(data.events) ? data.events : [];
-    pickedGames = events.map((event) => {
-      const competition = event.competitions && event.competitions[0];
-      const competitors = competition && competition.competitors
-        ? competition.competitors
-        : [];
-
-      const home = competitors.find(team => team.homeAway === "home");
-      const away = competitors.find(team => team.homeAway === "away");
-
-      if (!home || !away) return null;
-
-      const status = competition.status?.type?.detail ||
-                     competition.status?.type?.description ||
-                     "Scheduled";
-
-      return {
-        id: String(event.id),
-        league,
-        date,
-        name: event.name || `${away.team.displayName} at ${home.team.displayName}`,
-        away: away.team.displayName || away.team.name,
-        home: home.team.displayName || home.team.name,
-        awayAbbr: away.team.abbreviation || "",
-        homeAbbr: home.team.abbreviation || "",
-        kickoff: event.date || "",
-        status,
-        completed: Boolean(competition.status?.type?.completed)
-      };
-    }).filter(Boolean);
-
-    renderGames();
-
-    if (!pickedGames.length) {
-      setStatus(
-        "scheduleStatus",
-        `No matchups were returned for ${date}. Try another date or league.`
-      );
-    } else {
-      setStatus(
-        "scheduleStatus",
-        `Loaded ${pickedGames.length} matchup(s) for ${date}. Select a game below.`,
-        "good"
-      );
-    }
-  } catch (error) {
-    if (requestNumber !== gameLoadRequest) return;
-
-    setStatus(
-      "scheduleStatus",
-      "Could not load the schedule. Check your internet connection and try again. " +
-      (error.message || ""),
-      "bad"
-    );
-  }
-}
-
-function formatKickoff(value) {
-  if (!value) return "Kickoff time unavailable";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Kickoff time unavailable";
-
-  return date.toLocaleString([], {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit"
-  });
-}
-
-function renderGames() {
-  const container = el("gamesList");
-
-  if (!pickedGames.length) {
-    container.innerHTML = "";
-    return;
-  }
-
-  container.innerHTML = pickedGames.map((game, index) => {
-    const status = game.status || "Scheduled";
-    const selected = selectedGame && selectedGame.id === game.id;
-
-    return `
-      <button type="button"
-        class="game-option ${selected ? "selected" : ""}"
-        onclick="selectGame(${index})">
-        <div class="row">
-          <strong>${escapeHTML(game.away)} @ ${escapeHTML(game.home)}</strong>
-          <span class="small">${escapeHTML(status)}</span>
-        </div>
-        <div class="small" style="margin-top:6px">
-          ${escapeHTML(formatKickoff(game.kickoff))}
-        </div>
-      </button>`;
-  }).join("");
-}
-
-function selectGame(index) {
-  const game = pickedGames[index];
-  if (!game) return;
-
-  selectedGame = game;
-  el("selectedAway").textContent = game.away;
-  el("selectedHome").textContent = game.home;
-  el("selectedKickoff").textContent =
-    `${formatKickoff(game.kickoff)} · ${game.status}`;
-  el("selectedGameBox").classList.remove("hidden");
-
-  renderGames();
-  showToast("Actual matchup selected.");
-}
-
-function createRoom() {
-  if (!selectedGame) {
-    showToast("Load the schedule and select an actual game first.", true);
-    return;
-  }
-
-  const name = el("creatorName").value.trim();
-  const roomName = el("roomName").value.trim() || "Drive Duel Matchup";
-
-  if (!name) {
-    showToast("Enter your name first.", true);
-    el("creatorName").focus();
-    return;
-  }
-
-  currentPlayer = name;
-  currentRoom = {
-    code: makeRoomCode(),
-    name: roomName,
-    game: selectedGame,
-    league: selectedGame.league,
-    createdAt: new Date().toISOString()
-  };
-
-  players = [name];
-  scores = { You: 0, Dad: 0, ChatGPT: 0 };
-  scores[name] = 0;
-  currentPick = "";
-  driveNumber = 1;
-  driveScored = false;
-  feedItems = [];
-
-  addFeed(`${name} created room ${currentRoom.code}.`);
-  addFeed(`Matchup selected: ${selectedGame.away} at ${selectedGame.home}.`);
-  showGame();
-}
-
-function makeRoomCode() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let code = "";
-  for (let i = 0; i < 6; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return code;
-}
-
-function joinRoom() {
-  const name = el("joinName").value.trim();
-  const code = el("joinCode").value.trim().toUpperCase();
-
-  if (!name || !code) {
-    showToast("Enter your name and a room code.", true);
-    return;
-  }
-
-  let saved;
-  try {
-    saved = JSON.parse(localStorage.getItem("driveDuelRoom:" + code) || "null");
-  } catch (_) {
-    saved = null;
-  }
-
-  if (!saved) {
-    showToast(
-      "This room isn't saved on this device. Shared room joining must be configured next.",
-      true
-    );
-    return;
-  }
-
-  currentRoom = saved;
-  currentPlayer = name;
-  players = Array.isArray(saved.players) ? saved.players : [saved.creator || "Host"];
-  if (!players.includes(name)) players.push(name);
-
-  scores = saved.scores || { You: 0, Dad: 0, ChatGPT: 0 };
-  currentPick = "";
-  driveNumber = saved.driveNumber || 1;
-  driveScored = Boolean(saved.driveScored);
-  feedItems = saved.feedItems || [];
-
-  addFeed(`${name} joined the room.`);
-  showGame();
-}
-
-function showGame() {
-  if (!currentRoom || !currentRoom.game) {
-    showToast("Choose a real game first.", true);
-    return;
-  }
-
-  el("lobbyScreen").classList.add("hidden");
-  el("gameScreen").classList.remove("hidden");
-
-  el("activeRoomName").textContent = currentRoom.name;
-  el("activeRoomCode").textContent = currentRoom.code;
-  el("leagueBadge").textContent =
-    currentRoom.league === "college" ? "COLLEGE FBS" : "NFL";
-
-  const game = currentRoom.game;
-  el("awayTeam").textContent = game.away;
-  el("homeTeam").textContent = game.home;
-  el("awayInput").textContent = game.awayAbbr || "";
-  el("homeInput").textContent = game.homeAbbr || "";
-  el("gameKickoff").textContent =
-    `${formatKickoff(game.kickoff)} · Schedule status: ${game.status}`;
-
-  el("possessionTeam").options[0].textContent = game.away;
-  el("possessionTeam").options[1].textContent = game.home;
-
-  updateScoreboard();
-  updateDrive();
-  updatePlayers();
-  renderFeed();
-  saveRoom();
-}
-
-function saveRoom() {
-  if (!currentRoom) return;
-
-  currentRoom.players = players;
-  currentRoom.scores = scores;
-  currentRoom.driveNumber = driveNumber;
-  currentRoom.driveScored = driveScored;
-  currentRoom.feedItems = feedItems;
-
-  try {
-    localStorage.setItem(
-      "driveDuelRoom:" + currentRoom.code,
-      JSON.stringify(currentRoom)
-    );
-  } catch (_) {
-    // The room remains usable for this page session.
-  }
-}
-
-function updateScoreboard() {
-  el("scoreYou").textContent = scores.You || 0;
-  el("scoreDad").textContent = scores.Dad || 0;
-  el("scoreAI").textContent = scores.ChatGPT || 0;
-}
-
-function updateDrive() {
-  el("driveNumber").textContent = driveNumber;
-  el("yourPick").textContent =
-    currentPick ? `Your pick: ${currentPick} · LOCKED` : "Your pick: not locked";
-
-  el("lockButton").disabled = driveScored;
-  el("driveState").textContent = driveScored
-    ? "This drive has already been scored."
-    : "Choose your prediction, then enter the actual result after the drive ends.";
-
-  el("timer").textContent =
-    "No live drive clock is connected. Use the real game broadcast to verify each result.";
-}
-
-function makePick(outcome) {
-  if (!currentRoom) return;
-  if (driveScored) {
-    showToast("This drive is already scored. Start the next drive.", true);
-    return;
-  }
-
-  currentPick = outcome;
-  el("yourPick").textContent = `Your pick: ${outcome} · LOCKED`;
-  addFeed(`${currentPlayer} locked a prediction: ${outcome}.`);
-  updateDrive();
-  saveRoom();
-}
-
-function lockDrive() {
-  if (!currentRoom) return;
-  if (driveScored) {
-    showToast("This drive has already been scored.", true);
-    return;
-  }
-  if (!currentPick) {
-    showToast("Make your prediction before scoring the drive.", true);
-    return;
-  }
-
-  const actual = el("actualOutcome").value;
-  if (!actual) {
-    showToast("Select the actual drive result first.", true);
-    return;
-  }
-
-  if (currentPick === actual) {
-    scores[currentPlayer] = (scores[currentPlayer] || 0) + 10;
-    addFeed(`${currentPlayer} predicted ${actual} correctly: +10 points.`);
-  } else {
-    addFeed(
-      `${currentPlayer} predicted ${currentPick}. Actual result: ${actual}. No points.`
-    );
-  }
-
-  const note = el("driveNote").value.trim();
-  if (note) addFeed("Drive note: " + note);
-
-  driveScored = true;
-  updateScoreboard();
-  updateDrive();
-  saveRoom();
-  showToast("Drive scored. It will not be scored again.");
-}
-
-function newDrive() {
-  if (!currentRoom) return;
-
-  driveNumber += 1;
-  currentPick = "";
-  driveScored = false;
-  el("actualOutcome").value = "";
-  el("driveNote").value = "";
-
-  addFeed(`Drive ${driveNumber} started.`);
-  updateDrive();
-  saveRoom();
-}
-
-function updatePlayers() {
-  el("playerCount").textContent =
-    `${players.length} player${players.length === 1 ? "" : "s"}`;
-
-  el("playerList").innerHTML = players.map((name) => {
-    const points = scores[name] || 0;
-    return `<div class="feed-item"><strong>${escapeHTML(name)}</strong> — ${points} points</div>`;
-  }).join("");
-}
-
-function addFeed(message) {
-  feedItems.unshift({
-    message,
-    time: new Date().toLocaleTimeString([], {
-      hour: "numeric",
-      minute: "2-digit"
-    })
-  });
-
-  feedItems = feedItems.slice(0, 50);
-  renderFeed();
-}
-
-function renderFeed() {
-  const feed = el("feed");
-  if (!feedItems.length) {
-    feed.innerHTML = '<div class="small">No activity yet.</div>';
-    return;
-  }
-
-  feed.innerHTML = feedItems.map(item => `
-    <div class="feed-item">
-      <span class="small">${escapeHTML(item.time || "")}</span><br>
-      ${escapeHTML(item.message || "")}
-    </div>
-  `).join("");
-}
-
-async function copyRoomLink() {
-  if (!currentRoom) return;
-
-  const link = `${location.origin}${location.pathname}?room=${encodeURIComponent(currentRoom.code)}`;
-
-  try {
-    await navigator.clipboard.writeText(link);
-    showToast("Room link copied.");
-  } catch (_) {
-    window.prompt("Copy this room link:", link);
-  }
-}
-
-function returnToLobby() {
-  el("gameScreen").classList.add("hidden");
-  el("lobbyScreen").classList.remove("hidden");
-}
-
-function updateMatchup() {
-  // Team names are populated only from the selected real schedule matchup.
-}
-
-/* Restore room code from the URL, if present. */
-function readRoomFromURL() {
-  const params = new URLSearchParams(location.search);
-  const code = params.get("room");
-  if (code) el("joinCode").value = code.toUpperCase();
-}
-
-document.addEventListener("DOMContentLoaded", async () => {
-  el("gameDate").value = localDateString();
-  readRoomFromURL();
-  await connectDriveDuel();
-
-  // Load today's schedule automatically.
-  loadGames();
-});
-</script>
-</body>
-</html>
+      <input id="driveNote" maxlength="120" placeholder="
