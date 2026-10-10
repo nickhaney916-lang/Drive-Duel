@@ -1,17 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Drive Duel - Connection Test</title>
-
-  <style>
+  <title>Drive Duel - Connection Test</title>  <style>
     body {
+      margin: 0;
+      padding: 20px;
       background: #10131c;
-      color: #ffffff;
+      color: white;
       font-family: Arial, sans-serif;
-      padding: 24px;
-      line-height: 1.6;
     }
 
     .card {
@@ -26,89 +23,117 @@
       color: #63a4ff;
     }
 
-    #status {
-      padding: 14px;
-      border-radius: 8px;
-      background: #10131c;
-      overflow-wrap: anywhere;
-    }
-
     button {
-      padding: 12px 18px;
+      width: 100%;
+      padding: 15px;
+      margin-top: 12px;
       border: 0;
       border-radius: 8px;
       background: #63a4ff;
       color: #10131c;
+      font-size: 17px;
       font-weight: bold;
-      font-size: 16px;
     }
-  </style>
-</head>
 
-<body>
+    #status {
+      padding: 15px;
+      background: #10131c;
+      border-radius: 8px;
+      overflow-wrap: anywhere;
+    }
+  </style></head><body>
   <div class="card">
-    <h1>🏈 Drive Duel</h1>
-    <h2>Database Connection Test</h2>
+    <h1>🏈 Drive Duel</h1><h2>Supabase Connection Test</h2>
 
-    <p id="status">Connecting to Supabase...</p>
+<p>This page checks whether Drive Duel can connect to its database.</p>
 
-    <button onclick="testConnection()">Test Again</button>
-  </div>
+<p id="status">Ready. Tap the button below to begin.</p>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<button id="testButton" onclick="testConnection()">
+  Test Supabase Connection
+</button>
 
-  <script>
+  </div>  <script>
     const SUPABASE_URL =
       "https://qlwotqbqxpgkheitsboe.supabase.co";
 
-    const SUPABASE_PUBLISHABLE_KEY =
+    const SUPABASE_KEY =
       "sb_publishable_t26TKuxteJbxsGkAkGDzeQ_d8oisCzg";
 
-    const supabase = window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_PUBLISHABLE_KEY
-    );
-
     const statusBox = document.getElementById("status");
+    const testButton = document.getElementById("testButton");
 
     async function testConnection() {
-      statusBox.textContent = "Testing connection...";
+      testButton.disabled = true;
+      statusBox.textContent = "Step 1 of 3: Loading Supabase...";
 
       try {
-        // Verify that Supabase accepts the project credentials.
-        const { data: healthData, error: healthError } =
-          await supabase.from("rooms").select("id").limit(1);
+        if (!window.supabase) {
+          await new Promise((resolve, reject) => {
+            const script = document.createElement("script");
 
-        if (healthError) {
-          statusBox.textContent =
-            "Database request failed: " + healthError.message;
-          return;
+            script.src =
+              "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+
+            script.onload = resolve;
+
+            script.onerror = () => reject(
+              new Error(
+                "Could not load Supabase. Check your internet connection."
+              )
+            );
+
+            document.head.appendChild(script);
+          });
         }
 
-        // Create an anonymous session so the app can later
-        // identify a player without requiring an email address.
-        const { data: authData, error: authError } =
-          await supabase.auth.signInAnonymously();
+        statusBox.textContent =
+          "Step 2 of 3: Connecting to your Supabase project...";
 
-        if (authError) {
+        const client = window.supabase.createClient(
+          SUPABASE_URL,
+          SUPABASE_KEY
+        );
+
+        const { data, error } =
+          await client.auth.signInAnonymously();
+
+        if (error) {
+          throw new Error("Sign-in failed: " + error.message);
+        }
+
+        if (!data || !data.user) {
+          throw new Error("No user session was returned.");
+        }
+
+        statusBox.textContent =
+          "Step 3 of 3: Checking the database...";
+
+        const { error: databaseError } =
+          await client.from("rooms").select("id").limit(1);
+
+        if (databaseError) {
           statusBox.textContent =
-            "Database connection succeeded, but anonymous sign-in failed: " +
-            authError.message;
+            "SIGN-IN WORKED, BUT DATABASE ACCESS FAILED.\n\n" +
+            databaseError.message;
+
           return;
         }
 
         statusBox.textContent =
-          "SUCCESS! Supabase is connected. " +
-          "The rooms table responded, and anonymous sign-in worked. " +
-          "Player session: " +
-          authData.user.id;
+          "SUCCESS!\n\n" +
+          "Supabase connection is working.\n\n" +
+          "Anonymous sign-in: PASSED\n" +
+          "Database request: PASSED\n\n" +
+          "Drive Duel is connected to Supabase.";
+
       } catch (error) {
         statusBox.textContent =
-          "Connection test failed: " + error.message;
+          "CONNECTION TEST FAILED\n\n" +
+          (error.message || String(error));
+      } finally {
+        testButton.disabled = false;
       }
     }
-
-    testConnection();
-  </script>
-</body>
+  </script></body>
 </html>
