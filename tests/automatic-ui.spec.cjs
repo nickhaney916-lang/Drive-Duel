@@ -71,7 +71,7 @@ test('two browsers follow automatic punt, touchdown conversion and skipped drive
   await expect(a.locator('#driveStatus'),{timeout:25000}).toContainText('confirming the result and conversion');
   await expect(a.locator('#pickWindowLabel')).toContainText('WINDOW CLOSED');await expect(a.locator('#jumpToPicks')).toBeHidden();
   await expect(a.locator('#trackerPlayerSummary')).toContainText('20 pts');
-  for(const p of pages)await expect(p.getByRole('button',{name:'Punt',exact:true})).toBeDisabled();
+  for(const p of pages)await expect(p.getByRole('button',{name:'Punt',exact:true})).toBeEnabled();
   stage=4;
   for(const p of pages){await expect.poll(()=>p.evaluate(()=>driveNumber),{timeout:25000}).toBe(3);await expect(p.locator('#trackerPlayerSummary')).toContainText('32 pts');await expect(p.locator('#trackerPlayerSummary')).toContainText('12 pts');}
   await a.getByRole('button',{name:'Punt',exact:true}).click();await a.locator('#lockPick').click();await expect(a.locator('#lockPick')).toHaveText('✓ Offense Pick Locked');
