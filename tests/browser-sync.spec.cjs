@@ -6,9 +6,10 @@ test('two independent browsers synchronize three drives', async () => {
   const pages = await Promise.all(contexts.map(c=>c.newPage()));
   const gameId='sync-ui-'+Date.now();
   const fixture={id:gameId,name:'Sync Away at Sync Home',date:new Date().toISOString(),status:{type:{state:'in',detail:'Test drive'}},competitions:[{competitors:[{homeAway:'away',score:'0',team:{shortDisplayName:'Sync Away'}},{homeAway:'home',score:'0',team:{shortDisplayName:'Sync Home'}}]}]};
+  const headers={'access-control-allow-origin':'*','access-control-allow-methods':'GET, POST, OPTIONS','access-control-allow-headers':'authorization, apikey, content-type, x-client-info'};
   for(const c of contexts){
-    await c.route('**/site.api.espn.com/**',r=>r.fulfill({json:{events:[fixture]}}));
-    await c.route('**/functions/v1/drive-duel-live-feed',r=>r.fulfill({json:{ok:true,data:{away:'Sync Away',home:'Sync Home',awayScore:0,homeScore:0,status:'Simulated test drive',state:'in',period:1,clock:'12:00',fetchedAt:new Date().toISOString()}}}));
+    await c.route('**/site.api.espn.com/**',r=>r.fulfill({headers,json:{events:[fixture]}}));
+    await c.route('**/functions/v1/drive-duel-live-feed',r=>r.fulfill({headers,json:{ok:true,data:{away:'Sync Away',home:'Sync Home',awayScore:0,homeScore:0,status:'Simulated test drive',state:'in',period:1,clock:'12:00',fetchedAt:new Date().toISOString()}}}));
   }
   const [a,b]=pages, url='https://nickhaney916-lang.github.io/Drive-Duel/';
   const snapshot=p=>p.evaluate(()=>({playerId,roomId,driveId:currentDriveId,drive:driveNumber,scored:driveScored,picks:{...chosenPicks},locked:{...lockedTypes},scores:players.filter(p=>!p.is_cpu).map(p=>({id:p.id,score:p.score})).sort((x,y)=>x.id.localeCompare(y.id))}));
