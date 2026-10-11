@@ -10,10 +10,10 @@ test('two independent browsers queue, edit, cancel and auto-lock one possession'
  drives.push(row(1));drives[0].feed_closed=true;
  function transition(){
   if(stage===applied)return;applied=stage;
-  if(stage===2){scores=[0,0];drives[0].status='scored';drives[0].feed_closed=true;drives.push(row(2));active='drive-2';for(const q of queues.filter(q=>!q.consumed_at)){q.consumed_at=new Date().toISOString();q.consumed_drive_id=active;predictions.push({drive_id:active,player_id:q.player_id,prediction_type:q.prediction_type,predicted_outcome:q.predicted_outcome,is_locked:true});}}
+  if(stage===2){scores=[0,0];drives[0].status='scored';drives[0].actual_outcome='Punt';drives[0].scored_at=new Date().toISOString();drives[0].feed_closed=true;drives.push(row(2));active='drive-2';for(const q of queues.filter(q=>!q.consumed_at)){q.consumed_at=new Date().toISOString();q.consumed_drive_id=active;predictions.push({drive_id:active,player_id:q.player_id,prediction_type:q.prediction_type,predicted_outcome:q.predicted_outcome,is_locked:true});}}
   if(stage===3){drives[1].feed_closed=true;drives[1].status='awaiting_result';}
-  if(stage===4){scores=[10,0];drives[1].status='scored';drives.push(row(3));active='drive-3';}
-  if(stage===5){scores=[42,12];drives[2].status='scored';drives[2].feed_closed=true;drives.push(row(4));active='drive-4';}
+  if(stage===4){scores=[10,0];drives[1].status='scored';drives[1].actual_outcome='Punt';drives[1].scored_at=new Date().toISOString();drives.push(row(3));active='drive-3';}
+  if(stage===5){scores=[42,12];drives[2].status='scored';drives[2].actual_outcome='Punt';drives[2].scored_at=new Date().toISOString();drives[2].feed_closed=true;drives.push(row(4));active='drive-4';}
  }
  const fixture={id:game,name:'Replay Away at Replay Home',date:new Date().toISOString(),status:{type:{state:'in',detail:'Replay'}},competitions:[{competitors:[{homeAway:'away',score:'0',team:{shortDisplayName:'Replay Away'}},{homeAway:'home',score:'0',team:{shortDisplayName:'Replay Home'}}]}]};
  try{
@@ -52,7 +52,7 @@ test('two independent browsers queue, edit, cancel and auto-lock one possession'
     }
     else if(path.endsWith('/predictions'))answer=predictions.filter(p=>'eq.'+p.drive_id===url.searchParams.get('drive_id'));
     else if(path.endsWith('/room_game_state'))answer=[{room_id:rid,game_id:game,active_drive_id:active,pending_reason:null,latest_source_number:drives.length,game_state:'in'}];
-    else if(path.endsWith('/drives'))answer=drives.filter(d=>!url.searchParams.get('id')||'eq.'+d.id===url.searchParams.get('id'));
+    else if(path.endsWith('/drives'))answer=drives.filter(d=>(!url.searchParams.get('id')||'eq.'+d.id===url.searchParams.get('id'))&&(!url.searchParams.get('status')||'eq.'+d.status===url.searchParams.get('status')));if(path.endsWith('/drives')&&url.searchParams.get('status'))answer=answer.sort((a,b)=>b.drive_number-a.drive_number).slice(0,Number(url.searchParams.get('limit')||answer.length));
     else throw Error('Unexpected backend request: '+path);
     if(req.headers()['accept']?.includes('vnd.pgrst.object')&&Array.isArray(answer))answer=answer[0];
     return route.fulfill({headers,json:answer});
@@ -64,7 +64,7 @@ test('two independent browsers queue, edit, cancel and auto-lock one possession'
    await p.getByRole('button',{name:/Replay Away.*Replay Home/}).click();
    await expect.poll(()=>p.evaluate(()=>currentDriveId)).toBe('drive-1');
   }
-  const [a,b]=pages;await expect(a.locator('#predictionPanel')).toHaveCount(1);await expect(a.locator('#nextPossessionPanel')).toHaveCount(0);await expect(a.locator('#pickTarget')).toHaveAttribute('data-target','next');
+  const [a,b]=pages;await expect(a.locator('#trackerRoomBanner')).toBeHidden();await expect(a.locator('#liveGameTracker #liveGroupScoreChips')).toBeVisible();await expect(a.locator('#liveScoreLog')).toHaveText('No scored possessions yet.');await expect(a.locator('#predictionPanel')).toHaveCount(1);await expect(a.locator('#nextPossessionPanel')).toHaveCount(0);await expect(a.locator('#pickTarget')).toHaveAttribute('data-target','next');
   await a.getByRole('button',{name:'Punt',exact:true}).click();
   await a.locator('#lockPick').click();await expect(a.locator('#queueStatus')).toContainText('QUEUED · Punt');
   await expect(b.locator('#queueStatus')).not.toContainText('QUEUED');
@@ -84,7 +84,7 @@ test('two independent browsers queue, edit, cancel and auto-lock one possession'
   expect(await b.locator('#liveGameTracker').evaluate(e=>e.getBoundingClientRect().height)).toBeLessThan(310);
   await b.screenshot({path:'test-results/compact-locked-mobile.png'});
   stage=4;
-  for(const p of pages){await expect.poll(()=>p.evaluate(()=>driveNumber),{timeout:25000}).toBe(3);await expect(p.locator('#trackerPlayerSummary')).toContainText('10 pts');}
+  for(const p of pages){await expect.poll(()=>p.evaluate(()=>driveNumber),{timeout:25000}).toBe(3);await expect(p.locator('#trackerPlayerSummary')).toContainText('10 pts');await expect(p.locator('#liveGroupScoreChips')).toContainText('10 pts');await expect(p.locator('#liveScoreLog')).toContainText('Possession 2 scored');await expect(p.locator('#liveScoreLog')).toContainText('+10');await expect(p.locator('#liveScoreLog')).toContainText('+0');}
   await expect(a.locator('#lockPick')).toBeDisabled();await expect(a.locator('#lockPick')).toHaveText('🔒 Lock my pick');
   expect(predictions.filter(p=>p.drive_id==='drive-3')).toHaveLength(0);await expect(a.locator('#trackerLockedPicks')).toBeHidden();
   // Mobile queue and sticky tracker remain usable while scrolling.
