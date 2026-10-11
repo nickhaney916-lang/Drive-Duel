@@ -42,7 +42,9 @@ test('two browsers follow automatic punt, touchdown conversion and skipped drive
       if(drive.feed_closed||Date.now()>=Date.parse(drive.prediction_deadline))return route.fulfill({status:400,headers,json:{message:'Prediction window closed'}});
       predictions.push({drive_id:body.p_drive_id,player_id:pid,prediction_type:body.p_prediction_type,predicted_outcome:body.p_predicted_outcome,is_locked:true});
       answer={ok:true};
-    }else if(path.endsWith('/game_players')){if(req.method()==='POST'){for(const row of body)if(!gameMembers.some(m=>m.game_id===row.game_id&&m.player_id===row.player_id))gameMembers.push(row);answer=[];}else answer=gameMembers.filter(m=>'eq.'+m.game_id===url.searchParams.get('game_id'));}
+    }else if(path.endsWith('/group_game_details'))answer=[];
+    else if(path.endsWith('/rpc/drive_duel_group_standings'))answer={games:[]};
+    else if(path.endsWith('/game_players')){if(req.method()==='POST'){for(const row of body)if(!gameMembers.some(m=>m.game_id===row.game_id&&m.player_id===row.player_id))gameMembers.push(row);answer=[];}else answer=gameMembers.filter(m=>'eq.'+m.game_id===url.searchParams.get('game_id'));}
     else if(path.endsWith('/players'))answer=players.map((p,j)=>({...p,score:scores[j]}));
     else if(path.endsWith('/queued_predictions'))answer=[];
     else if(path.endsWith('/predictions'))answer=predictions.filter(p=>'eq.'+p.drive_id===url.searchParams.get('drive_id'));
