@@ -52,7 +52,7 @@ test('two independent browsers queue, edit, cancel and auto-lock one possession'
     }
     else if(path.endsWith('/predictions'))answer=predictions.filter(p=>'eq.'+p.drive_id===url.searchParams.get('drive_id'));
     else if(path.endsWith('/room_game_state'))answer=[{room_id:rid,game_id:game,active_drive_id:active,pending_reason:null,latest_source_number:drives.length,game_state:'in'}];
-    else if(path.endsWith('/drives'))answer=drives.filter(d=>(!url.searchParams.get('id')||'eq.'+d.id===url.searchParams.get('id'))&&(!url.searchParams.get('status')||'eq.'+d.status===url.searchParams.get('status')));if(path.endsWith('/drives')&&url.searchParams.get('status'))answer=answer.sort((a,b)=>b.drive_number-a.drive_number).slice(0,Number(url.searchParams.get('limit')||answer.length));
+    else if(path.endsWith('/drives')){answer=drives.filter(d=>(!url.searchParams.get('id')||'eq.'+d.id===url.searchParams.get('id'))&&(!url.searchParams.get('status')||'eq.'+d.status===url.searchParams.get('status')));if(path.endsWith('/drives')&&url.searchParams.get('status'))answer=answer.sort((a,b)=>b.drive_number-a.drive_number).slice(0,Number(url.searchParams.get('limit')||answer.length));}
     else throw Error('Unexpected backend request: '+path);
     if(req.headers()['accept']?.includes('vnd.pgrst.object')&&Array.isArray(answer))answer=answer[0];
     return route.fulfill({headers,json:answer});
