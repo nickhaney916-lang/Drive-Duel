@@ -13,12 +13,12 @@ test('real live game across two independent browsers',async()=>{
   await p.getByRole('textbox',{name:'Enter your name',exact:true}).fill(name);
   if(invite){await p.getByRole('button',{name:'Enter group',exact:true}).click();await expect(p.getByText('Room details',{exact:true})).toBeVisible();}
   console.log('JOIN_VIEW',name,await p.locator('#roomGamesMount').innerText());await p.locator('.game[data-id="401872981"]:visible').click({timeout:60000});
-  await expect.poll(()=>p.evaluate(()=>Boolean(roomId&&automaticReady)),{timeout:45000}).toBe(true);
+  await expect.poll(()=>p.evaluate(()=>Boolean(roomId&&automaticReady&&currentDriveId)),{timeout:45000}).toBe(true);
  }
  try{
   for(let i=0;i<2;i++){
    const c=await browsers[i].newContext({viewport:{width:i?390:1280,height:900}});
-   const p=await c.newPage();pages.push(p);await enter(p,'Live Browser '+(i+1),i?code:null);
+   const p=await c.newPage();pages.push(p);await enter(p,'Live Followup '+(i+1),i?code:'R3ID94');
    const s=await sample(p);if(!i){room=s.room;code=s.code;first=s.current;}else{joinedId=s.player;expect(s.room).toBe(room);}
   }
   expect((await sample(pages[0])).player).not.toBe(joinedId);
@@ -33,7 +33,7 @@ test('real live game across two independent browsers',async()=>{
     await expect(pages[0].locator('#lockPick')).toHaveText('✓ Offense Pick Locked');
     locked=true;console.log('REAL_PICK_LOCKED',a.current);
    }
-   if(advanced&&!rejoined){await enter(pages[1],'Live Browser 2',code);expect((await sample(pages[1])).player).toBe(joinedId);rejoined=true;console.log('REAL_REJOIN_PRESERVED_ID');}
+   if(advanced&&!rejoined){await enter(pages[1],'Live Followup 2',code);expect((await sample(pages[1])).player).toBe(joinedId);rejoined=true;console.log('REAL_REJOIN_PRESERVED_ID');}
    if(Date.now()-lastLog>15000){lastLog=Date.now();console.log('LIVE_SAMPLE',JSON.stringify({elapsed:Math.round((Date.now()-start)/1000),a:a.current,b:b.current,ready:a.ready,status:a.status,drives:a.drives.map(d=>({id:d.id,source:d.feed_drive_id,status:d.status,outcome:d.actual_outcome})),scores:a.players.map(p=>({id:p.id,cpu:p.is_cpu,score:p.score}))}));}
    if(advanced&&rejoined&&a.drives.some(d=>d.status==='scored')&&a.current===b.current)break;
    await pages[0].waitForTimeout(2000);
