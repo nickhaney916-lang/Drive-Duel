@@ -492,7 +492,7 @@ async function resumeGroup(){
  await ensureAuth();
  if(saved.userId&&saved.userId!==currentUser.id)throw Error('Your original browser session is unavailable. Enter your name and use group code '+saved.code+' to join as a new player.');
  const {data:room,error}=await db.rpc('join_drive_duel_room',{p_room_code:saved.code,p_player_name:saved.name});if(error)throw error;
- roomId=room.room_id;playerId=room.player_id;roomCode=room.room_code;league=room.league||saved.league||'nfl';
+ adoptGroup(room);league=room.league||saved.league||'nfl';
  $('playerName').value=room.player_name||saved.name;$('joinCode').value=roomCode;
  document.querySelectorAll('.tab[data-league]').forEach(b=>{const active=b.dataset.league===league;b.classList.toggle('active',active);b.setAttribute('aria-selected',String(active))});
  $('roomPlayersBlock').classList.remove('hidden');await loadRoomPlayers();renderRoomInvite();watchRoom();
@@ -573,7 +573,7 @@ async function refreshStandings(force=false){
  finally{standingsBusy=false;}
 }
 $('standingsSummary').addEventListener('click',async()=>{$('standingsPanel').open=true;await refreshStandings(true);$('standingsPanel').scrollIntoView({behavior:'smooth',block:'start'});});
-$('standingsPanel').addEventListener('toggle',()=>{if($('standingsPanel').open)refreshStandings(true);});
+$('standingsPanel').addEventListener('toggle',()=>{if($('standingsPanel').open)refreshStandings();});
 document.querySelectorAll('#standingsPanel [data-period]').forEach(b=>b.addEventListener('click',()=>{standingsPeriod=b.dataset.period;renderStandings();}));
 $('standingsGame').addEventListener('change',renderStandings);$('standingsDate').addEventListener('change',renderStandings);
 renderRecentGroups();renderStandings();
