@@ -87,7 +87,13 @@ test('real server returns verified drive history and no phantom drive for final 
    await ensureAuth();
    const created=await db.rpc('create_drive_duel_room',{p_room_code:Math.random().toString(36).slice(2,8).toUpperCase().padEnd(6,'X'),p_league:'nfl',p_player_name:'Server Smoke'});
    if(created.error)throw created.error;
-   const reply=await db.functions.invoke('drive-duel-live-feed',{body:{eventId:'401772943',league:'nfl',date:'2025-10-30',awayName:'Ravens',homeName:'Dolphins',roomId:created.data.room_id}});
+   let reply;
+   for(let attempt=0;attempt<3;attempt++){
+    reply=await db.functions.invoke('drive-duel-live-feed',{body:{eventId:'401772943',league:'nfl',date:'2025-10-30',awayName:'Ravens',homeName:'Dolphins',roomId:created.data.room_id}});
+    if(reply.data?.scoringSafe)break;
+    console.log('Historical feed pending',JSON.stringify({attempt:attempt+1,note:reply.data?.note,reason:reply.data?.data?.automatic?.reason,error:reply.error?.message}));
+    if(attempt<2)await new Promise(r=>setTimeout(r,2000));
+   }
    return {error:reply.error?.message,data:reply.data};
   });
   expect(r.error).toBeUndefined();expect(r.data.ok).toBe(true);expect(r.data.scoringSafe).toBe(true);
