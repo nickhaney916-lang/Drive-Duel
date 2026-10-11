@@ -87,6 +87,22 @@ test('two independent browsers queue, edit, cancel and auto-lock one possession'
   for(const p of pages){await expect.poll(()=>p.evaluate(()=>driveNumber),{timeout:25000}).toBe(3);await expect(p.locator('#trackerPlayerSummary')).toContainText('10 pts');await expect(p.locator('#liveGroupScoreChips')).toContainText('10 pts');await expect(p.locator('#liveScoreLog')).toContainText('Possession 2 scored');await expect(p.locator('#liveScoreLog')).toContainText('+10');await expect(p.locator('#liveScoreLog')).toContainText('+0');}
   await expect(a.locator('#lockPick')).toBeDisabled();await expect(a.locator('#lockPick')).toHaveText('🔒 Lock my pick');
   expect(predictions.filter(p=>p.drive_id==='drive-3')).toHaveLength(0);await expect(a.locator('#trackerLockedPicks')).toBeHidden();
+  // Both independent devices reconnect after a total disconnect without creating players.
+  const originalIds=await Promise.all(pages.map(p=>p.evaluate(()=>playerId)));
+  for(const p of pages)await p.context().setOffline(true);
+  for(const p of pages)await p.context().setOffline(false);
+  for(let i=0;i<pages.length;i++){
+   const p=pages[i];await p.reload();
+   await expect(p.locator('#resumeGroup')).toBeVisible();
+   await expect(p.locator('#resumeDetails')).toContainText('AUTOT1');
+   await p.locator('#resumeGroup').click();
+   await expect.poll(()=>p.evaluate(()=>playerId)).toBe(originalIds[i]);
+   await expect.poll(()=>p.evaluate(()=>selectedGame?.id)).toBe(game);
+   await expect.poll(()=>p.evaluate(()=>driveNumber)).toBe(3);
+   await expect(p.locator('#liveGroupScoreChips')).toContainText('10 pts');
+   await expect(p.locator('#liveRosterStatus')).toContainText('2 players');
+  }
+  expect(players).toHaveLength(2);
   // Mobile queue and sticky tracker remain usable while scrolling.
   closeOnSubmit=true;
   await b.getByRole('button',{name:'Punt',exact:true}).click();await b.locator('#lockPick').click();
