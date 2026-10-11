@@ -12,7 +12,7 @@ test('real live game across two independent browsers',async()=>{
   await p.goto('https://nickhaney916-lang.github.io/Drive-Duel/'+(invite?'?room='+invite:''));
   await p.getByRole('textbox',{name:'Enter your name',exact:true}).fill(name);
   if(invite){await p.getByRole('button',{name:'Enter group',exact:true}).click();await expect(p.getByText('Room details',{exact:true})).toBeVisible();}
-  await p.locator('.game[data-id="401872981"]:visible').click({timeout:60000});
+  console.log('JOIN_VIEW',name,await p.locator('#roomGamesMount').innerText());await p.locator('.game[data-id="401872981"]:visible').click({timeout:60000});
   await expect.poll(()=>p.evaluate(()=>Boolean(roomId&&automaticReady)),{timeout:45000}).toBe(true);
  }
  try{
