@@ -61,7 +61,7 @@ test('two browsers follow automatic punt, touchdown conversion and skipped drive
   }
   const [a,b]=pages;
   for(const p of pages){await expect(p.locator('#pickWindowBanner')).toHaveAttribute('data-state','open');await expect(p.locator('#pickWindowLabel')).toContainText('PICKS OPEN');await expect(p.locator('#jumpToPicks')).toBeVisible();}
-  await expect(a.locator('#possessionField')).toHaveAttribute('data-side','away');await expect(a.locator('#possessionArrow')).toHaveText('←');
+  await expect(a.locator('#possessionField')).toHaveAttribute('data-side','away');await expect(a.locator('#possessionArrow')).toHaveText('←');await expect(a.locator('#awayName')).toHaveClass(/hasPossession/);await expect(a.locator('#fieldAway')).toHaveClass(/hasPossession/);await expect(a.locator('#homeName')).not.toHaveClass(/hasPossession/);await expect(a.locator('#currentPossessionTag')).toHaveText('Possession 1');
   expect(await a.evaluate(()=>playerId)).not.toBe(await b.evaluate(()=>playerId));
   await a.getByRole('button',{name:'Punt',exact:true}).click();await a.locator('#lockPick').click();await expect(a.locator('#lockPick')).toHaveText('✓ Offense Pick Locked');
   await expect(a.locator('#pickWindowBanner')).toHaveAttribute('data-state','locked');await expect(a.locator('#pickWindowLabel')).toContainText('OFFENSE PICK LOCKED');
@@ -71,6 +71,7 @@ test('two browsers follow automatic punt, touchdown conversion and skipped drive
   stage=2;
   for(const p of pages){await expect.poll(()=>p.evaluate(()=>driveNumber),{timeout:25000}).toBe(2);await expect(p.locator('#trackerPlayerSummary')).toContainText('20 pts');await expect(p.locator('#liveGroupScoreChips')).toContainText('20 pts');await expect(p.locator('#liveScoreLog')).toContainText('Possession 1 scored');await expect(p.locator('#liveScoreLog')).toContainText('+20');await p.getByRole('button',{name:'Touchdown',exact:true}).click();await p.locator('#lockPick').click();await expect(p.locator('#lockPick')).toHaveText('✓ Offense Pick Locked');}
   await expect(a.locator('#pickControls')).toBeVisible();
+  await expect(a.locator('#homeName')).toHaveClass(/hasPossession/);await expect(a.locator('#awayName')).not.toHaveClass(/hasPossession/);await expect(a.locator('#fieldHome')).toHaveClass(/hasPossession/);
   stage=3;
   await expect(a.locator('#driveStatus'),{timeout:25000}).toContainText('confirming the result and conversion');
   await expect(a.locator('#pickWindowLabel')).toContainText('WINDOW CLOSED');await expect(a.locator('#jumpToPicks')).toBeHidden();
