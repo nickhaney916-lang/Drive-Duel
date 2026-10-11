@@ -133,7 +133,7 @@ function displayPickWindow(message,state,remaining=0){
  $('driveStatus').textContent=message;
  $('pickWindowBanner').dataset.state=state;
  const type=activePredictionType==='offense'?'OFFENSE':'DEFENSE';
- const labels={open:'PICKS OPEN · '+remaining+'s LEFT',closed:'PICKS CLOSED · NEXT POSSESSION',locked:type+' PICK LOCKED',waiting:'WAITING FOR POSSESSION'};
+ const labels={open:'PICKS OPEN · '+remaining+'s LEFT',closed:'PICKS CLOSED · NEXT POSSESSION',locked:type+' PICK LOCKED'+(remaining?'':' · WINDOW CLOSED'),waiting:'WAITING FOR POSSESSION'};
  $('pickWindowLabel').textContent=labels[state];
  $('pickWindowHint').textContent=state==='open'?'Choose and lock your pick before the countdown ends.':state==='closed'?'This window has passed. Wait for the next possession.':state==='locked'?'Your pick is saved for this possession.':'Picks open together when the next possession is confirmed.';
  $('jumpToPicks').hidden=state!=='open';
@@ -146,7 +146,7 @@ function renderAutomaticStatus(){
  if(driveScored){displayPickWindow('Possession '+driveNumber+' complete and scored. Wait for the next possession.','closed');return}
  if(lockedTypes[activePredictionType]){
   const type=activePredictionType==='offense'?'Offense':'Defense';
-  displayPickWindow(type+' pick locked for possession '+driveNumber+': '+activePick()+'. '+(feedClosed||automaticPending?'We are confirming the result and conversion before scoring.':'Waiting for this possession’s result.'),'locked');
+  displayPickWindow(type+' pick locked for possession '+driveNumber+': '+activePick()+'. '+(feedClosed||automaticPending?'We are confirming the result and conversion before scoring.':'Waiting for this possession’s result.'),'locked',feedClosed||automaticPending?0:remaining);
   return;
  }
  if(!automaticReady){displayPickWindow('Waiting for verified possession data. Picks are temporarily paused.','waiting');return}
