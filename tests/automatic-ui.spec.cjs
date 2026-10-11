@@ -3,7 +3,7 @@ const APP_URL=process.env.TEST_URL||'http://127.0.0.1:8000';
 test('two browsers follow automatic punt, touchdown conversion and skipped drive',async()=>{
  test.setTimeout(150000);
  const browsers=await Promise.all([chromium.launch(),chromium.launch()]);
- const pages=[], players=[], predictions=[], drives=[];
+ const pages=[], players=[], predictions=[], drives=[],gameMembers=[];
  const rid='10000000-0000-0000-0000-000000000001',game='901000001';
  let stage=1,applied=1,active='drive-1',scores=[0,0];
  const row=(n)=>({id:'drive-'+n,room_id:rid,game_id:game,drive_number:n,status:'in_progress',feed_drive_id:'espn-'+n,feed_closed:false,prediction_deadline:new Date(Date.now()+15000).toISOString()});
@@ -42,7 +42,8 @@ test('two browsers follow automatic punt, touchdown conversion and skipped drive
       if(drive.feed_closed||Date.now()>=Date.parse(drive.prediction_deadline))return route.fulfill({status:400,headers,json:{message:'Prediction window closed'}});
       predictions.push({drive_id:body.p_drive_id,player_id:pid,prediction_type:body.p_prediction_type,predicted_outcome:body.p_predicted_outcome,is_locked:true});
       answer={ok:true};
-    }else if(path.endsWith('/players'))answer=players.map((p,j)=>({...p,score:scores[j]}));
+    }else if(path.endsWith('/game_players')){if(req.method()==='POST'){for(const row of body)if(!gameMembers.some(m=>m.game_id===row.game_id&&m.player_id===row.player_id))gameMembers.push(row);answer=[];}else answer=gameMembers.filter(m=>'eq.'+m.game_id===url.searchParams.get('game_id'));}
+    else if(path.endsWith('/players'))answer=players.map((p,j)=>({...p,score:scores[j]}));
     else if(path.endsWith('/queued_predictions'))answer=[];
     else if(path.endsWith('/predictions'))answer=predictions.filter(p=>'eq.'+p.drive_id===url.searchParams.get('drive_id'));
     else if(path.endsWith('/room_game_state'))answer=[{room_id:rid,game_id:game,active_drive_id:active,pending_reason:null,latest_source_number:drives.length,game_state:'in'}];
