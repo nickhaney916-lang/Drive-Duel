@@ -1,7 +1,7 @@
 name: Automatic drive validation
 on:
   push:
-    branches: ['feature/automatic-drives-20261011', 'feature/queued-picks-20261011', 'feature/unified-picks-20261011', 'feature/tracker-picks-20261011', 'feature/compact-tracker-20261011', 'feature/live-group-scores-20261011', 'feature/visible-room-joins-20261011', 'feature/resume-group-20261011', 'feature/focus-tracker-20261011', 'feature/game-scores-20261011', 'main']
+    branches: ['feature/automatic-drives-20261011', 'feature/queued-picks-20261011', 'feature/unified-picks-20261011', 'feature/tracker-picks-20261011', 'feature/compact-tracker-20261011', 'feature/live-group-scores-20261011', 'feature/visible-room-joins-20261011', 'feature/resume-group-20261011', 'feature/focus-tracker-20261011', 'feature/game-scores-20261011', 'feature/game-players-20261011', 'main']
 permissions:
   contents: read
 jobs:
