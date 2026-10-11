@@ -1,5 +1,5 @@
 const {test,expect,chromium}=require('@playwright/test');
-const URL=process.env.TEST_URL||'http://127.0.0.1:8000';
+const APP_URL=process.env.TEST_URL||'http://127.0.0.1:8000';
 test('two browsers follow automatic punt, touchdown conversion and skipped drive',async()=>{
  test.setTimeout(150000);
  const browsers=await Promise.all([chromium.launch(),chromium.launch()]);
@@ -51,7 +51,7 @@ test('two browsers follow automatic punt, touchdown conversion and skipped drive
     return route.fulfill({headers,json:answer});
    });
    const p=await c.newPage();pages.push(p);
-   await p.goto(URL+(i?'?room=AUTOT1':''));
+   await p.goto(APP_URL+(i?'?room=AUTOT1':''));
    await p.getByRole('textbox',{name:'Enter your name',exact:true}).fill('Auto Browser '+(i+1));
    if(i){await p.getByRole('button',{name:'Enter group',exact:true}).click();await expect(p.getByText('Room details',{exact:true})).toBeVisible();}
    await p.getByRole('button',{name:/Replay Away.*Replay Home/}).click();
@@ -81,7 +81,7 @@ test('real server returns verified drive history and no phantom drive for final 
  test.setTimeout(60000);
  const browser=await chromium.launch();const p=await browser.newPage();
  try{
-  await p.goto(URL);
+  await p.goto(APP_URL);
   await expect.poll(()=>p.evaluate(()=>Boolean(db)),{timeout:20000}).toBe(true);
   const r=await p.evaluate(async()=>{
    await ensureAuth();
