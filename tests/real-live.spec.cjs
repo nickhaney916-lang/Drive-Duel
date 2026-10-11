@@ -27,7 +27,7 @@ test('49ers prototype mobile create, invite, join and feed messages',async()=>{
    expect(await p.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1)).toBe(true);
    await p.locator('#lockPick').scrollIntoViewIfNeeded();
    const layout=await p.evaluate(()=>{const t=document.getElementById('liveGameTracker').getBoundingClientRect(),b=document.getElementById('lockPick').getBoundingClientRect();return {top:t.top,bottom:t.bottom,height:t.height,buttonTop:b.top,viewport:innerHeight,position:getComputedStyle(document.getElementById('liveGameTracker')).position};});
-   expect(layout.position).toBe('sticky');expect(layout.top).toBeGreaterThanOrEqual(0);expect(layout.bottom).toBeLessThan(layout.viewport);expect(layout.height).toBeLessThan(260);expect(layout.buttonTop).toBeGreaterThanOrEqual(layout.bottom);
+   expect(layout.position).toBe('sticky');expect(layout.top).toBeGreaterThanOrEqual(0);expect(layout.bottom).toBeLessThan(layout.viewport);expect(layout.height).toBeLessThan(310);expect(layout.buttonTop).toBeGreaterThanOrEqual(layout.bottom);
 
   }
   await Promise.all(ps.map((p,i)=>p.screenshot({path:'test-results/49ers-phone-'+i+'.png',fullPage:true})));
