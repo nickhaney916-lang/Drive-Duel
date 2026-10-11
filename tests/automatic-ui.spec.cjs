@@ -45,7 +45,7 @@ test('two browsers follow automatic punt, touchdown conversion and skipped drive
     }else if(path.endsWith('/players'))answer=players.map((p,j)=>({...p,score:scores[j]}));
     else if(path.endsWith('/queued_predictions'))answer=[];
     else if(path.endsWith('/predictions'))answer=predictions.filter(p=>'eq.'+p.drive_id===url.searchParams.get('drive_id'));
-    else if(path.endsWith('/room_game_state'))answer=[{room_id:rid,game_id:game,active_drive_id:active,pending_reason:null}];
+    else if(path.endsWith('/room_game_state'))answer=[{room_id:rid,game_id:game,active_drive_id:active,pending_reason:null,latest_source_number:drives.length,game_state:'in'}];
     else if(path.endsWith('/drives'))answer=drives.filter(d=>!url.searchParams.get('id')||'eq.'+d.id===url.searchParams.get('id'));
     else throw Error('Unexpected backend request: '+path);
     if(req.headers()['accept']?.includes('vnd.pgrst.object')&&Array.isArray(answer))answer=answer[0];
