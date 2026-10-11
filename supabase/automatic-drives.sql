@@ -156,8 +156,8 @@ begin
      if exists(select 1 from public.drives where room_id=p_room_id and game_id=p_game_id and drive_number=bind_number) then
        select coalesce(max(drive_number),0)+1 into bind_number from public.drives where room_id=p_room_id and game_id=p_game_id;
      end if;
-     deadline=clock_timestamp()+interval '15 seconds';
-     if cur->>'first_play_at' is not null then deadline=least(deadline,(cur->>'first_play_at')::timestamptz+interval '15 seconds'); end if;
+     deadline=clock_timestamp()+interval '30 seconds';
+     if cur->>'first_play_at' is not null then deadline=least(deadline,(cur->>'first_play_at')::timestamptz+interval '30 seconds'); end if;
      if coalesce((cur->>'plays')::integer,0)>0 and cur->>'first_play_at' is null then deadline=clock_timestamp(); end if;
      insert into public.drives(room_id,game_id,drive_number,quarter,status,feed_drive_id,feed_closed,prediction_deadline)
      values(p_room_id,p_game_id,bind_number,(cur->>'quarter')::integer,'in_progress',cur->>'source_id',coalesce((cur->>'terminal')::boolean,false),deadline) returning * into d;
