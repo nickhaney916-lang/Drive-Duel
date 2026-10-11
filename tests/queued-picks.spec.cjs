@@ -91,3 +91,37 @@ test('two independent browsers queue, edit, cancel and auto-lock one possession'
   console.log('PASS: two independent browser processes; queue edit/cancel, privacy, auto-lock, 30-second fallback, one-time use and mobile layout.');
  }finally{await Promise.all(browsers.map(b=>b.close()));}
 });
+
+test('real pregame queue survives reload and remains private to its owner',async()=>{
+ test.setTimeout(120000);
+ const browsers=await Promise.all([chromium.launch(),chromium.launch()]);
+ const a=await browsers[0].newPage(),b=await browsers[1].newPage();
+ try{
+  await Promise.all([a.goto(APP_URL),b.goto(APP_URL)]);
+  await expect.poll(()=>a.evaluate(()=>lastEvents.some(e=>e.status?.type?.state==='pre')),{timeout:40000}).toBe(true);
+  const saved=await a.evaluate(async()=>{
+   await ensureAuth();const event=lastEvents.find(e=>e.status?.type?.state==='pre'),ts=teams(event);
+   const room=await db.rpc('create_drive_duel_room',{p_room_code:makeCode(),p_league:'nfl',p_player_name:'Queue Browser Owner'});if(room.error)throw room.error;
+   const feed=await db.functions.invoke('drive-duel-live-feed',{body:{eventId:event.id,league:'nfl',date:event.date,awayName:ts.away.team.shortDisplayName,homeName:ts.home.team.shortDisplayName,roomId:room.data.room_id}});
+   if(feed.error||!feed.data?.scoringSafe)throw Error(feed.error?.message||feed.data?.note);
+   const args={p_room_id:room.data.room_id,p_game_id:event.id,p_prediction_type:'offense',p_predicted_outcome:'Punt'};
+   const queued=await db.rpc('drive_duel_queue_pick',args);if(queued.error)throw queued.error;
+   return {room:room.data,args,version:queued.data.version};
+  });
+  const other=await b.evaluate(async s=>{
+   await ensureAuth();const joined=await db.rpc('join_drive_duel_room',{p_room_code:s.room.room_code,p_player_name:'Queue Browser Opponent'});if(joined.error)throw joined.error;
+   const rows=await db.from('queued_predictions').select('*').eq('room_id',s.room.room_id);if(rows.error)throw rows.error;return rows.data;
+  },saved);
+  expect(other).toEqual([]);
+  await a.reload();
+  const result=await a.evaluate(async s=>{
+   await ensureAuth();const rows=await db.from('queued_predictions').select('*').eq('room_id',s.room.room_id);if(rows.error)throw rows.error;
+   if(rows.data.length!==1||rows.data[0].predicted_outcome!=='Punt')throw Error('Saved queue did not persist');
+   const edited=await db.rpc('drive_duel_queue_pick',{...s.args,p_predicted_outcome:'Touchdown',p_expected_version:s.version});if(edited.error)throw edited.error;
+   const cancelled=await db.rpc('drive_duel_queue_pick',{...s.args,p_predicted_outcome:null,p_expected_version:edited.data.version,p_cancel:true});if(cancelled.error)throw cancelled.error;
+   return cancelled.data;
+  },saved);
+  expect(result.cancelled).toBe(true);
+  console.log('PASS: two real authenticated browsers; ESPN pregame verification, persistent queue save/edit/cancel and opponent privacy.');
+ }finally{await Promise.all(browsers.map(b=>b.close()));}
+});
