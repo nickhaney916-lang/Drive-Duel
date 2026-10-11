@@ -18,6 +18,7 @@ test('49ers prototype mobile create, invite, join and feed messages',async()=>{
   await ps[0].locator('#back').click();
   await expect(ps[0].locator('#roomLinkDisplay')).toHaveValue(SITE+'?room='+a.code);
   await enter(ps[1],names[1],'401872992',a.code);
+  await ps[0].locator('.game[data-id="401872992"]:visible').click();
   const b=await ps[1].evaluate(()=>({room:roomId,player:playerId,game:selectedGame.id}));
   expect(b.room).toBe(a.room);expect(b.player).not.toBe(a.player);expect(b.game).toBe(a.game);
   for(const p of ps){
