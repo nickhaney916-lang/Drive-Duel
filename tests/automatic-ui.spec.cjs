@@ -58,14 +58,17 @@ test('two browsers follow automatic punt, touchdown conversion and skipped drive
    await expect.poll(()=>p.evaluate(()=>currentDriveId)).toBe('drive-1');
   }
   const [a,b]=pages;
+  for(const p of pages){await expect(p.locator('#pickWindowBanner')).toHaveAttribute('data-state','open');await expect(p.locator('#pickWindowLabel')).toContainText('PICKS OPEN');await expect(p.locator('#jumpToPicks')).toBeVisible();}
   expect(await a.evaluate(()=>playerId)).not.toBe(await b.evaluate(()=>playerId));
   await a.getByRole('button',{name:'Punt',exact:true}).click();await a.locator('#lockPick').click();await expect(a.locator('#lockPick')).toHaveText('✓ Offense Pick Locked');
+  await expect(a.locator('#pickWindowBanner')).toHaveAttribute('data-state','locked');await expect(a.locator('#pickWindowLabel')).toContainText('OFFENSE PICK LOCKED');
   await a.locator('#defenseTab').click();await a.getByRole('button',{name:'Force a punt',exact:true}).click();await a.locator('#lockPick').click();await expect(a.locator('#lockPick')).toHaveText('✓ Defense Pick Locked');
   await b.getByRole('button',{name:'Turnover',exact:true}).click();await b.locator('#lockPick').click();await expect(b.locator('#lockPick')).toHaveText('✓ Offense Pick Locked');
   stage=2;
   for(const p of pages){await expect.poll(()=>p.evaluate(()=>driveNumber),{timeout:25000}).toBe(2);await expect(p.locator('#trackerPlayerSummary')).toContainText('20 pts');await p.getByRole('button',{name:'Touchdown',exact:true}).click();await p.locator('#lockPick').click();await expect(p.locator('#lockPick')).toHaveText('✓ Offense Pick Locked');}
   stage=3;
   await expect(a.locator('#driveStatus'),{timeout:25000}).toContainText('confirming the result and conversion');
+  await expect(a.locator('#pickWindowLabel')).toContainText('WINDOW CLOSED');await expect(a.locator('#jumpToPicks')).toBeHidden();
   await expect(a.locator('#trackerPlayerSummary')).toContainText('20 pts');
   for(const p of pages)await expect(p.getByRole('button',{name:'Punt',exact:true})).toBeDisabled();
   stage=4;
