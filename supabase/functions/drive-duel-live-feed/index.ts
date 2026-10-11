@@ -175,13 +175,19 @@ async function schedule(body:any){
  const sport=body.league==="college"?"college-football":"nfl";
  const keys=body.dates;
  if(!Array.isArray(keys)||keys.length>8||!keys.length||keys.some((k:any)=>!/^\d{8}$/.test(k)))return json({error:"Invalid schedule dates"},400);
- const dates=keys[0]+"-"+keys.at(-1);
  const suffix=sport==="college-football"?"&groups=80&limit=100":"";
- for(const host of ["site.api.espn.com","site.web.api.espn.com"]){
-   try{const r=await timeoutFetch("https://"+host+"/apis/site/v2/sports/football/"+sport+"/scoreboard?dates="+dates+suffix,6500);
-     if(r.ok){const data=await r.json();if(Array.isArray(data.events))return json({ok:true,events:data.events});}
+ // ESPN rejects date ranges on this endpoint; fetch each requested day independently.
+ const days=await Promise.all([...new Set(keys)].map(async date=>{
+  for(const host of ["site.api.espn.com","site.web.api.espn.com"]){
+   try{
+    const r=await timeoutFetch("https://"+host+"/apis/site/v2/sports/football/"+sport+"/scoreboard?dates="+date+suffix,6500);
+    if(r.ok){const data=await r.json();if(Array.isArray(data.events))return {date,events:data.events,ok:true};}
    }catch{}
- }
+  }
+  return {date,events:[],ok:false};
+ }));
+ const seen=new Set();const events=days.flatMap(d=>d.events).filter(e=>{if(seen.has(e.id))return false;seen.add(e.id);return true;});
+ if(days.some(d=>d.ok))return json({ok:true,events,unavailableDates:days.filter(d=>!d.ok).map(d=>d.date)});
  return json({ok:false,error:"Schedule temporarily unavailable"},503);
 }
 
