@@ -193,7 +193,7 @@ function renderAutomaticStatus(){
  if(driveScored){displayPickWindow('Possession '+driveNumber+' complete and scored. Wait for the next possession.','closed');return}
  if(lockedTypes[activePredictionType]){
   const type=activePredictionType==='offense'?'Offense':'Defense';
-  displayPickWindow(type+' pick locked for possession '+driveNumber+': '+activePick()+'. '+(feedClosed||automaticPending?'We are confirming the result and conversion before scoring.':'Waiting for this possession’s result.'),'locked',feedClosed||automaticPending?0:remaining);
+  displayPickWindow(type+' pick locked for possession '+driveNumber+': '+chosenPicks[activePredictionType]+'. '+(feedClosed||automaticPending?'We are confirming the result and conversion before scoring.':'Waiting for this possession’s result.'),'locked',feedClosed||automaticPending?0:remaining);
   return;
  }
  if(!automaticReady){displayPickWindow('Waiting for verified possession data. Picks are temporarily paused.','waiting');return}
@@ -218,8 +218,8 @@ async function syncSharedDrive(){
  finally{autoSyncBusy=false;}
 }
 
-let queueType='offense',queueRows={},queueSelections={offense:'',defense:''},queueBusy=false,queueState=null,queueReadGeneration=0,queueError='';
-function resetNextPicks(){queueReadGeneration++;queueRows={};queueSelections={offense:'',defense:''};queueState=null;queueType='offense';queueError='';renderNextPicks();}
+let queueRows={},queueSelections={offense:'',defense:''},queueBusy=false,queueState=null,queueReadGeneration=0,queueError='';
+function resetNextPicks(){queueReadGeneration++;queueRows={};queueSelections={offense:'',defense:''};queueState=null;queueError='';renderNextPicks();}
 function renderNextPicks(){renderPick();}
 async function refreshNextPicks(state){
  const game=selectedGame?.id,generation=queueReadGeneration;if(!game||!playerId)return;
