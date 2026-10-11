@@ -180,3 +180,8 @@ commit;
 
 revoke all on function public.drive_duel_get_drive(uuid,text,integer,integer) from public,anon,authenticated;
 grant execute on function public.drive_duel_get_drive(uuid,text,integer,integer) to service_role;
+
+-- Keep shared state readable to members but writable only by the trusted feed.
+revoke all on public.room_game_state from anon, authenticated;
+grant select on public.room_game_state to authenticated;
+grant all on public.room_game_state to service_role;
