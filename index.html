@@ -244,7 +244,7 @@ async function refreshScoreLog(){
  try{
  const scored=[];
  for(let offset=0;;offset+=1000){
- const {data,error}=await db.from('drives').select('id,drive_number,status,actual_outcome,conversion_success,scored_at').eq('room_id',room).eq('game_id',game).eq('status','scored').order('scored_at',{ascending:false,nullsFirst:false}).range(offset,offset+999);
+ const {data,error}=await db.from('drives').select('id,drive_number,status,actual_outcome,conversion_success,scored_at').eq('room_id',room).eq('game_id',game).eq('status','scored').order('scored_at',{ascending:false,nullsFirst:false}).order('id').range(offset,offset+999);
  if(error)throw error;if(!stillCurrent())return;scored.push(...(data||[]));if((data||[]).length<1000)break;
  }
  const receipts=[];
@@ -253,7 +253,7 @@ async function refreshScoreLog(){
  if(!receipt){
  const points={};
  for(let offset=0;;offset+=1000){
- const picks=await db.from('predictions').select('player_id,prediction_type,predicted_outcome,is_locked').eq('drive_id',drive.id).range(offset,offset+999);
+ const picks=await db.from('predictions').select('player_id,prediction_type,predicted_outcome,is_locked').eq('drive_id',drive.id).order('player_id').order('prediction_type').range(offset,offset+999);
  if(picks.error)throw picks.error;if(!stillCurrent())return;
  for(const pick of picks.data||[])points[pick.player_id]=(points[pick.player_id]||0)+scorePick(pick,drive);
  if((picks.data||[]).length<1000)break;
