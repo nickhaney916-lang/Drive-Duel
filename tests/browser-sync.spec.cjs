@@ -32,7 +32,8 @@ test('two independent browsers synchronize three drives', async () => {
     for(let n=1;n<=3;n++){
       await expect.poll(async()=> (await snapshot(a)).drive).toBe(n);
       await expect.poll(async()=> (await snapshot(b)).drive).toBe(n);
-      expect((await snapshot(a)).driveId).toBe((await snapshot(b)).driveId);
+      for(const p of pages)await expect.poll(async()=> (await snapshot(p)).driveId).toBeTruthy();
+      await expect.poll(async()=> (await snapshot(b)).driveId).toBe((await snapshot(a)).driveId);
       await a.getByRole('button',{name:'Punt',exact:true}).click();
       await a.locator('#lockPick').click();
       await expect(a.locator('#lockPick')).toHaveText('✓ Offense Pick Locked');
