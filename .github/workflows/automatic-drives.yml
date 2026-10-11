@@ -1,7 +1,7 @@
 name: Automatic drive validation
 on:
   push:
-    branches: ['feature/automatic-drives-20261011', 'feature/queued-picks-20261011', 'main']
+    branches: ['feature/automatic-drives-20261011', 'feature/queued-picks-20261011', 'feature/unified-picks-20261011', 'main']
 permissions:
   contents: read
 jobs:
