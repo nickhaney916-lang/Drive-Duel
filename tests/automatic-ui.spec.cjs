@@ -43,6 +43,7 @@ test('two browsers follow automatic punt, touchdown conversion and skipped drive
       predictions.push({drive_id:body.p_drive_id,player_id:pid,prediction_type:body.p_prediction_type,predicted_outcome:body.p_predicted_outcome,is_locked:true});
       answer={ok:true};
     }else if(path.endsWith('/players'))answer=players.map((p,j)=>({...p,score:scores[j]}));
+    else if(path.endsWith('/queued_predictions'))answer=[];
     else if(path.endsWith('/predictions'))answer=predictions.filter(p=>'eq.'+p.drive_id===url.searchParams.get('drive_id'));
     else if(path.endsWith('/room_game_state'))answer=[{room_id:rid,game_id:game,active_drive_id:active,pending_reason:null}];
     else if(path.endsWith('/drives'))answer=drives.filter(d=>!url.searchParams.get('id')||'eq.'+d.id===url.searchParams.get('id'));
