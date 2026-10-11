@@ -10,10 +10,10 @@ test('two browsers follow automatic punt, touchdown conversion and skipped drive
  drives.push(row(1));
  function transition(){
   if(stage===applied)return;applied=stage;
-  if(stage===2){scores=[20,0];drives[0].status='scored';drives[0].feed_closed=true;drives.push(row(2));active='drive-2';}
+  if(stage===2){scores=[20,0];drives[0].status='scored';drives[0].actual_outcome='Punt';drives[0].scored_at=new Date().toISOString();drives[0].feed_closed=true;drives.push(row(2));active='drive-2';}
   if(stage===3){drives[1].feed_closed=true;drives[1].status='awaiting_result';}
-  if(stage===4){scores=[32,12];drives[1].status='scored';drives.push(row(3));active='drive-3';}
-  if(stage===5){scores=[42,12];drives[2].status='scored';drives[2].feed_closed=true;drives.push(row(4));active='drive-4';}
+  if(stage===4){scores=[32,12];drives[1].status='scored';drives[1].actual_outcome='Touchdown';drives[1].conversion_success=true;drives[1].scored_at=new Date().toISOString();drives.push(row(3));active='drive-3';}
+  if(stage===5){scores=[42,12];drives[2].status='scored';drives[2].actual_outcome='Punt';drives[2].scored_at=new Date().toISOString();drives[2].feed_closed=true;drives.push(row(4));active='drive-4';}
  }
  const fixture={id:game,name:'Replay Away at Replay Home',date:new Date().toISOString(),status:{type:{state:'in',detail:'Replay'}},competitions:[{competitors:[{homeAway:'away',score:'0',team:{shortDisplayName:'Replay Away'}},{homeAway:'home',score:'0',team:{shortDisplayName:'Replay Home'}}]}]};
  try{
@@ -46,7 +46,7 @@ test('two browsers follow automatic punt, touchdown conversion and skipped drive
     else if(path.endsWith('/queued_predictions'))answer=[];
     else if(path.endsWith('/predictions'))answer=predictions.filter(p=>'eq.'+p.drive_id===url.searchParams.get('drive_id'));
     else if(path.endsWith('/room_game_state'))answer=[{room_id:rid,game_id:game,active_drive_id:active,pending_reason:null,latest_source_number:drives.length,game_state:'in'}];
-    else if(path.endsWith('/drives'))answer=drives.filter(d=>!url.searchParams.get('id')||'eq.'+d.id===url.searchParams.get('id'));
+    else if(path.endsWith('/drives'))answer=drives.filter(d=>(!url.searchParams.get('id')||'eq.'+d.id===url.searchParams.get('id'))&&(!url.searchParams.get('status')||'eq.'+d.status===url.searchParams.get('status')));if(path.endsWith('/drives')&&url.searchParams.get('status'))answer=answer.sort((a,b)=>b.drive_number-a.drive_number).slice(0,Number(url.searchParams.get('limit')||answer.length));
     else throw Error('Unexpected backend request: '+path);
     if(req.headers()['accept']?.includes('vnd.pgrst.object')&&Array.isArray(answer))answer=answer[0];
     return route.fulfill({headers,json:answer});
@@ -68,17 +68,17 @@ test('two browsers follow automatic punt, touchdown conversion and skipped drive
   await expect(a.locator('#pickWindowLabel')).toContainText('YOUR PICKS LOCKED');await expect(a.locator('#offenseTab')).toHaveClass(/saved/);await expect(a.locator('#defenseTab')).toHaveClass(/saved/);
   await b.getByRole('button',{name:'Turnover',exact:true}).click();await b.locator('#lockPick').click();await expect(b.locator('#lockPick')).toHaveText('✓ Offense Pick Locked');
   stage=2;
-  for(const p of pages){await expect.poll(()=>p.evaluate(()=>driveNumber),{timeout:25000}).toBe(2);await expect(p.locator('#trackerPlayerSummary')).toContainText('20 pts');await p.getByRole('button',{name:'Touchdown',exact:true}).click();await p.locator('#lockPick').click();await expect(p.locator('#lockPick')).toHaveText('✓ Offense Pick Locked');}
+  for(const p of pages){await expect.poll(()=>p.evaluate(()=>driveNumber),{timeout:25000}).toBe(2);await expect(p.locator('#trackerPlayerSummary')).toContainText('20 pts');await expect(p.locator('#liveGroupScoreChips')).toContainText('20 pts');await expect(p.locator('#liveScoreLog')).toContainText('Possession 1 scored');await expect(p.locator('#liveScoreLog')).toContainText('+20');await p.getByRole('button',{name:'Touchdown',exact:true}).click();await p.locator('#lockPick').click();await expect(p.locator('#lockPick')).toHaveText('✓ Offense Pick Locked');}
   stage=3;
   await expect(a.locator('#driveStatus'),{timeout:25000}).toContainText('confirming the result and conversion');
   await expect(a.locator('#pickWindowLabel')).toContainText('WINDOW CLOSED');await expect(a.locator('#jumpToPicks')).toBeHidden();
-  await expect(a.locator('#trackerPlayerSummary')).toContainText('20 pts');
+  await expect(a.locator('#trackerPlayerSummary')).toContainText('20 pts');await expect(a.locator('#liveScoreLog')).toContainText('Possession 1 scored');
   for(const p of pages)await expect(p.getByRole('button',{name:'Punt',exact:true})).toBeEnabled();
   stage=4;
-  for(const p of pages){await expect.poll(()=>p.evaluate(()=>driveNumber),{timeout:25000}).toBe(3);await expect(p.locator('#trackerPlayerSummary')).toContainText('32 pts');await expect(p.locator('#trackerPlayerSummary')).toContainText('12 pts');}
+  for(const p of pages){await expect.poll(()=>p.evaluate(()=>driveNumber),{timeout:25000}).toBe(3);await expect(p.locator('#trackerPlayerSummary')).toContainText('32 pts');await expect(p.locator('#liveGroupScoreChips')).toContainText('32 pts');await expect(p.locator('#liveScoreLog')).toContainText('Possession 2 scored');await expect(p.locator('#liveScoreLog')).toContainText('+12');await expect(p.locator('#trackerPlayerSummary')).toContainText('12 pts');}
   await a.getByRole('button',{name:'Punt',exact:true}).click();await a.locator('#lockPick').click();await expect(a.locator('#lockPick')).toHaveText('✓ Offense Pick Locked');
   stage=5;
-  for(const p of pages){await expect.poll(()=>p.evaluate(()=>driveNumber),{timeout:25000}).toBe(4);await expect(p.locator('#trackerPlayerSummary')).toContainText('42 pts');await expect(p.locator('#trackerPlayerSummary')).toContainText('12 pts');await expect(p.locator('#finalResultPanel')).toBeHidden();await expect(p.locator('#nextDrive')).toBeHidden();}
+  for(const p of pages){await expect.poll(()=>p.evaluate(()=>driveNumber),{timeout:25000}).toBe(4);await expect(p.locator('#trackerPlayerSummary')).toContainText('42 pts');await expect(p.locator('#liveScoreLog')).toContainText('Possession 3 scored');await expect(p.locator('#liveScoreLog')).toContainText('+10');await expect(p.locator('#trackerPlayerSummary')).toContainText('12 pts');await expect(p.locator('#finalResultPanel')).toBeHidden();await expect(p.locator('#nextDrive')).toBeHidden();}
   await Promise.all(pages.map((p,i)=>p.screenshot({path:'test-results/automatic-browser-'+i+'.png',fullPage:true})));
   console.log('PASS: two isolated browser processes; automatic punt/next drive; TD waits for conversion; +2 bonus; skipped pick stays zero; manual controls hidden. Replay transport mocked; backend SQL tested separately.');
  }finally{await Promise.all(browsers.map(b=>b.close()));}
