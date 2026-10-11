@@ -209,12 +209,19 @@ Deno.serve(async (req: Request) => {
     const sport = league === "college" ? "college-football" : "nfl";
     const date = body.date ? new Date(body.date) : new Date();
     if (Number.isNaN(date.getTime())) return json({ error: "Invalid game date." }, 400);
-    const dates = String(date.getUTCFullYear()) + String(date.getUTCMonth()+1).padStart(2,"0") + String(date.getUTCDate()).padStart(2,"0");
+    // ESPN's football scoreboard uses the US game day; ISO kickoff timestamps
+    // for evening games often fall on the following UTC day.
+    const utcDay = String(date.getUTCFullYear()) + String(date.getUTCMonth()+1).padStart(2,"0") + String(date.getUTCDate()).padStart(2,"0");
+    const dateOnly = typeof body.date==="string" && /^\\d{4}-\\d{2}-\\d{2}$/.test(body.date);
+    const parts = new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(date);
+    const part=(type:string)=>parts.find(p=>p.type===type)?.value??"";
+    const dates = dateOnly?utcDay:part("year")+part("month")+part("day");
     const collegeArgs = league === "college" ? "&groups=80&limit=100" : "";
     const candidates = [
       { provider: "ESPN", url: "https://site.api.espn.com/apis/site/v2/sports/football/" + sport + "/scoreboard?dates=" + dates + collegeArgs },
       { provider: "ESPN Backup", url: "https://site.web.api.espn.com/apis/site/v2/sports/football/" + sport + "/scoreboard?region=us&lang=en&contentorigin=espn&dates=" + dates + collegeArgs },
     ];
+    if(dates!==utcDay)candidates.push({provider:"ESPN UTC-day fallback",url:"https://site.api.espn.com/apis/site/v2/sports/football/"+sport+"/scoreboard?dates="+utcDay+collegeArgs});
     const attempts: string[] = [];
     for (const source of candidates) {
       try {
