@@ -108,7 +108,13 @@ function statusRoom(msg){$('roomInfo').textContent=msg}
 function renderTrackerRoom(){if(!$('trackerRoomLabel'))return;$('trackerRoomLabel').textContent=roomCode?'Group '+roomCode:'Group not connected';$('trackerPlayerSummary').textContent=players.map(p=>(p.player_name||p.display_name||p.name||'Player')+(p.is_cpu?' (CPU)':'')+' · '+(p.score||0)+' pts').join(' vs ')||'Waiting for players';}
 function renderRoomInvite(){if(!$('roomCodeDisplay'))return;$('roomCodeDisplay').textContent=roomCode||'—';$('roomLinkDisplay').value=roomCode?'https://nickhaney916-lang.github.io/Drive-Duel/?room='+encodeURIComponent(roomCode):''}
 function ensureDb(){if(!window.supabase){statusRoom('Multiplayer client did not load. Check your connection and reload.');return false}if(!db)db=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);return true}
-async function ensureAuth(){if(!ensureDb())throw new Error('Supabase client failed to load');let {data:{session}}=await db.auth.getSession();if(!session){const {data,error}=await db.auth.signInAnonymously();if(error)throw new Error('Supabase anonymous sign-in failed: '+error.message+'. Anonymous sign-ins may need to be enabled in Supabase Auth settings.');session=data.session}currentUser=session?.user||null;if(!currentUser)throw new Error('Could not establish a multiplayer session.');return currentUser}
+let authInitPromise=null;
+async function ensureAuth(){
+ if(!authInitPromise)authInitPromise=(async()=>{if(!ensureDb())throw new Error('Supabase client failed to load');let {data:{session}}=await db.auth.getSession();if(!session){const {data,error}=await db.auth.signInAnonymously();if(error)throw new Error('Supabase anonymous sign-in failed: '+error.message+'. Anonymous sign-ins may need to be enabled in Supabase Auth settings.');session=data.session}currentUser=session?.user||null;if(!currentUser)throw new Error('Could not establish a multiplayer session.');return currentUser})();
+ const pending=authInitPromise;
+ try{return await pending}finally{if(authInitPromise===pending)authInitPromise=null}
+}
+
 function humanName(){return $('playerName').value.trim().slice(0,24)}
 function requirePlayerName(){const name=humanName();if(!name){$('playerName').focus();statusRoom('Enter your player name first so everyone can identify you in the room.');return null}return name}
 function renderAutomaticStatus(){
