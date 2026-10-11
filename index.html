@@ -179,7 +179,7 @@ function renderLockedTracker(){renderGroupScores();
  const own=id===playerId;
  const picks=lockedTrackerRows.filter(p=>p.player_id===id).sort((a,b)=>a.prediction_type==='offense'?-1:1);
  const text=picks.map(p=>'<span title="'+(p.prediction_type==='offense'?'Offense':'Defense')+': '+esc(p.predicted_outcome)+'" aria-label="'+(p.prediction_type==='offense'?'Offense':'Defense')+': '+esc(p.predicted_outcome)+'">'+(p.prediction_type==='offense'?'🏈 ':'🛡️ ')+esc(shortPick(p.predicted_outcome))+'</span>').join(' · ');
- return '<div class="lockedPickRow'+(own?' mine':'')+'" data-player="'+esc(id)+'" title="'+esc(name)+(own?' (you)':player?.is_cpu?' (CPU)':'')+'"><b>'+'<span class="pickChipName">'+(own?'You':esc(name))+(player?.is_cpu?' 🤖':'')+'</span><strong class="pickChipScore">'+esc(player?.score||0)+' pts</strong></b><div>'+text+'</div></div>';
+ return '<div class="lockedPickRow'+(own?' mine':'')+'" data-player="'+esc(id)+'" title="'+esc(name)+(own?' (you)':player?.is_cpu?' (CPU)':'')+'"><b>'+'<span class="pickChipName">'+(own?'You':esc(name))+(player?.is_cpu?' 🤖':'')+'</span><strong class="pickChipScore">'+esc(player?.score||0)+' pts</strong></b><div>'+(text||'<span class="awaitingPick">Awaiting pick</span>')+'</div></div>';
  }).join('');
 }
 
