@@ -82,8 +82,8 @@ async function refreshGame(){
    $('gameStatus').textContent=e.status||'Status unavailable';
    $('clockInfo').textContent=[e.period?'Q'+e.period:'',e.clock||''].filter(Boolean).join(' · ')||'Not started';
    $('possession').textContent=e.possession||'Possession not confirmed';renderPossessionDiagram(e);
-   $('downDistance').textContent=e.downDistance||'Not provided by feed';
-   $('fieldPosition').textContent=e.fieldPosition||'Not provided by feed';
+   $('downDistance').textContent=e.downDistance||'—';
+   $('fieldPosition').textContent=e.fieldPosition===0||e.fieldPosition?String(e.fieldPosition):'—';
    $('lastPlay').textContent=e.lastPlay||'No play detail in scoreboard feed';
    $('summary').textContent=(e.lastPlay?e.lastPlay+' · ':'')+e.status+'.';
    $('trackerStatus').textContent=e.state==='in'?'LIVE · VERIFIED':'UPDATED · VERIFIED';
@@ -185,6 +185,7 @@ function renderLockedTracker(){
 
 
 function renderPossessionDiagram(data){
+ $('possession').textContent=data.possession||'Possession not confirmed';
  const norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
  const possession=norm(data.possession),away=norm(data.away),home=norm(data.home);
  const owns=(team)=>!!possession&&!!team&&(team.includes(possession)||possession.includes(team));
@@ -211,7 +212,7 @@ function displayPickWindow(message,state,remaining=0){
  $('driveStatus').textContent=message;
  $('pickWindowBanner').dataset.state=state;
  const type=activePredictionType==='offense'?'OFFENSE':'DEFENSE';
- const labels={open:'PICKS OPEN · '+remaining+'s LEFT',closed:'PICKS CLOSED · NEXT POSSESSION',locked:type+' PICK LOCKED'+(remaining?'':' · WINDOW CLOSED'),waiting:'WAITING FOR POSSESSION'};
+ const labels={open:'PICKS OPEN · '+remaining+'s LEFT',closed:'PICKS CLOSED · NEXT POSSESSION',locked:type+(remaining?' PICK LOCKED':' LOCKED · WINDOW CLOSED'),waiting:'WAITING FOR POSSESSION'};
  $('pickWindowLabel').textContent=labels[state];
  $('pickWindowHint').textContent=state==='open'?'Choose and lock your pick before the countdown ends.':state==='closed'?'Pick below for the next possession.':state==='locked'?'Your pick is saved for this possession.':'Picks open together when the next possession is confirmed.';
  $('jumpToPicks').hidden=state!=='open';
