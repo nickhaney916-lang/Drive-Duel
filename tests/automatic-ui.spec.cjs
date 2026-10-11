@@ -60,10 +60,12 @@ test('two browsers follow automatic punt, touchdown conversion and skipped drive
   }
   const [a,b]=pages;
   for(const p of pages){await expect(p.locator('#pickWindowBanner')).toHaveAttribute('data-state','open');await expect(p.locator('#pickWindowLabel')).toContainText('PICKS OPEN');await expect(p.locator('#jumpToPicks')).toBeVisible();}
+  await expect(a.locator('#possessionField')).toHaveAttribute('data-side','away');await expect(a.locator('#possessionArrow')).toHaveText('←');
   expect(await a.evaluate(()=>playerId)).not.toBe(await b.evaluate(()=>playerId));
   await a.getByRole('button',{name:'Punt',exact:true}).click();await a.locator('#lockPick').click();await expect(a.locator('#lockPick')).toHaveText('✓ Offense Pick Locked');
   await expect(a.locator('#pickWindowBanner')).toHaveAttribute('data-state','locked');await expect(a.locator('#pickWindowLabel')).toContainText('OFFENSE PICK LOCKED');
   await a.locator('#defenseTab').click();await a.getByRole('button',{name:'Force a punt',exact:true}).click();await a.locator('#lockPick').click();await expect(a.locator('#lockPick')).toHaveText('✓ Defense Pick Locked');
+  await expect(a.locator('#pickWindowLabel')).toContainText('YOUR PICKS LOCKED');await expect(a.locator('#offenseTab')).toHaveClass(/saved/);await expect(a.locator('#defenseTab')).toHaveClass(/saved/);
   await b.getByRole('button',{name:'Turnover',exact:true}).click();await b.locator('#lockPick').click();await expect(b.locator('#lockPick')).toHaveText('✓ Offense Pick Locked');
   stage=2;
   for(const p of pages){await expect.poll(()=>p.evaluate(()=>driveNumber),{timeout:25000}).toBe(2);await expect(p.locator('#trackerPlayerSummary')).toContainText('20 pts');await p.getByRole('button',{name:'Touchdown',exact:true}).click();await p.locator('#lockPick').click();await expect(p.locator('#lockPick')).toHaveText('✓ Offense Pick Locked');}
