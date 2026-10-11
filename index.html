@@ -184,9 +184,9 @@ const SUPABASE_URL='https://qlwotqbqxpgkheitsboe.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_t26TKuxteJbxsGkAkGDzeQ_d8oisCzg';
 let db=null,roomId=null,playerId=null,roomChannel=null,currentUser=null,roomPollTimer=null;
 function makeCode(){return Math.random().toString(36).slice(2,8).toUpperCase().padEnd(6,'X')}
-function renderPlayers(){const list=$('playerList');if(!players.length){list.textContent='No players yet.';return}list.innerHTML=players.map(p=>'<div style="display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid #28516a"><span>'+esc(p.player_name||p.display_name||p.name)+(p.is_cpu?' <span style="color:var(--green)">(CPU)</span>':'')+'</span><span>'+esc(p.score||0)+' pts</span></div>').join('')}
+function renderPlayers(){const list=$('playerList');if(!players.length){list.textContent='No players yet.';return}list.innerHTML=players.map(p=>'<div style="display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid #28516a"><span>'+esc(p.player_name||p.display_name||p.name)+(p.is_cpu?' <span style="color:var(--green)">(CPU)</span>':'')+'</span><span>'+esc(playerGameScore(p.id))+' pts</span></div>').join('')}
 function statusRoom(msg){$('roomInfo').textContent=msg}
-function renderTrackerRoom(){renderRosterStatus();renderGroupScores();renderLockedTracker();if(!$('trackerRoomLabel'))return;$('trackerRoomLabel').textContent=roomCode?'Group '+roomCode:'Group not connected';$('trackerPlayerSummary').textContent=players.map(p=>(p.player_name||p.display_name||p.name||'Player')+(p.is_cpu?' (CPU)':'')+' · '+(p.score||0)+' pts').join(' vs ')||'Waiting for players';}
+function renderTrackerRoom(){renderRosterStatus();renderGroupScores();renderLockedTracker();if(!$('trackerRoomLabel'))return;$('trackerRoomLabel').textContent=roomCode?'Group '+roomCode:'Group not connected';$('trackerPlayerSummary').textContent=players.map(p=>(p.player_name||p.display_name||p.name||'Player')+(p.is_cpu?' (CPU)':'')+' · '+playerGameScore(p.id)+' pts').join(' vs ')||'Waiting for players';}
 
 function resetLockedTracker(){lockedTrackerRows=[];lockedTrackerDrive=null;lockedTrackerNumber=null;renderLockedTracker();}
 const shortPick=p=>({'Touchdown':'TD','Field Goal':'FG','Turnover':'TO','Force a punt':'Punt','Force a turnover':'TO','Stop on downs':'Downs','Hold to a field goal':'FG','Allow a touchdown':'TD'}[p]||p);
@@ -200,7 +200,7 @@ function renderLockedTracker(){renderGroupScores();
  const own=id===playerId;
  const picks=lockedTrackerRows.filter(p=>p.player_id===id).sort((a,b)=>a.prediction_type==='offense'?-1:1);
  const text=picks.map(p=>'<span title="'+(p.prediction_type==='offense'?'Offense':'Defense')+': '+esc(p.predicted_outcome)+'" aria-label="'+(p.prediction_type==='offense'?'Offense':'Defense')+': '+esc(p.predicted_outcome)+'">'+(p.prediction_type==='offense'?'🏈 ':'🛡️ ')+esc(shortPick(p.predicted_outcome))+'</span>').join(' · ');
- return '<div class="lockedPickRow'+(own?' mine':'')+'" data-player="'+esc(id)+'" title="'+esc(name)+(own?' (you)':player?.is_cpu?' (CPU)':'')+'"><b>'+'<span class="pickChipName">'+(own?'You':esc(name))+(player?.is_cpu?' 🤖':'')+'</span><strong class="pickChipScore">'+esc(player?.score||0)+' pts</strong></b><div>'+(text||'<span class="awaitingPick">Awaiting pick</span>')+'</div></div>';
+ return '<div class="lockedPickRow'+(own?' mine':'')+'" data-player="'+esc(id)+'" title="'+esc(name)+(own?' (you)':player?.is_cpu?' (CPU)':'')+'"><b>'+'<span class="pickChipName">'+(own?'You':esc(name))+(player?.is_cpu?' 🤖':'')+'</span><strong class="pickChipScore">'+esc(playerGameScore(id))+' pts</strong></b><div>'+(text||'<span class="awaitingPick">Awaiting pick</span>')+'</div></div>';
  }).join('');
 }
 
@@ -219,8 +219,9 @@ function renderPossessionDiagram(data){
 }
 
 
-let scoreReceipt=null,scoreLogBusy=false,scoreLogGeneration=0;
-function resetGroupScores(){scoreLogGeneration++;scoreReceipt=null;renderGroupScores();}
+let scoreReceipt=null,scoreLogBusy=false,scoreLogGeneration=0,gamePoints={},gameScoreCache=new Map();
+function playerGameScore(id){return selectedGame?(gamePoints[id]||0):0;}
+function resetGroupScores(){scoreLogGeneration++;scoreReceipt=null;gamePoints={};gameScoreCache=new Map();renderGroupScores();renderPlayers();renderTrackerRoom();}
 function scorePick(prediction,drive){
  if(!prediction?.is_locked)return 0;
  const defense={'Force a punt':'Punt','Force a turnover':'Turnover','Stop on downs':'Stopped on downs','Hold to a field goal':'Field Goal','Allow a touchdown':'Touchdown'};
@@ -232,25 +233,43 @@ function renderGroupScores(){
  const el=$('liveGroupScoreChips');if(!el)return;
  const ordered=[...players].sort((a,b)=>a.id===playerId?-1:b.id===playerId?1:0);
  el.hidden=!!lockedTrackerRows.length;
- el.innerHTML=ordered.map(p=>'<span class="groupScoreChip'+(p.id===playerId?' mine':'')+'" title="'+esc(p.player_name||'Player')+'"><b>'+esc(p.id===playerId?'You':p.player_name||'Player')+(p.is_cpu?' 🤖':'')+'</b><strong>'+esc(p.score||0)+' pts</strong></span>').join('')||'<span class="note">Waiting for players</span>';
+ el.innerHTML=ordered.map(p=>'<span class="groupScoreChip'+(p.id===playerId?' mine':'')+'" title="'+esc(p.player_name||'Player')+'"><b>'+esc(p.id===playerId?'You':p.player_name||'Player')+(p.is_cpu?' 🤖':'')+'</b><strong>'+esc(playerGameScore(p.id))+' pts</strong></span>').join('')||'<span class="note">Waiting for players</span>';
  const text=scoreReceipt?'Possession '+scoreReceipt.drive.drive_number+' scored · '+ordered.map(p=>(p.id===playerId?'You':p.player_name||'Player')+' +'+(scoreReceipt.points[p.id]||0)).join(' · '):'No scored possessions yet.';
  $('liveScoreLog').textContent=text;$('liveScoreLog').title=text;
 }
 async function refreshScoreLog(){
  if(!db||!roomId||!selectedGame||scoreLogBusy)return;
  const game=selectedGame.id,room=roomId,generation=scoreLogGeneration;scoreLogBusy=true;
+ const stillCurrent=()=>selectedGame?.id===game&&roomId===room&&generation===scoreLogGeneration;
  try{
- const {data,error}=await db.from('drives').select('id,drive_number,status,actual_outcome,conversion_success,scored_at').eq('room_id',room).eq('game_id',game).eq('status','scored').order('scored_at',{ascending:false,nullsFirst:false}).limit(1);
- if(error)throw error;if(selectedGame?.id!==game||roomId!==room||generation!==scoreLogGeneration)return;
- const drive=data?.[0];if(!drive){scoreReceipt=null;return;}
- if(scoreReceipt?.drive.id===drive.id)return;
- const picks=await db.from('predictions').select('player_id,prediction_type,predicted_outcome,is_locked').eq('drive_id',drive.id);
- if(picks.error)throw picks.error;if(selectedGame?.id!==game||roomId!==room||generation!==scoreLogGeneration)return;
- const points={};for(const pick of picks.data||[])points[pick.player_id]=(points[pick.player_id]||0)+scorePick(pick,drive);
- scoreReceipt={drive,points};
- }catch(e){console.warn('Confirmed score log pending:',e.message);}
+ const scored=[];
+ for(let offset=0;;offset+=1000){
+ const {data,error}=await db.from('drives').select('id,drive_number,status,actual_outcome,conversion_success,scored_at').eq('room_id',room).eq('game_id',game).eq('status','scored').order('scored_at',{ascending:false,nullsFirst:false}).range(offset,offset+999);
+ if(error)throw error;if(!stillCurrent())return;scored.push(...(data||[]));if((data||[]).length<1000)break;
+ }
+ const receipts=[];
+ for(const drive of scored){
+ let receipt=gameScoreCache.get(drive.id);
+ if(!receipt){
+ const points={};
+ for(let offset=0;;offset+=1000){
+ const picks=await db.from('predictions').select('player_id,prediction_type,predicted_outcome,is_locked').eq('drive_id',drive.id).range(offset,offset+999);
+ if(picks.error)throw picks.error;if(!stillCurrent())return;
+ for(const pick of picks.data||[])points[pick.player_id]=(points[pick.player_id]||0)+scorePick(pick,drive);
+ if((picks.data||[]).length<1000)break;
+ }
+ receipt={drive,points};gameScoreCache.set(drive.id,receipt);
+ }
+ receipts.push(receipt);
+ }
+ if(!stillCurrent())return;
+ const totals={};for(const receipt of receipts)for(const [id,points] of Object.entries(receipt.points))totals[id]=(totals[id]||0)+points;
+ gamePoints=totals;scoreReceipt=receipts[0]||null;
+ renderPlayers();renderTrackerRoom();
+ }catch(e){console.warn('Confirmed game scores pending:',e.message);}
  finally{scoreLogBusy=false;}
 }
+
 
 
 let rosterRoom=null,rosterIds=new Set(),lastJoinedName='',playerLoadSequence=0;
