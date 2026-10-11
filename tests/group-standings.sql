@@ -1,0 +1,34 @@
+begin;
+do $test$
+declare u uuid:=gen_random_uuid(); v uuid:=gen_random_uuid(); r uuid; private_room uuid; p uuid; p2 uuid; d uuid; response jsonb; standings jsonb; total integer;
+begin
+ insert into auth.users(id,aud,role,is_anonymous) values(u,'authenticated','authenticated',true),(v,'authenticated','authenticated',true);
+ perform set_config('request.jwt.claims',jsonb_build_object('sub',u,'role','authenticated')::text,true);
+ response=public.create_drive_duel_room(upper(substr(replace(gen_random_uuid()::text,'-',''),1,6)),'nfl','Standings owner');
+ r=(response->>'room_id')::uuid;p=(response->>'player_id')::uuid;
+ insert into public.room_members(room_id,user_id) values(r,v);
+ insert into public.players(room_id,player_name,user_id,is_cpu) values(r,'Standings friend',v,false) returning id into p2;
+ insert into public.group_game_details values(r,'a','Tied final game','2026-10-11T20:00:00Z','nfl'),(r,'b','Another game','2026-10-12T20:00:00Z','nfl');
+ insert into public.game_players(room_id,game_id,player_id) values(r,'a',p),(r,'a',p2),(r,'b',p);
+ insert into public.room_game_state(room_id,game_id,game_state) values(r,'a','post'),(r,'b','in');
+ insert into public.drives(room_id,game_id,drive_number,status,actual_outcome,conversion_success,scored_at) values(r,'a',1,'scored','Touchdown',true,now()) returning id into d;
+ insert into public.predictions(drive_id,player_id,prediction_type,predicted_outcome,is_locked) values(d,p,'offense','Touchdown',true),(d,p,'defense','Allow a touchdown',true),(d,p2,'offense','Touchdown',true),(d,p2,'defense','Allow a touchdown',true);
+ insert into public.drives(room_id,game_id,drive_number,status,actual_outcome,scored_at) values(r,'b',1,'scored','Punt',now()) returning id into d;
+ insert into public.predictions(drive_id,player_id,prediction_type,predicted_outcome,is_locked) values(d,p,'offense','Punt',true);
+ insert into public.drives(room_id,game_id,drive_number,status) values(r,'b',2,'awaiting_result') returning id into d;
+ insert into public.predictions(drive_id,player_id,prediction_type,predicted_outcome,is_locked) values(d,p,'offense','Touchdown',true);
+ standings=public.drive_duel_group_standings(r);
+ if jsonb_array_length(standings->'games')<>2 then raise exception 'Game isolation failed'; end if;
+ select (x->>'points')::int into total from jsonb_array_elements(standings->'games') g cross join jsonb_array_elements(g->'players') x where g->>'game_id'='a' and x->>'player_id'=p::text;
+ if total<>24 then raise exception 'TD conversion totals failed: %',total; end if;
+ select (x->>'points')::int into total from jsonb_array_elements(standings->'games') g cross join jsonb_array_elements(g->'players') x where g->>'game_id'='b' and x->>'player_id'=p::text;
+ if total<>10 then raise exception 'Pending pick incorrectly counted'; end if;
+ if standings<>public.drive_duel_group_standings(r) then raise exception 'Repeated read changed totals'; end if;
+ if not exists(select 1 from jsonb_array_elements(standings->'games') g where g->>'game_id'='b' and (g->>'pending')::boolean) then raise exception 'Pending win not indicated'; end if;
+ perform set_config('request.jwt.claims',jsonb_build_object('sub',v,'role','authenticated')::text,true);
+ response=public.create_drive_duel_room(upper(substr(replace(gen_random_uuid()::text,'-',''),1,6)),'nfl','Private group');private_room=(response->>'room_id')::uuid;
+ perform set_config('request.jwt.claims',jsonb_build_object('sub',u,'role','authenticated')::text,true);
+ begin perform public.drive_duel_group_standings(private_room);raise exception 'Outsider read allowed';exception when raise_exception then if sqlerrm<>'Group membership required' then raise;end if;end;
+end $test$;
+rollback;
+select 'PASS: scoped game totals, conversion bonus, pending exclusion, repeated-read stability and private-group access' result;
