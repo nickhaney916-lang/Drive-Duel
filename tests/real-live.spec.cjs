@@ -6,7 +6,7 @@ test('real live game across two independent browsers',async()=>{
  async function sample(p){return p.evaluate(async()=>{
   const [ds,ps,qs]=await Promise.all([db.from('drives').select('*').eq('room_id',roomId).eq('game_id',selectedGame.id),db.from('players').select('*').eq('room_id',roomId),db.from('predictions').select('*')]);
   if(ds.error||ps.error||qs.error)throw Error((ds.error||ps.error||qs.error).message);
-  return {room:roomId,player:playerId,code:roomCode,current:currentDriveId,number:driveNumber,ready:automaticReady,closed:driveClosed,deadline:predictionDeadline,drives:ds.data,players:ps.data,picks:qs.data,feed:document.getElementById('feedStatus').textContent,status:document.getElementById('driveStatus').textContent};
+  return {room:roomId,player:playerId,code:roomCode,current:currentDriveId,number:driveNumber,ready:automaticReady,closed:feedClosed,deadline:predictionDeadline,drives:ds.data,players:ps.data,picks:qs.data,feed:document.getElementById('feedStatus').textContent,status:document.getElementById('driveStatus').textContent};
  });}
  async function enter(p,name,invite){
   await p.goto('https://nickhaney916-lang.github.io/Drive-Duel/'+(invite?'?room='+invite:''));
@@ -28,7 +28,7 @@ test('real live game across two independent browsers',async()=>{
    for(const p of pages)await expect(p.locator('#finalResultPanel')).toBeHidden();
    const a=await sample(pages[0]),b=await sample(pages[1]);
    if(a.current)seen.add(a.current);if(a.current&&a.current!==first)advanced=true;
-   if(!locked&&a.ready&&!a.closed&&Date.parse(a.deadline)>Date.now()+2000&&await pages[0].getByRole('button',{name:'Punt',exact:true}).isEnabled()){
+   if(!locked&&a.ready&&!a.closed&&a.deadline>Date.now()+2000&&await pages[0].getByRole('button',{name:'Punt',exact:true}).isEnabled()){
     await pages[0].getByRole('button',{name:'Punt',exact:true}).click();await pages[0].locator('#lockPick').click();
     await expect(pages[0].locator('#lockPick')).toHaveText('✓ Offense Pick Locked');
     locked=true;console.log('REAL_PICK_LOCKED',a.current);
