@@ -5,9 +5,9 @@ test('two independent browsers queue, edit, cancel and auto-lock one possession'
  const browsers=await Promise.all([chromium.launch(),chromium.launch()]);
  const pages=[], players=[], predictions=[], drives=[];
  const rid='10000000-0000-0000-0000-000000000001',game='901000001';
- let stage=1,applied=1,active='drive-1',scores=[0,0],version=0;const queues=[];
+ let stage=1,applied=1,active='drive-1',scores=[0,0],version=0;const queues=[];let closeOnSubmit=false;
  const row=(n)=>({id:'drive-'+n,room_id:rid,game_id:game,drive_number:n,status:'in_progress',feed_drive_id:'espn-'+n,feed_closed:false,prediction_deadline:new Date(Date.now()+15000).toISOString()});
- drives.push(row(1));
+ drives.push(row(1));drives[0].feed_closed=true;
  function transition(){
   if(stage===applied)return;applied=stage;
   if(stage===2){scores=[0,0];drives[0].status='scored';drives[0].feed_closed=true;drives.push(row(2));active='drive-2';for(const q of queues.filter(q=>!q.consumed_at)){q.consumed_at=new Date().toISOString();q.consumed_drive_id=active;predictions.push({drive_id:active,player_id:q.player_id,prediction_type:q.prediction_type,predicted_outcome:q.predicted_outcome,is_locked:true});}}
@@ -38,7 +38,7 @@ test('two independent browsers queue, edit, cancel and auto-lock one possession'
       answer={room_id:rid,player_id:pid,room_code:'AUTOT1',league:'nfl'};
     }else if(path.endsWith('/rpc/add_drive_duel_cpu'))answer={ok:true};
     else if(path.endsWith('/rpc/drive_duel_lock_prediction')){
-      const drive=drives.find(d=>d.id===body.p_drive_id);
+      const drive=drives.find(d=>d.id===body.p_drive_id);if(closeOnSubmit){drive.feed_closed=true;closeOnSubmit=false;}
       if(drive.feed_closed||Date.now()>=Date.parse(drive.prediction_deadline))return route.fulfill({status:400,headers,json:{message:'Prediction window closed'}});
       predictions.push({drive_id:body.p_drive_id,player_id:pid,prediction_type:body.p_prediction_type,predicted_outcome:body.p_predicted_outcome,is_locked:true});
       answer={ok:true};
@@ -64,18 +64,18 @@ test('two independent browsers queue, edit, cancel and auto-lock one possession'
    await p.getByRole('button',{name:/Replay Away.*Replay Home/}).click();
    await expect.poll(()=>p.evaluate(()=>currentDriveId)).toBe('drive-1');
   }
-  const [a,b]=pages;
-  await a.getByRole('button',{name:'Queue Punt',exact:true}).click();
-  await a.locator('#saveNextPick').click();await expect(a.locator('#queueStatus')).toContainText('QUEUED · offense: Punt');
+  const [a,b]=pages;await expect(a.locator('#predictionPanel')).toHaveCount(1);await expect(a.locator('#nextPossessionPanel')).toHaveCount(0);await expect(a.locator('#pickTarget')).toHaveAttribute('data-target','next');
+  await a.getByRole('button',{name:'Punt',exact:true}).click();
+  await a.locator('#lockPick').click();await expect(a.locator('#queueStatus')).toContainText('QUEUED · Punt');
   await expect(b.locator('#queueStatus')).not.toContainText('QUEUED');
-  await a.getByRole('button',{name:'Queue Touchdown',exact:true}).click();
-  await a.locator('#saveNextPick').click();await expect(a.locator('#queueStatus')).toContainText('QUEUED · offense: Touchdown');
+  await a.getByRole('button',{name:'Touchdown',exact:true}).click();
+  await a.locator('#lockPick').click();await expect(a.locator('#queueStatus')).toContainText('QUEUED · Touchdown');
   await a.locator('#cancelNextPick').click();await expect(a.locator('#cancelNextPick')).toBeHidden();
-  await a.getByRole('button',{name:'Queue Punt',exact:true}).click();await a.locator('#saveNextPick').click();
-  await expect(a.locator('#queueStatus')).toContainText('QUEUED · offense: Punt');
+  await a.getByRole('button',{name:'Punt',exact:true}).click();await a.locator('#lockPick').click();
+  await expect(a.locator('#queueStatus')).toContainText('QUEUED · Punt');
   stage=2;
   for(const p of pages)await expect.poll(()=>p.evaluate(()=>driveNumber),{timeout:25000}).toBe(2);
-  await expect(a.locator('#queueStatus')).toContainText('AUTO-LOCKED · Punt');
+  await expect(a.locator('#pickTarget')).toHaveAttribute('data-target','current');
   await expect(a.locator('#lockPick')).toHaveText('✓ Offense Pick Locked');await expect(a.locator('#cancelNextPick')).toBeHidden();
   await expect(a.getByRole('button',{name:'Punt',exact:true})).toBeDisabled();
   await expect(b.locator('#pickWindowBanner')).toHaveAttribute('data-state','open');
@@ -85,7 +85,11 @@ test('two independent browsers queue, edit, cancel and auto-lock one possession'
   await expect(a.locator('#lockPick')).toBeDisabled();await expect(a.locator('#lockPick')).toHaveText('🔒 Lock my pick');
   expect(predictions.filter(p=>p.drive_id==='drive-3')).toHaveLength(0);
   // Mobile queue and sticky tracker remain usable while scrolling.
-  await b.locator('#queueChoices').scrollIntoViewIfNeeded();await expect(b.locator('#liveGameTracker')).toBeVisible();
+  closeOnSubmit=true;
+  await b.getByRole('button',{name:'Punt',exact:true}).click();await b.locator('#lockPick').click();
+  await expect(b.locator('#pickTarget')).toHaveAttribute('data-target','next');await expect(b.locator('#queueStatus')).toContainText('QUEUED · Punt');
+  expect(predictions.filter(p=>p.drive_id==='drive-3')).toHaveLength(0);
+  await b.locator('#picks').scrollIntoViewIfNeeded();await expect(b.locator('#liveGameTracker')).toBeVisible();
   expect(await b.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await Promise.all(pages.map((p,i)=>p.screenshot({path:'test-results/queue-browser-'+i+'.png',fullPage:true})));
   console.log('PASS: two independent browser processes; queue edit/cancel, privacy, auto-lock, 30-second fallback, one-time use and mobile layout.');
