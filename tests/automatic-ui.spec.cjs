@@ -96,6 +96,7 @@ test('real server returns verified drive history and no phantom drive for final 
    }
    return {error:reply.error?.message,data:reply.data};
   });
+  console.log('HISTORICAL_REPLY',JSON.stringify(r));
   expect(r.error).toBeUndefined();expect(r.data.ok).toBe(true);expect(r.data.scoringSafe).toBe(true);
   expect(r.data.data.drive.completed).toBe(22);expect(r.data.data.automatic.active_drive_id).toBeNull();
   console.log('PASS: real authenticated edge function + database; 22 ESPN drive records; final game does not create a new drive.');
