@@ -129,7 +129,7 @@ async function syncSharedDrive(){
   if(!state.active_drive_id){currentDriveId=null;feedClosed=true;driveScored=false;renderPick();await loadRoomPlayers();return}
   const {data:d,error:de}=await db.from('drives').select('*').eq('id',state.active_drive_id).single();if(de)throw de;
   if(selectedGame?.id!==game)return;
-  if(currentDriveId!==d.id){currentDriveId=d.id;driveNumber=d.drive_number;resetDrivePicks();}
+  if(currentDriveId!==d.id){currentDriveId=d.id;driveNumber=d.drive_number;activePredictionType='offense';resetDrivePicks();}
   feedClosed=d.feed_closed;predictionDeadline=d.prediction_deadline?Date.parse(d.prediction_deadline):null;driveScored=d.status==='scored';
   await refreshRemotePicks();await loadRoomPlayers();renderPick();
  }catch(e){automaticReady=false;$('pickNote').textContent='Shared drive verification pending. '+e.message;renderPick()}
