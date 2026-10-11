@@ -51,8 +51,8 @@ test('two independent browsers queue, edit, cancel and auto-lock one possession'
       else{const saved={id:'queue-'+pid,room_id:rid,game_id:game,player_id:pid,prediction_type:body.p_prediction_type,predicted_outcome:body.p_predicted_outcome,version:'version-'+(++version),after_source_number:stage===1?1:2,consumed_at:null};if(idx>=0)queues[idx]=saved;else queues.push(saved);answer={ok:true};}
     }
     else if(path.endsWith('/predictions'))answer=predictions.filter(p=>'eq.'+p.drive_id===url.searchParams.get('drive_id'));
-    else if(path.endsWith('/room_game_state'))answer=[{room_id:rid,game_id:game,active_drive_id:active,pending_reason:null,latest_source_number:drives.length,game_state:'in'}];
-    else if(path.endsWith('/drives')){answer=drives.filter(d=>(!url.searchParams.get('id')||'eq.'+d.id===url.searchParams.get('id'))&&(!url.searchParams.get('status')||'eq.'+d.status===url.searchParams.get('status')));if(path.endsWith('/drives')&&url.searchParams.get('status'))answer=answer.sort((a,b)=>b.drive_number-a.drive_number).slice(0,Number(url.searchParams.get('limit')||answer.length));}
+    else if(path.endsWith('/room_game_state'))answer=url.searchParams.get('game_id')!=='eq.'+game?[]:[{room_id:rid,game_id:game,active_drive_id:active,pending_reason:null,latest_source_number:drives.length,game_state:'in'}];
+    else if(path.endsWith('/drives')){answer=drives.filter(d=>(!url.searchParams.get('game_id')||'eq.'+d.game_id===url.searchParams.get('game_id'))&&(!url.searchParams.get('id')||'eq.'+d.id===url.searchParams.get('id'))&&(!url.searchParams.get('status')||'eq.'+d.status===url.searchParams.get('status')));if(path.endsWith('/drives')&&url.searchParams.get('status'))answer=answer.sort((a,b)=>b.drive_number-a.drive_number).slice(0,Number(url.searchParams.get('limit')||answer.length));}
     else throw Error('Unexpected backend request: '+path);
     if(req.headers()['accept']?.includes('vnd.pgrst.object')&&Array.isArray(answer))answer=answer[0];
     return route.fulfill({headers,json:answer});
@@ -93,6 +93,16 @@ test('two independent browsers queue, edit, cancel and auto-lock one possession'
   for(const p of pages){await expect.poll(()=>p.evaluate(()=>driveNumber),{timeout:25000}).toBe(3);await expect(p.locator('#trackerPlayerSummary')).toContainText('10 pts');await expect(p.locator('#liveGroupScoreChips')).toContainText('10 pts');await expect(p.locator('#liveScoreLog')).toContainText('Possession 2 scored');await expect(p.locator('#liveScoreLog')).toContainText('+10');await expect(p.locator('#liveScoreLog')).toContainText('+0');}
   await expect(a.locator('#lockPick')).toBeDisabled();await expect(a.locator('#lockPick')).toHaveText('🔒 Lock my pick');
   expect(predictions.filter(p=>p.drive_id==='drive-3')).toHaveLength(0);await expect(a.locator('#trackerLockedPicks')).toBeHidden();
+  // Scores belong to a matchup, not the room; switching back restores that matchup's total.
+  await a.evaluate(e=>openGame({...e,id:'901000002',name:'Second isolated game'}),fixture);
+  await expect(a.locator('#liveGroupScoreChips')).toContainText('0 pts');
+  await expect(a.locator('#liveGroupScoreChips')).not.toContainText('10 pts');
+  await expect(a.locator('#liveScoreLog')).toHaveText('No scored possessions yet.');
+  await expect(a.locator('#trackerLockedPicks')).toBeHidden();
+  await expect(b.locator('#liveGroupScoreChips')).toContainText('10 pts');
+  await a.evaluate(e=>openGame(e),fixture);
+  await expect(a.locator('#liveGroupScoreChips')).toContainText('10 pts');
+  await expect(a.locator('#liveScoreLog')).toContainText('Possession 2 scored');
   // Both independent devices reconnect after a total disconnect without creating players.
   const originalIds=await Promise.all(pages.map(p=>p.evaluate(()=>playerId)));
   for(const p of pages)await p.context().setOffline(true);
