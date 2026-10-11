@@ -23,7 +23,7 @@ test('real live game across two independent browsers',async()=>{
   }
   expect((await sample(pages[0])).player).not.toBe(joinedId);
   console.log('LIVE_ROOM',room,'GAME','401872981');
-  const start=Date.now();let lastLog=0;
+  console.log('VERIFIED_SCHEDULE_LOADED');const start=Date.now();let lastLog=0;
   while(Date.now()-start<420000){
    for(const p of pages)await expect(p.locator('#finalResultPanel')).toBeHidden();
    const a=await sample(pages[0]),b=await sample(pages[1]);
