@@ -42,7 +42,7 @@ document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{lea
 async function refreshGame(){
  if(!selectedGame)return;
  $('trackerStatus').textContent='CHECKING FEEDS…';
- $('feedStatus').innerHTML='<strong>Live feed:</strong> Checking ESPN primary, then the ESPN backup endpoint. Drive scoring remains manual and requires a confirmed final result.';
+ $('feedStatus').innerHTML='<strong>Live feed:</strong> Checking for the latest update…';
  try{
    if(!db)ensureDb();
    const {data:sessionData}=await db.auth.getSession();
@@ -73,11 +73,11 @@ async function refreshGame(){
    $('summary').textContent=(e.lastPlay?e.lastPlay+' · ':'')+e.status+'. This feed does not automatically score a drive.';
    $('trackerStatus').textContent=e.state==='in'?'LIVE · VERIFIED':'UPDATED · VERIFIED';
    $('feedStatus').dataset.verified='true';
-   $('feedStatus').innerHTML='<strong>Live feed:</strong> '+esc(e.provider)+' · last checked '+new Date(e.fetchedAt).toLocaleTimeString()+'<br><span style="color:var(--muted)">ESPN primary → ESPN backup → independent NFL scoreboard (NFL games only). The NFL backup may not provide possession, down/distance or play-by-play. Score changes are checked for team identity and regressions; final drive results still require human confirmation.</span>';
+   $('feedStatus').innerHTML='<strong>Live feed active</strong> · Last updated '+new Date(e.fetchedAt).toLocaleTimeString([], {hour:'numeric',minute:'2-digit',second:'2-digit'});
  }catch(err){
    $('feedStatus').dataset.verified='false';
    $('trackerStatus').textContent='FEED UNVERIFIED';
-   $('feedStatus').innerHTML='<strong style="color:#ffc857">Live feed warning · scoring verification paused</strong><br>'+esc(err.message||'No trusted feed is currently available.')+'<br><span style="color:var(--muted)">Keeping the last verified scoreboard on screen. Refresh again before confirming any drive result.</span>';
+   $('feedStatus').innerHTML='<strong style="color:#ffc857">Live feed unavailable</strong> · Last checked '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit',second:'2-digit'})+'<br><span style="color:var(--muted)">Scoring paused until the feed is verified.</span>';
    $('summary').textContent='No trusted feed update was verified. Do not score a drive from this unverified update.';
  }
 }
