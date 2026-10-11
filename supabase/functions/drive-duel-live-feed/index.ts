@@ -146,7 +146,11 @@ async function enrich(result: any, body: any, req: Request, attempts: string[]) 
     const a=cs.find((x:any)=>x.homeAway==="away"),h=cs.find((x:any)=>x.homeAway==="home");
     if(String(summary.header?.id)!==String(body.eventId)||!a||!h||
       !norm(a.team?.displayName).includes(norm(body.awayName))||!norm(h.team?.displayName).includes(norm(body.homeName)))throw Error("Drive identity mismatch");
-    if(Number(a.score)!==result.awayScore||Number(h.score)!==result.homeScore)throw Error("Scoreboard and drive summary disagree");
+    // ESPN omits scores before kickoff. Treat those as zero only when both
+    // independently fetched sources confirm the game has not started.
+    const pregame=result.state==="pre"&&comp?.status?.type?.state==="pre";
+    const summaryScore=(team:any)=>team.score==null&&pregame?0:Number(team.score);
+    if(summaryScore(a)!==result.awayScore||summaryScore(h)!==result.homeScore)throw Error("Scoreboard and drive summary disagree");
     const snapshot=parseDriveSnapshot(summary,String(body.eventId));
     if(!snapshot.available)throw Error("Drive history unavailable");
     const current=summary.drives?.current;
