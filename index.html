@@ -114,11 +114,16 @@ function requirePlayerName(){const name=humanName();if(!name){$('playerName').fo
 function renderAutomaticStatus(){
  const el=$('driveStatus');if(!el)return;
  const remaining=predictionDeadline?Math.max(0,Math.ceil((predictionDeadline-Date.now())/1000)):0;
- if(!automaticReady){el.textContent='Waiting for verified drive data. Automatic scoring is paused.';return}
- if(!currentDriveId){el.textContent='Waiting for the next official possession. Completed drives score automatically.';return}
- if(driveScored){el.textContent='Drive '+driveNumber+' scored. Waiting for the next official possession.';return}
- if(feedClosed||automaticPending){el.textContent='Drive '+driveNumber+' complete · confirming the result and conversion before scoring.';return}
- el.textContent='Drive '+driveNumber+(remaining?' · '+remaining+' seconds to lock your picks.':' · picks closed. Picks open for 15 seconds at the start of each possession. Keep this screen open for the next window.');
+ if(!currentDriveId){el.textContent=automaticReady?'Wait for the next possession. Picks will open for everyone together.':'Waiting for verified possession data. Picks will open when the next possession is confirmed.';return}
+ if(driveScored){el.textContent='Possession '+driveNumber+' complete and scored. Wait for the next possession.';return}
+ if(lockedTypes[activePredictionType]){
+  const type=activePredictionType==='offense'?'Offense':'Defense';
+  el.textContent=type+' pick locked for possession '+driveNumber+': '+activePick()+'. '+(feedClosed||automaticPending?'We are confirming the result and conversion before scoring.':'Waiting for this possession’s result.');
+  return;
+ }
+ if(!automaticReady){el.textContent='Waiting for verified possession data. Picks are temporarily paused.';return}
+ if(feedClosed||automaticPending){el.textContent='This possession has passed. Wait for the next possession. We are confirming the result and conversion before scoring.';return}
+ el.textContent=remaining?'Possession '+driveNumber+' · '+remaining+' seconds to lock your pick.':'The prediction window for this possession has passed. Wait for the next possession.';
 }
 async function syncSharedDrive(){
  if(!db||!roomId||!selectedGame||autoSyncBusy)return;autoSyncBusy=true;
