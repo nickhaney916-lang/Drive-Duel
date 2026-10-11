@@ -42,7 +42,9 @@ test('two independent browsers queue, edit, cancel and auto-lock one possession'
       if(drive.feed_closed||Date.now()>=Date.parse(drive.prediction_deadline))return route.fulfill({status:400,headers,json:{message:'Prediction window closed'}});
       predictions.push({drive_id:body.p_drive_id,player_id:pid,prediction_type:body.p_prediction_type,predicted_outcome:body.p_predicted_outcome,is_locked:true});
       answer={ok:true};
-    }else if(path.endsWith('/game_players')){if(req.method()==='POST'){for(const row of body)if(!gameMembers.some(m=>m.game_id===row.game_id&&m.player_id===row.player_id))gameMembers.push(row);answer=[];}else answer=gameMembers.filter(m=>'eq.'+m.game_id===url.searchParams.get('game_id'));}
+    }else if(path.endsWith('/group_game_details'))answer=[];
+    else if(path.endsWith('/rpc/drive_duel_group_standings'))answer={games:[]};
+    else if(path.endsWith('/game_players')){if(req.method()==='POST'){for(const row of body)if(!gameMembers.some(m=>m.game_id===row.game_id&&m.player_id===row.player_id))gameMembers.push(row);answer=[];}else answer=gameMembers.filter(m=>'eq.'+m.game_id===url.searchParams.get('game_id'));}
     else if(path.endsWith('/players'))answer=players.map((p,j)=>({...p,score:scores[j]}));
     else if(path.endsWith('/queued_predictions'))answer=queues.filter(q=>q.player_id===pid);
     else if(path.endsWith('/rpc/drive_duel_queue_pick')){
@@ -129,6 +131,24 @@ test('two independent browsers queue, edit, cancel and auto-lock one possession'
   expect(predictions.filter(p=>p.drive_id==='drive-3')).toHaveLength(0);
   await b.locator('#picks').scrollIntoViewIfNeeded();await expect(b.locator('#liveGameTracker')).toBeVisible();
   expect(await b.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  // Calendar standings: tied game winners, day/week/season aggregation and pending wins.
+  await a.evaluate(()=>{
+   const own=players.find(p=>p.id===playerId),other=players.find(p=>!p.is_cpu&&p.id!==playerId);
+   const match=(id,date,points)=>({game_id:id,name:'Achievement '+id,kickoff:date+'T20:00:00Z',state:'post',pending:false,players:[{player_id:own.id,user_id:own.user_id,name:own.player_name,points:points[0],is_cpu:false},{player_id:other.id,user_id:other.user_id,name:other.player_name,points:points[1],is_cpu:false}]});
+   standingsGames=[match('award1','2026-10-11',[20,20]),match('award2','2026-10-12',[12,0]),match('award3','2026-10-04',[10,10]),match('award4','2026-06-01',[99,0])];standingsLastRefresh=Date.now();
+   $('standingsDate').value='2026-10-11';$('standingsGame').innerHTML='<option value="award1">award1</option>';standingsPeriod='game';renderStandings();$('standingsPanel').open=true;
+  });
+  await expect(a.locator('#standingsLeader')).toContainText('Game winner: You & Auto Browser 2');
+  await a.locator('#standingsPanel [data-period="day"]').click();
+  await expect(a.locator('#standingsRows tr').first()).toContainText('20');
+  await a.locator('#standingsPanel [data-period="week"]').click();
+  await expect(a.locator('#standingsRows tr').first()).toHaveText(/You.*32.*2.*2/);
+  await a.locator('#standingsPanel [data-period="season"]').click();
+  await expect(a.locator('#standingsRows tr').first()).toHaveText(/You.*42.*3.*3/);
+  await expect(a.locator('#standingsRows')).not.toContainText('99');
+  await a.evaluate(()=>{standingsGames[0].pending=true;standingsPeriod='game';$('standingsGame').value='award1';renderStandings();});
+  await expect(a.locator('#standingsLeader')).toContainText('results pending');
+  await expect(a.locator('#standingsRows tr').first()).toHaveText(/You.*20.*1.*0/);
   await Promise.all(pages.map((p,i)=>p.screenshot({path:'test-results/queue-browser-'+i+'.png',fullPage:true})));
   console.log('PASS: two independent browser processes; queue edit/cancel, privacy, auto-lock, 30-second fallback, one-time use and mobile layout.');
  }finally{await Promise.all(browsers.map(b=>b.close()));}
