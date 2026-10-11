@@ -65,15 +65,17 @@ test('two browsers follow automatic punt, touchdown conversion and skipped drive
   await a.getByRole('button',{name:'Punt',exact:true}).click();await a.locator('#lockPick').click();await expect(a.locator('#lockPick')).toHaveText('✓ Offense Pick Locked');
   await expect(a.locator('#pickWindowBanner')).toHaveAttribute('data-state','locked');await expect(a.locator('#pickWindowLabel')).toContainText('OFFENSE PICK LOCKED');
   await a.locator('#defenseTab').click();await a.getByRole('button',{name:'Force a punt',exact:true}).click();await a.locator('#lockPick').click();await expect(a.locator('#lockPick')).toHaveText('✓ Defense Pick Locked');
-  await expect(a.locator('#pickWindowLabel')).toContainText('YOUR PICKS LOCKED');await expect(a.locator('#offenseTab')).toHaveClass(/saved/);await expect(a.locator('#defenseTab')).toHaveClass(/saved/);
+  await expect(a.locator('#pickControls')).toBeHidden();await expect(a.locator('#trackerLockedPicks')).toContainText('Punt');await expect(a.locator('#togglePickControls')).toHaveText('Picks locked');await expect(a.locator('#togglePickControls')).toBeDisabled();await expect(a.locator('#pickWindowLabel')).toContainText('YOUR PICKS LOCKED');await expect(a.locator('#offenseTab')).toHaveClass(/saved/);await expect(a.locator('#defenseTab')).toHaveClass(/saved/);
   await b.getByRole('button',{name:'Turnover',exact:true}).click();await b.locator('#lockPick').click();await expect(b.locator('#lockPick')).toHaveText('✓ Offense Pick Locked');
   stage=2;
   for(const p of pages){await expect.poll(()=>p.evaluate(()=>driveNumber),{timeout:25000}).toBe(2);await expect(p.locator('#trackerPlayerSummary')).toContainText('20 pts');await expect(p.locator('#liveGroupScoreChips')).toContainText('20 pts');await expect(p.locator('#liveScoreLog')).toContainText('Possession 1 scored');await expect(p.locator('#liveScoreLog')).toContainText('+20');await p.getByRole('button',{name:'Touchdown',exact:true}).click();await p.locator('#lockPick').click();await expect(p.locator('#lockPick')).toHaveText('✓ Offense Pick Locked');}
+  await expect(a.locator('#pickControls')).toBeVisible();
   stage=3;
   await expect(a.locator('#driveStatus'),{timeout:25000}).toContainText('confirming the result and conversion');
   await expect(a.locator('#pickWindowLabel')).toContainText('WINDOW CLOSED');await expect(a.locator('#jumpToPicks')).toBeHidden();
   await expect(a.locator('#trackerPlayerSummary')).toContainText('20 pts');await expect(a.locator('#liveScoreLog')).toContainText('Possession 1 scored');
   for(const p of pages)await expect(p.getByRole('button',{name:'Punt',exact:true})).toBeEnabled();
+  await expect(a.locator('#liveGameTracker #lastPlay')).toHaveText('Touchdown, conversion pending');await expect(a.locator('#liveGameTracker #feedStatus')).toContainText('Updated');
   stage=4;
   for(const p of pages){await expect.poll(()=>p.evaluate(()=>driveNumber),{timeout:25000}).toBe(3);await expect(p.locator('#trackerPlayerSummary')).toContainText('32 pts');await expect(p.locator('#liveGroupScoreChips')).toContainText('32 pts');await expect(p.locator('#liveScoreLog')).toContainText('Possession 2 scored');await expect(p.locator('#liveScoreLog')).toContainText('+12');await expect(p.locator('#trackerPlayerSummary')).toContainText('12 pts');}
   await a.getByRole('button',{name:'Punt',exact:true}).click();await a.locator('#lockPick').click();await expect(a.locator('#lockPick')).toHaveText('✓ Offense Pick Locked');
