@@ -6,7 +6,9 @@ export function outcomeFor(drive) {
   if (/^PUNT(?: TD| TOUCHDOWN)?$/.test(result)) return 'Punt';
   if (/^(INT|INTERCEPTION|FUMBLE|TURNOVER)(?: TD| TOUCHDOWN)?$/.test(result)) return 'Turnover';
   if (/^(DOWNS|TURNOVER ON DOWNS)$/.test(result)) return 'Stopped on downs';
-  if (/^(MISSED FG|MISSED FIELD GOAL|END OF HALF|END OF GAME|SAFETY)$/.test(result)) return 'Other';
+  if (/^(MISSED FG|MISSED FIELD GOAL|BLOCKED FG|BLOCKED FIELD GOAL)$/.test(result)) return 'Missed Field Goal';
+  if (/^(END OF HALF|END OF GAME)$/.test(result)) return 'End of half/game';
+  if (/^SAFETY$/.test(result)) return 'Safety';
   return null;
 }
 export function conversionFor(plays) {
