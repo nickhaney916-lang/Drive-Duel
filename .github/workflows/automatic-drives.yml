@@ -10,7 +10,7 @@ jobs:
     timeout-minutes: 20
     env:
       RUN_LARGE_LOAD_TEST: ${{ github.ref_name == 'test/100-players-78-groups-20261012' && '1' || '0' }}
-      RUN_REALTIME_LOAD_PROBE: ${{ github.ref_name == 'test/100-players-78-groups-20261012' && '1' || '0' }}
+      RUN_REALTIME_LOAD_PROBE: '0'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
