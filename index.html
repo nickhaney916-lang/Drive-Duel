@@ -466,7 +466,7 @@ async function createRoom(){
  for(let attempt=0;attempt<3;attempt++){const result=await db.rpc('create_drive_duel_room',{p_room_code:makeCode(),p_league:league,p_player_name:name});if(!result.error){room=result.data;break;}if(attempt===2||!/duplicate|already exists|unique/i.test(result.error.message))throw result.error;}
  if(!room)throw Error('Could not generate a unique code. Try again.');
  adoptGroup(room);$('joinCode').value='';const url=new URL(location.href);url.searchParams.delete('room');history.replaceState(null,'',url);
- await loadRoomPlayers();watchRoom();statusRoom('New group created · '+roomCode+'. Share this code with your new group.');showRoomView();
+ await loadRoomPlayers();watchRoom();statusRoom('New group created · '+roomCode+'. Share this code with your new group.');if(!selectedGame)showRoomView();
  }catch(e){statusRoom('Could not create group: '+e.message);}
 }
 async function joinRoom(){
@@ -494,7 +494,7 @@ function showRoomView(){
 }
 $('roomBack').addEventListener('click',()=>{ renderPlayers();$('homeLeaderboardMount').appendChild($('mainLeaderboard'));renderStandings();document.body.classList.remove('game-active');$('roomView').classList.add('hidden');$('home').classList.remove('hidden');window.scrollTo({top:0,behavior:'smooth'})});
 async function quickJoinRoom(){const name=requirePlayerName();if(!name)return;$('joinOptions').classList.remove('hidden');$('createRoom').textContent='✓ Name entered';statusRoom('Ready, '+name+'. Enter a group code or choose any live game below. A CPU room is created only after choosing a game.');$('games').scrollIntoView({behavior:'smooth',block:'nearest'});}
-$('joinRoom').addEventListener('click',async()=>{try{const name=requirePlayerName();if(!name)return;const code=$('joinCode').value.trim().toUpperCase();if(!code){statusRoom('Enter a group code, or tap a live game below to start against the CPU.');return}await joinRoom();if(roomId)showRoomView()}catch(e){statusRoom('Could not enter group: '+e.message)}});
+$('joinRoom').addEventListener('click',async()=>{try{const name=requirePlayerName();if(!name)return;const code=$('joinCode').value.trim().toUpperCase();if(!code){statusRoom('Enter a group code, or tap a live game below to start against the CPU.');return}await joinRoom();if(roomId&&!selectedGame)showRoomView()}catch(e){statusRoom('Could not enter group: '+e.message)}});
 $('createRoom').addEventListener('click',quickJoinRoom);
 
 $('trackerShare').addEventListener('click',()=>{if(!roomCode)return;showRoomView()});
