@@ -62,7 +62,7 @@ test('100 independent player sessions across 78 groups update scores automatical
     if(req.headers()['accept']?.includes('vnd.pgrst.object')&&Array.isArray(answer))answer=answer[0];
     return route.fulfill({headers,json:answer});
    });
-   const p=await c.newPage();pages[i]=p;p.on('pageerror',e=>console.log('LOAD PAGE ERROR '+i+' '+e.message));p.on('crash',()=>console.log('LOAD PAGE CRASH '+i));await p.goto(APP_URL+'?room='+group.code,{waitUntil:'domcontentloaded'});
+   const p=await c.newPage();pages[i]=p;p.on('pageerror',e=>console.log('LOAD PAGE ERROR '+i+' '+e.message));p.on('crash',()=>console.log('LOAD PAGE CRASH '+i));p.on('console',m=>{if(m.type()==='warning'&&m.text().includes('score'))console.log('LOAD WARN '+i+' '+m.text());});await p.goto(APP_URL+'?room='+group.code,{waitUntil:'domcontentloaded'});
    await p.locator('#playerName').fill(group.players.find(p=>p.id===pid(i)).player_name);await p.locator('#joinRoom').click();await expect(p.locator('#groupConnected')).toBeVisible();
    await p.getByRole('button',{name:/Load Away.*Load Home/}).click();try{await expect.poll(()=>p.evaluate(()=>currentDriveId),{timeout:40000}).toBe('g'+assigned[i]+'-d1');}catch(e){console.log('LOAD START FAILURE '+JSON.stringify(await p.evaluate(()=>({selected:selectedGame,room:roomId,current:currentDriveId,busy:autoSyncBusy,feedBusy:feedRefreshBusy,classes:document.body.className,note:$('pickNote').textContent,feed:$('feedStatus').textContent,group:$('roomInfo').textContent}))));throw e;}
    await expect.poll(()=>p.evaluate(()=>automaticReady&&!feedRefreshBusy&&!autoSyncBusy),{timeout:40000}).toBe(true);
@@ -81,7 +81,7 @@ test('100 independent player sessions across 78 groups update scores automatical
   console.log('LOAD: all 100 first-possession picks saved');await parallel(pages,12,p=>p.evaluate(()=>{watchRoom();refreshTimer=setInterval(()=>refreshGame(),5000);}));
   const waitScores=async(drive,extra)=>{
    const began=Date.now();let snapshots;
-   try{await expect.poll(async()=>{snapshots=await Promise.all(pages.map(p=>p.evaluate(()=>({drive:driveNumber,points:playerGameScore(playerId),room:roomId,players:players.map(p=>p.id)}))));return snapshots.every((s,i)=>s.drive===drive&&s.points===(i%3===0?0:20)+extra);},{timeout:40000,intervals:[1000]}).toBe(true);}catch(e){console.log('LOAD SCORE FAILURE '+JSON.stringify({drive,extra,serverPoints:groups.flatMap(g=>g.players).reduce((n,p)=>n+p.score,0),incorrect:snapshots.map((s,i)=>({...s,index:i})).filter(s=>s.drive!==drive||s.points!==(s.index%3===0?0:20)+extra)}));throw e;}
+   try{await expect.poll(async()=>{snapshots=await Promise.all(pages.map(p=>p.evaluate(()=>({drive:driveNumber,points:playerGameScore(playerId),room:roomId,players:players.map(p=>p.id),selected:selectedGame?.id,player:playerId,scoreBusy:scoreLogBusy,receipt:scoreReceipt,cache:[...gameScoreCache.entries()],totals:gamePoints}))));return snapshots.every((s,i)=>s.drive===drive&&s.points===(i%3===0?0:20)+extra);},{timeout:40000,intervals:[1000]}).toBe(true);}catch(e){console.log('LOAD SCORE FAILURE '+JSON.stringify({drive,extra,serverPoints:groups.flatMap(g=>g.players).reduce((n,p)=>n+p.score,0),incorrect:snapshots.map((s,i)=>({...s,index:i})).filter(s=>s.drive!==drive||s.points!==(s.index%3===0?0:20)+extra)}));throw e;}
    for(let i=0;i<100;i++){expect(snapshots[i].room).toBe(groups[assigned[i]].id);expect(snapshots[i].players.every(id=>groups[assigned[i]].players.some(p=>p.id===id))).toBe(true);}
    return Date.now()-began;
   };
