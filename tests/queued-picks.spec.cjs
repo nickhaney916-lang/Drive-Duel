@@ -160,6 +160,13 @@ test('two independent browsers queue, edit, cancel and auto-lock one possession'
   await a.evaluate(()=>{standingsGames[0].pending=true;standingsPeriod='day';$('standingsGame').value='award1';renderStandings();});
   await expect(a.locator('#standingsAchievements')).toContainText('Game wins appear after final');
   await expect(a.locator('#standingsRows tr').first()).toHaveText(/You.*20.*1.*0/);
+  await a.evaluate(()=>{
+   const own=players.find(p=>p.id===playerId),other=players.find(p=>!p.is_cpu&&p.id!==playerId);
+   standingsGames=[{game_id:'today-leaders',name:'Today leaders test',kickoff:new Date().toISOString(),state:'post',pending:false,players:[{player_id:own.id,user_id:own.user_id,name:own.player_name,is_cpu:false,points:30},{player_id:other.id,user_id:other.user_id,name:other.player_name,is_cpu:false,points:10}]}];standingsLastRefresh=Date.now();renderStandings();
+  });
+  for(const period of ['day','week','season']){await expect(a.locator('#'+period+'LeaderName')).toContainText('Auto Browser 1');await expect(a.locator('#'+period+'LeaderPoints')).toHaveText('30 pts');}
+  await a.locator('[data-leader-period="week"]').click();await expect(a.locator('#standingsPanel [data-period="week"]')).toHaveAttribute('aria-selected','true');
+  expect(await a.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await Promise.all(pages.map((p,i)=>p.screenshot({path:'test-results/queue-browser-'+i+'.png',fullPage:true})));
   console.log('PASS: two independent browser processes; queue edit/cancel, privacy, auto-lock, 30-second fallback, one-time use and mobile layout.');
  }finally{await Promise.all(browsers.map(b=>b.close()));}
