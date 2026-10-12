@@ -63,7 +63,7 @@ test('two independent browsers queue, edit, cancel and auto-lock one possession'
    const p=await c.newPage();pages.push(p);
    await p.goto(APP_URL+(i?'?room=AUTOT1':''));
    await p.getByRole('textbox',{name:'Enter your name',exact:true}).fill('Auto Browser '+(i+1));
-   if(i){await p.getByRole('button',{name:'Enter group',exact:true}).click();await expect(p.getByText('Room details',{exact:true})).toBeVisible();}
+   if(i){await p.getByRole('button',{name:'Join group',exact:true}).click();await expect(p.locator('#groupConnected')).toBeVisible();}
    await p.getByRole('button',{name:/Replay Away.*Replay Home/}).click();
    await expect.poll(()=>p.evaluate(()=>currentDriveId)).toBe('drive-1');
   }
@@ -122,9 +122,10 @@ test('two independent browsers queue, edit, cancel and auto-lock one possession'
   for(const p of pages)await p.context().setOffline(false);
   for(let i=0;i<pages.length;i++){
    const p=pages[i];await p.reload();
-   await expect(p.locator('#resumeGroup')).toBeVisible();
-   await expect(p.locator('#resumeDetails')).toContainText('AUTOT1');
-   await p.locator('#resumeGroup').click();
+   await expect(p.locator('#groupConnected')).toBeVisible();
+   await expect(p.locator('#groupCardCode')).toHaveText('AUTOT1');
+   await expect(p.locator('#groupEntry')).toBeHidden();await expect(p.locator('#resumePanel')).toBeHidden();
+   await p.getByRole('button',{name:/Replay Away.*Replay Home/}).click();
    await expect.poll(()=>p.evaluate(()=>playerId)).toBe(originalIds[i]);
    await expect.poll(()=>p.evaluate(()=>selectedGame?.id)).toBe(game);
    await expect.poll(()=>p.evaluate(()=>driveNumber)).toBe(3);
@@ -140,8 +141,8 @@ test('two independent browsers queue, edit, cancel and auto-lock one possession'
   await b.locator('#picks').scrollIntoViewIfNeeded();await expect(b.locator('#liveGameTracker')).toBeVisible();
   expect(await b.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await expect(a.locator('#trackerView #standingsPanel')).toHaveCount(0);
-  await a.locator('#back').click();await expect(a.locator('#roomView #mainLeaderboard')).toBeVisible();await expect(a.locator('#standingsPanel [data-period="game"]')).toHaveCount(0);
-  await a.locator('#roomBack').click();await expect(a.locator('#home #mainLeaderboard')).toBeVisible();
+  await a.locator('#back').click();await expect(a.locator('#home #mainLeaderboard')).toBeVisible();await expect(a.locator('#standingsPanel [data-period="game"]')).toHaveCount(0);
+  await expect(a.locator('#home .groupCard')).toHaveCount(1);await a.locator('#groupInvite').click();await expect(a.locator('#inviteDetails')).toBeVisible();await expect(a.locator('#roomCodeDisplay')).toHaveText('AUTOT1');await a.locator('#groupInvite').click();await expect(a.locator('#inviteDetails')).toBeHidden();
   // Main-page standings: tied game achievements, day/week/season aggregation and pending wins.
   await a.evaluate(()=>{
    const own=players.find(p=>p.id===playerId),other=players.find(p=>!p.is_cpu&&p.id!==playerId);
