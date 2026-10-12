@@ -65,12 +65,13 @@ test('100 independent player sessions across 78 groups update scores automatical
    const p=await c.newPage();pages[i]=p;p.on('pageerror',e=>console.log('LOAD PAGE ERROR '+i+' '+e.message));p.on('crash',()=>console.log('LOAD PAGE CRASH '+i));await p.goto(APP_URL+'?room='+group.code,{waitUntil:'domcontentloaded'});
    await p.locator('#playerName').fill(group.players.find(p=>p.id===pid(i)).player_name);await p.locator('#joinRoom').click();await expect(p.locator('#groupConnected')).toBeVisible();
    await p.getByRole('button',{name:/Load Away.*Load Home/}).click();try{await expect.poll(()=>p.evaluate(()=>currentDriveId),{timeout:40000}).toBe('g'+assigned[i]+'-d1');}catch(e){console.log('LOAD START FAILURE '+JSON.stringify(await p.evaluate(()=>({selected:selectedGame,room:roomId,current:currentDriveId,busy:autoSyncBusy,feedBusy:feedRefreshBusy,classes:document.body.className,note:$('pickNote').textContent,feed:$('feedStatus').textContent,group:$('roomInfo').textContent}))));throw e;}
+   await expect.poll(()=>p.evaluate(()=>automaticReady&&!feedRefreshBusy&&!autoSyncBusy),{timeout:40000}).toBe(true);
    await p.evaluate(()=>{window.__loadSavedGame=selectedGame;selectedGame=null;clearInterval(roomPollTimer);clearInterval(refreshTimer);});
    if(i%20===0)console.log('LOAD: opened '+(i+1)+' of 100 sessions');
   });
   expect(pages).toHaveLength(100);expect(groups).toHaveLength(78);
   for(const g of groups)g.drives[0].prediction_deadline=new Date(Date.now()+300000).toISOString();
-  await parallel(pages,12,p=>p.evaluate(()=>{selectedGame=window.__loadSavedGame;renderChoices();}));console.log('LOAD: all 100 sessions ready');
+  await parallel(pages,12,p=>p.evaluate(async()=>{selectedGame=window.__loadSavedGame;await refreshGame();renderChoices();}));console.log('LOAD: all 100 sessions ready');
   expect(groups.filter(g=>g.players.some(p=>p.is_cpu))).toHaveLength(77);
   await parallel(pages,12,async(p,i)=>{
    await p.getByRole('button',{name:i%3===0?'Touchdown':'Punt',exact:true}).dispatchEvent('click');await expect(p.locator('#lockPick')).toBeEnabled();await p.locator('#lockPick').dispatchEvent('click');await expect(p.locator('#offenseTabBadge')).toContainText('LOCKED');
