@@ -63,7 +63,7 @@ test('host sees a guest join before the guest locks any pick',async()=>{
    const p=await c.newPage();pages.push(p);
    await p.goto(APP_URL+(i?'?room=AUTOT1':''));
    await p.getByRole('textbox',{name:'Enter your name',exact:true}).fill('Auto Browser '+(i+1));
-   if(i){await p.getByRole('button',{name:'Enter group',exact:true}).click();await expect(p.getByText('Room details',{exact:true})).toBeVisible();}
+   if(i){await p.getByRole('button',{name:'Join group',exact:true}).click();await expect(p.locator('#groupConnected')).toBeVisible();}
    await p.getByRole('button',{name:/Replay Away.*Replay Home/}).click();
    await expect.poll(()=>p.evaluate(()=>currentDriveId)).toBe('drive-1');
   }
