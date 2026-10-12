@@ -23,5 +23,6 @@ test('any player creates separate groups with unique codes and can resume the or
  await expect.poll(()=>a.evaluate(()=>roomId)).toBe(first.id);
  expect(await a.evaluate(()=>playerId)).toBe(first.player);
  await expect(a.locator('#playerList')).toContainText('Original Group Friend');
+ await a.reload({waitUntil:'domcontentloaded'});await expect.poll(()=>a.evaluate(()=>roomId)).toBe(first.id);await expect(a.locator('#home #leaderCards')).toBeVisible();await expect(a.locator('#leaderCardsGroup')).toHaveText('Group '+first.code);await expect(a.locator('#home')).toBeVisible();expect(await a.evaluate(()=>selectedGame)).toBeNull();
  }finally{await Promise.all(browsers.map(b=>b.close()));}
 });
