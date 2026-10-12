@@ -62,9 +62,9 @@ test('100 independent player sessions across 78 groups update scores automatical
     if(req.headers()['accept']?.includes('vnd.pgrst.object')&&Array.isArray(answer))answer=answer[0];
     return route.fulfill({headers,json:answer});
    });
-   const p=await c.newPage();pages[i]=p;await p.goto(APP_URL+'?room='+group.code,{waitUntil:'domcontentloaded'});
+   const p=await c.newPage();pages[i]=p;p.on('pageerror',e=>console.log('LOAD PAGE ERROR '+i+' '+e.message));p.on('crash',()=>console.log('LOAD PAGE CRASH '+i));await p.goto(APP_URL+'?room='+group.code,{waitUntil:'domcontentloaded'});
    await p.locator('#playerName').fill(group.players.find(p=>p.id===pid(i)).player_name);await p.locator('#joinRoom').click();await expect(p.locator('#groupConnected')).toBeVisible();
-   await p.getByRole('button',{name:/Load Away.*Load Home/}).click();await expect.poll(()=>p.evaluate(()=>currentDriveId)).toBe('g'+assigned[i]+'-d1');
+   await p.getByRole('button',{name:/Load Away.*Load Home/}).click();try{await expect.poll(()=>p.evaluate(()=>currentDriveId)).toBe('g'+assigned[i]+'-d1');}catch(e){console.log('LOAD START FAILURE '+JSON.stringify(await p.evaluate(()=>({selected:selectedGame,room:roomId,current:currentDriveId,busy:autoSyncBusy,feedBusy:feedRefreshBusy,classes:document.body.className,note:$('pickNote').textContent,feed:$('feedStatus').textContent,group:$('roomInfo').textContent}))));throw e;}
    if(i%20===0)console.log('LOAD: opened '+(i+1)+' of 100 sessions');
   });
   expect(pages).toHaveLength(100);expect(groups).toHaveLength(78);
