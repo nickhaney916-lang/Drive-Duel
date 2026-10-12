@@ -108,3 +108,18 @@ test('100 independent player sessions across 78 groups update scores automatical
   fs.mkdirSync('test-results',{recursive:true});fs.writeFileSync('test-results/load-100-report.json',JSON.stringify(report,null,2));console.log('LOAD REPORT '+JSON.stringify(report));expect(errors).toBe(0);
  }finally{await Promise.all(browsers.map(b=>b.close()));}
 });
+test('overlapping roster refreshes finish scoring and discard a previous group response',async()=>{
+ const vm=require('node:vm'),html=fs.readFileSync('index.html','utf8');
+ const start=html.indexOf('let playerLoadPending=null'),end=html.indexOf('function setRealtimeStatus',start);
+ expect(start).toBeGreaterThan(0);
+ const reads=[];let scoreRefreshes=0;
+ const sandbox={roomId:'group-a',selectedGame:{id:'game-a'},playerLoadSequence:0,players:[],gamePlayerIds:new Set(),cpuAdded:false,Promise,Set,
+  db:{from(table){const query={select(){return query;},eq(){return query;},order(){return new Promise(resolve=>reads.push(resolve));},then(resolve){return Promise.resolve({data:[{player_id:'human'}]}).then(resolve);}};return query;}},
+  statusRoom(){},updateRoster(){},gamePlayers(){return sandbox.players;},renderPlayers(){},renderTrackerRoom(){},async refreshScoreLog(){scoreRefreshes++;},async refreshStandings(){}};
+ vm.createContext(sandbox);vm.runInContext(html.slice(start,end)+';this.load=loadRoomPlayers;',sandbox);
+ const first=sandbox.load();for(let i=0;i<20;i++)expect(sandbox.load()).toBe(first);
+ expect(reads).toHaveLength(1);reads.shift()({data:[{id:'human',is_cpu:false}]});await first;expect(scoreRefreshes).toBe(1);
+ const stale=sandbox.load();sandbox.roomId='group-b';const current=sandbox.load();expect(reads).toHaveLength(2);
+ reads[0]({data:[{id:'old-member'}]});await stale;expect(sandbox.players[0].id).toBe('human');
+ reads[1]({data:[{id:'new-member'}]});await current;expect(sandbox.players[0].id).toBe('new-member');expect(scoreRefreshes).toBe(2);
+});
