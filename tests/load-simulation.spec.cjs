@@ -69,13 +69,15 @@ test('100 independent player sessions across 78 groups update scores automatical
    if(i%20===0)console.log('LOAD: opened '+(i+1)+' of 100 sessions');
   });
   expect(pages).toHaveLength(100);expect(groups).toHaveLength(78);
-  await parallel(pages,12,p=>p.evaluate(()=>{selectedGame=window.__loadSavedGame;watchRoom();refreshTimer=setInterval(()=>refreshGame(),5000);renderChoices();}));
+  for(const g of groups)g.drives[0].prediction_deadline=new Date(Date.now()+300000).toISOString();
+  await parallel(pages,12,p=>p.evaluate(()=>{selectedGame=window.__loadSavedGame;renderChoices();}));console.log('LOAD: all 100 sessions ready');
   expect(groups.filter(g=>g.players.some(p=>p.is_cpu))).toHaveLength(77);
   await parallel(pages,12,async(p,i)=>{
-   await p.getByRole('button',{name:i%3===0?'Touchdown':'Punt',exact:true}).click();await p.locator('#lockPick').click();
-   await p.locator('#defenseTab').click();await p.getByRole('button',{name:i%3===0?'Allow a touchdown':'Force a punt',exact:true}).click();await p.locator('#lockPick').click();
+   await p.getByRole('button',{name:i%3===0?'Touchdown':'Punt',exact:true}).dispatchEvent('click');await expect(p.locator('#lockPick')).toBeEnabled();await p.locator('#lockPick').dispatchEvent('click');await expect(p.locator('#offenseTabBadge')).toContainText('LOCKED');
+   await p.locator('#defenseTab').dispatchEvent('click');await expect(p.getByRole('button',{name:i%3===0?'Allow a touchdown':'Force a punt',exact:true})).toBeEnabled();await p.getByRole('button',{name:i%3===0?'Allow a touchdown':'Force a punt',exact:true}).dispatchEvent('click');await expect(p.locator('#lockPick')).toBeEnabled();await p.locator('#lockPick').dispatchEvent('click');
    await expect(p.locator('#pickControls')).toBeHidden();
   });
+  console.log('LOAD: all 100 first-possession picks saved');await parallel(pages,12,p=>p.evaluate(()=>{watchRoom();refreshTimer=setInterval(()=>refreshGame(),5000);}));
   const waitScores=async(drive,extra)=>{
    const began=Date.now();let snapshots;
    await expect.poll(async()=>{snapshots=await Promise.all(pages.map(p=>p.evaluate(()=>({drive:driveNumber,points:playerGameScore(playerId),room:roomId,players:players.map(p=>p.id)}))));return snapshots.every((s,i)=>s.drive===drive&&s.points===(i%3===0?0:20)+extra);},{timeout:40000,intervals:[1000]}).toBe(true);
@@ -86,8 +88,9 @@ test('100 independent player sessions across 78 groups update scores automatical
   const humanTotal=()=>groups.flatMap(g=>g.players).filter(p=>!p.is_cpu).reduce((n,p)=>n+p.score,0);
   expect(humanTotal()).toBe(1320);settle(1,'Punt',null);expect(humanTotal()).toBe(1320);
   await parallel(pages,12,async p=>{
-   await p.getByRole('button',{name:'Touchdown',exact:true}).click();await p.locator('#lockPick').click();await p.locator('#defenseTab').click();await p.getByRole('button',{name:'Allow a touchdown',exact:true}).click();await p.locator('#lockPick').click();
+   await p.getByRole('button',{name:'Touchdown',exact:true}).dispatchEvent('click');await expect(p.locator('#lockPick')).toBeEnabled();await p.locator('#lockPick').dispatchEvent('click');await expect(p.locator('#offenseTabBadge')).toContainText('LOCKED');await p.locator('#defenseTab').dispatchEvent('click');await expect(p.getByRole('button',{name:'Allow a touchdown',exact:true})).toBeEnabled();await p.getByRole('button',{name:'Allow a touchdown',exact:true}).dispatchEvent('click');await expect(p.locator('#lockPick')).toBeEnabled();await p.locator('#lockPick').dispatchEvent('click');await expect(p.locator('#defenseTabBadge')).toContainText('LOCKED');
   });
+  console.log('LOAD: all 100 touchdown picks saved');
   for(const g of groups){g.drives[1].feed_closed=true;g.drives[1].status='awaiting_result';}
   await new Promise(r=>setTimeout(r,4000));expect(humanTotal()).toBe(1320); // Conversion pending cannot award points.
   settle(2,'Touchdown',true);const tdRefreshMs=await waitScores(3,24);
