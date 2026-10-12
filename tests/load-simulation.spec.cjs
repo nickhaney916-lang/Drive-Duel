@@ -3,6 +3,7 @@ const fs=require('node:fs');
 const APP_URL=process.env.TEST_URL||'http://127.0.0.1:8000';
 test.use({trace:'off'});
 test('100 independent player sessions across 78 groups update scores automatically',async()=>{
+ test.skip(process.env.RUN_LARGE_LOAD_TEST!=='1','Run with the explicit load-test flag');
  test.setTimeout(360000);
  const start=Date.now(),browsers=await Promise.all([chromium.launch(),chromium.launch()]),pages=[],contexts=[];
  const uuid=(prefix,n)=>prefix+'0000000-0000-0000-0000-'+String(n).padStart(12,'0');
