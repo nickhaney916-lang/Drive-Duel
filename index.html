@@ -190,7 +190,7 @@ $('lockPick').addEventListener('click',async()=>{
    throw error;
  }
  if(currentDriveId===drive){lockedTypes[type]=true;chosenPicks[type]=pick;}
- await refreshRemotePicks();await loadRoomPlayers();
+ await refreshRemotePicks();loadRoomPlayers().catch(e=>console.warn('Player refresh pending:',e.message));
  }catch(e){queueError='Could not save pick: '+e.message;}
  finally{lockingBusy=false;renderPick();}
 });
@@ -427,10 +427,21 @@ renderNextPicks();
 async function initRemoteDrive(){await syncSharedDrive();}
 setInterval(()=>{if(selectedGame)renderPick()},1000);
 async function scoreCurrentDrive(){if(!currentDriveId||!roomId||scoringBusy)return;if($('feedStatus').dataset.verified!=='true'){$('scoreStatus').textContent='Scoring paused: refresh and verify the live feed before confirming this drive result.';return}const outcome=$('actualOutcome').value,conv=$('conversionResult').value;if(!outcome){$('scoreStatus').textContent='Choose the confirmed final drive result first.';return}if(outcome==='Touchdown'&&!conv){$('scoreStatus').textContent='Confirm whether the extra point or 2-point conversion succeeded.';return}if(outcome!=='Touchdown'&&conv){$('scoreStatus').textContent='Conversion status only applies to touchdowns.';return}scoringBusy=true;$('scoreDrive').disabled=true;$('scoreStatus').textContent='Recording final result and applying points…';renderPick();try{const {data,error}=await db.rpc('drive_duel_score_drive',{p_drive_id:currentDriveId,p_actual_outcome:outcome,p_conversion_success:outcome==='Touchdown'?(conv==='success'):null});if(error)throw error;driveScored=true;$('scoreStatus').textContent=data.already_scored?'This drive was already scored. No points were added again.':'Drive scored successfully. '+data.prediction_rows_scored+' locked predictions evaluated; '+data.points_awarded_total+' total points awarded across all predictions.';if(data.actual_outcome)$('summary').textContent='Final drive result: '+data.actual_outcome+(data.actual_outcome==='Touchdown'?(data.conversion_success?' · conversion successful (+2 bonus to correct touchdown picks)':' · conversion missed/no bonus'):'')+'.';await loadRoomPlayers();$('finalResultPanel').classList.add('hidden');renderPick()}catch(e){$('scoreStatus').textContent='Could not score drive: '+e.message;$('scoreDrive').disabled=false}finally{scoringBusy=false;renderPick()}}
-async function loadRoomPlayers(){
+let playerLoadPending=null,playerLoadKey='';
+function loadRoomPlayers(){
+ if(!db||!roomId)return Promise.resolve();
+ const key=roomId+':'+(selectedGame?.id||'lobby');
+ if(playerLoadPending&&playerLoadKey===key)return playerLoadPending;
+ playerLoadKey=key;
+ const pending=readRoomPlayers();
+ playerLoadPending=pending;
+ pending.finally(()=>{if(playerLoadPending===pending){playerLoadPending=null;playerLoadKey='';}}).catch(()=>{});
+ return pending;
+}
+async function readRoomPlayers(){
  if(!db||!roomId)return;const readingRoom=roomId,readingGame=selectedGame?.id,sequence=++playerLoadSequence;
  const {data,error}=await db.from('players').select('*').eq('room_id',readingRoom).order('created_at');
- if(roomId!==readingRoom||sequence!==playerLoadSequence)return;
+ if(roomId!==readingRoom||selectedGame?.id!==readingGame||sequence!==playerLoadSequence)return;
  if(error){statusRoom('Could not load players: '+error.message);return;}
  if(readingGame){const entered=await db.from('game_players').select('player_id').eq('room_id',readingRoom).eq('game_id',readingGame);if(entered.error){statusRoom('Game players pending: '+entered.error.message);return;}if(roomId!==readingRoom||selectedGame?.id!==readingGame||sequence!==playerLoadSequence)return;gamePlayerIds=new Set((entered.data||[]).map(p=>p.player_id));}
  players=data||[];updateRoster(readingRoom+':'+(readingGame||'lobby'),gamePlayers());cpuAdded=players.some(p=>p.is_cpu);
