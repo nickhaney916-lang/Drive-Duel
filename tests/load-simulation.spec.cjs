@@ -85,7 +85,7 @@ test('100 independent player sessions across 78 groups update scores automatical
    for(let i=0;i<100;i++){expect(snapshots[i].room).toBe(groups[assigned[i]].id);expect(snapshots[i].players.every(id=>groups[assigned[i]].players.some(p=>p.id===id))).toBe(true);}
    return Date.now()-began;
   };
-  settle(1,'Punt',null);const puntRefreshMs=await waitScores(2,0);
+  settle(1,'Punt',null);const puntRefreshMs=await waitScores(2,0);console.log('LOAD: all 100 punt scores and possession advances verified');
   const humanTotal=()=>groups.flatMap(g=>g.players).filter(p=>!p.is_cpu).reduce((n,p)=>n+p.score,0);
   expect(humanTotal()).toBe(1320);settle(1,'Punt',null);expect(humanTotal()).toBe(1320);
   await parallel(pages,12,async p=>{
@@ -94,8 +94,10 @@ test('100 independent player sessions across 78 groups update scores automatical
   console.log('LOAD: all 100 touchdown picks saved');
   for(const g of groups){g.drives[1].feed_closed=true;g.drives[1].status='awaiting_result';}
   await new Promise(r=>setTimeout(r,4000));expect(humanTotal()).toBe(1320); // Conversion pending cannot award points.
-  settle(2,'Touchdown',true);const tdRefreshMs=await waitScores(3,24);
+  settle(2,'Touchdown',true);const tdRefreshMs=await waitScores(3,24);console.log('LOAD: all 100 touchdown scores and possession advances verified');
   expect(humanTotal()).toBe(3720);settle(2,'Touchdown',true);expect(humanTotal()).toBe(3720);
+  // The concurrent scoring phase is complete; stop idle refresh traffic before testing recovery.
+  await parallel(pages,12,p=>p.evaluate(()=>{clearInterval(roomPollTimer);clearInterval(refreshTimer);}));
   await parallel(pages.slice(0,10),5,async(p,i)=>{
    const before=await p.evaluate(()=>playerId);await contexts[i].setOffline(true);await contexts[i].setOffline(false);await p.reload({waitUntil:'domcontentloaded'});
    await expect(p.locator('#groupConnected')).toBeVisible();expect(await p.evaluate(()=>playerId)).toBe(before);
