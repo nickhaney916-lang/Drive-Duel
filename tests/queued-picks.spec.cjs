@@ -131,14 +131,17 @@ test('two independent browsers queue, edit, cancel and auto-lock one possession'
   expect(predictions.filter(p=>p.drive_id==='drive-3')).toHaveLength(0);
   await b.locator('#picks').scrollIntoViewIfNeeded();await expect(b.locator('#liveGameTracker')).toBeVisible();
   expect(await b.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
-  // Calendar standings: tied game winners, day/week/season aggregation and pending wins.
+  await expect(a.locator('#trackerView #standingsPanel')).toHaveCount(0);
+  await a.locator('#back').click();await expect(a.locator('#roomView #mainLeaderboard')).toBeVisible();await expect(a.locator('#standingsPanel [data-period="game"]')).toHaveCount(0);
+  await a.locator('#roomBack').click();await expect(a.locator('#home #mainLeaderboard')).toBeVisible();
+  // Main-page standings: tied game achievements, day/week/season aggregation and pending wins.
   await a.evaluate(()=>{
    const own=players.find(p=>p.id===playerId),other=players.find(p=>!p.is_cpu&&p.id!==playerId);
    const match=(id,date,points)=>({game_id:id,name:'Achievement '+id,kickoff:date+'T20:00:00Z',state:'post',pending:false,players:[{player_id:own.id,user_id:own.user_id,name:own.player_name,points:points[0],is_cpu:false},{player_id:other.id,user_id:other.user_id,name:other.player_name,points:points[1],is_cpu:false}]});
    standingsGames=[match('award1','2026-10-11',[20,20]),match('award2','2026-10-12',[12,0]),match('award3','2026-10-04',[10,10]),match('award4','2026-06-01',[99,0])];standingsLastRefresh=Date.now();
-   $('standingsDate').value='2026-10-11';$('standingsGame').innerHTML='<option value="award1">award1</option>';standingsPeriod='game';renderStandings();$('standingsPanel').open=true;
+   $('standingsDate').value='2026-10-11';$('standingsGame').innerHTML='<option value="award1">award1</option>';standingsPeriod='day';renderStandings();$('standingsPanel').open=true;
   });
-  await expect(a.locator('#standingsLeader')).toContainText('Game winner: You & Auto Browser 2');
+  await expect(a.locator('#standingsLeader')).toContainText('Day leader: You & Auto Browser 2');await expect(a.locator('#standingsAchievements')).toContainText('You & Auto Browser 2');
   await a.locator('#standingsPanel [data-period="day"]').click();
   await expect(a.locator('#standingsRows tr').first()).toContainText('20');
   await a.locator('#standingsPanel [data-period="week"]').click();
@@ -146,8 +149,8 @@ test('two independent browsers queue, edit, cancel and auto-lock one possession'
   await a.locator('#standingsPanel [data-period="season"]').click();
   await expect(a.locator('#standingsRows tr').first()).toHaveText(/You.*42.*3.*3/);
   await expect(a.locator('#standingsRows')).not.toContainText('99');
-  await a.evaluate(()=>{standingsGames[0].pending=true;standingsPeriod='game';$('standingsGame').value='award1';renderStandings();});
-  await expect(a.locator('#standingsLeader')).toContainText('results pending');
+  await a.evaluate(()=>{standingsGames[0].pending=true;standingsPeriod='day';$('standingsGame').value='award1';renderStandings();});
+  await expect(a.locator('#standingsAchievements')).toContainText('Game wins appear after final');
   await expect(a.locator('#standingsRows tr').first()).toHaveText(/You.*20.*1.*0/);
   await Promise.all(pages.map((p,i)=>p.screenshot({path:'test-results/queue-browser-'+i+'.png',fullPage:true})));
   console.log('PASS: two independent browser processes; queue edit/cancel, privacy, auto-lock, 30-second fallback, one-time use and mobile layout.');
