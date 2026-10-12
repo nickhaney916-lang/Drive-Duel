@@ -5,7 +5,7 @@ test.use({trace:'off'});
 test('100 independent player sessions across 78 groups update scores automatically',async()=>{
  test.skip(process.env.RUN_LARGE_LOAD_TEST!=='1','Run with the explicit load-test flag');
  test.setTimeout(360000);
- const start=Date.now(),browsers=await Promise.all([chromium.launch(),chromium.launch()]),pages=[],contexts=[];
+ const start=Date.now(),browsers=await Promise.all([chromium.launch({args:['--disable-background-timer-throttling','--disable-renderer-backgrounding','--disable-backgrounding-occluded-windows']}),chromium.launch({args:['--disable-background-timer-throttling','--disable-renderer-backgrounding','--disable-backgrounding-occluded-windows']})]),pages=[],contexts=[];
  const uuid=(prefix,n)=>prefix+'0000000-0000-0000-0000-'+String(n).padStart(12,'0');
  const game='load-game-100',now=new Date().toISOString();
  const groups=Array.from({length:78},(_,g)=>({id:uuid('1',g+1),code:'L'+String(g+1).padStart(5,'0'),players:[],drives:[{id:'g'+g+'-d1',room_id:uuid('1',g+1),game_id:game,drive_number:1,status:'in_progress',feed_closed:false,prediction_deadline:new Date(Date.now()+300000).toISOString()}],predictions:[],phase:1}));
@@ -81,7 +81,7 @@ test('100 independent player sessions across 78 groups update scores automatical
   console.log('LOAD: all 100 first-possession picks saved');await parallel(pages,12,p=>p.evaluate(()=>{watchRoom();refreshTimer=setInterval(()=>refreshGame(),5000);}));
   const waitScores=async(drive,extra)=>{
    const began=Date.now();let snapshots;
-   await expect.poll(async()=>{snapshots=await Promise.all(pages.map(p=>p.evaluate(()=>({drive:driveNumber,points:playerGameScore(playerId),room:roomId,players:players.map(p=>p.id)}))));return snapshots.every((s,i)=>s.drive===drive&&s.points===(i%3===0?0:20)+extra);},{timeout:40000,intervals:[1000]}).toBe(true);
+   try{await expect.poll(async()=>{snapshots=await Promise.all(pages.map(p=>p.evaluate(()=>({drive:driveNumber,points:playerGameScore(playerId),room:roomId,players:players.map(p=>p.id)}))));return snapshots.every((s,i)=>s.drive===drive&&s.points===(i%3===0?0:20)+extra);},{timeout:40000,intervals:[1000]}).toBe(true);}catch(e){console.log('LOAD SCORE FAILURE '+JSON.stringify({drive,extra,serverPoints:groups.flatMap(g=>g.players).reduce((n,p)=>n+p.score,0),incorrect:snapshots.map((s,i)=>({...s,index:i})).filter(s=>s.drive!==drive||s.points!==(s.index%3===0?0:20)+extra)}));throw e;}
    for(let i=0;i<100;i++){expect(snapshots[i].room).toBe(groups[assigned[i]].id);expect(snapshots[i].players.every(id=>groups[assigned[i]].players.some(p=>p.id===id))).toBe(true);}
    return Date.now()-began;
   };
