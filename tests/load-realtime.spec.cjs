@@ -1,6 +1,7 @@
 const {test,expect,chromium}=require('@playwright/test');
 const APP_URL=process.env.TEST_URL||'http://127.0.0.1:8000';
 test('real realtime subscribers receive simulated scoring without polling',async()=>{
+ test.skip(process.env.RUN_REALTIME_LOAD_PROBE!=='1','Run with the explicit load-test flag');
  test.setTimeout(240000);const browsers=await Promise.all([chromium.launch(),chromium.launch()]);
  const pages=await Promise.all(browsers.map(b=>b.newPage()));
  const game='load-realtime-20261012',tag='RTLoad-'+(process.env.GITHUB_SHA||Date.now().toString()).slice(0,10),date=new Date().toISOString();
