@@ -68,6 +68,14 @@ test('two independent browsers queue, edit, cancel and auto-lock one possession'
    await expect.poll(()=>p.evaluate(()=>currentDriveId)).toBe('drive-1');
   }
   const [a,b]=pages;await expect(a.locator('#trackerRoomBanner')).toBeHidden();await expect(a.locator('#liveGameTracker #liveGroupScoreChips')).toBeVisible();await expect(a.locator('#liveScoreLog')).toHaveText('No scored possessions yet.');await expect(a.locator('#predictionPanel')).toHaveCount(1);await expect(a.locator('#nextPossessionPanel')).toHaveCount(0);await expect(a.locator('#pickTarget')).toHaveAttribute('data-target','next');
+  await expect(a.getByRole('button',{name:'Other',exact:true})).toHaveCount(0);
+  await expect(a.getByRole('button',{name:'Turnover on downs',exact:true})).toBeVisible();
+  await expect(a.getByRole('button',{name:'Missed Field Goal',exact:true})).toBeVisible();
+  await expect(a.getByRole('button',{name:'End of half/game',exact:true})).toBeVisible();
+  await a.getByRole('button',{name:'Safety',exact:true}).click();await expect(a.locator('#offenseTabBadge')).toContainText('NOT SAVED');
+  await a.locator('#lockPick').click();await expect(a.locator('#offenseTabBadge')).toHaveText('✓ SAVED · P2');await expect(a.locator('#offenseTabPick')).toHaveText('Safety');
+  await expect(b.locator('#offenseTabBadge')).toContainText('NOT SAVED');
+  await a.locator('#cancelNextPick').click();await expect(a.locator('#offenseTabBadge')).toContainText('NOT SAVED');
   await a.getByRole('button',{name:'Punt',exact:true}).click();
   await a.locator('#lockPick').click();await expect(a.locator('#queueStatus')).toContainText('QUEUED · Punt');
   await expect(a.locator('#trackerQueuedTitle')).toContainText('Possession 2');await expect(a.locator('#trackerQueuedRows')).toContainText('Punt');await expect(b.locator('#trackerQueuedPicks')).toBeHidden();
@@ -78,13 +86,13 @@ test('two independent browsers queue, edit, cancel and auto-lock one possession'
   await a.getByRole('button',{name:'Punt',exact:true}).click();await a.locator('#lockPick').click();
   await expect(a.locator('#queueStatus')).toContainText('QUEUED · Punt');
   await a.locator('#defenseTab').click();await a.getByRole('button',{name:'Force a punt',exact:true}).click();await a.locator('#lockPick').click();
-  await expect(a.locator('#pickControls')).toBeHidden();await expect(a.locator('#trackerQueuedRows')).toContainText('Punt');await expect(a.locator('#trackerQueuedRows')).toContainText('Punt');await expect(a.locator('#togglePickControls')).toHaveText('Edit next-possession picks');
+  await expect(a.locator('#defenseTabBadge')).toHaveText('✓ SAVED · P2');await expect(a.locator('#pickControls')).toBeHidden();await expect(a.locator('#trackerQueuedRows')).toContainText('Punt');await expect(a.locator('#trackerQueuedRows')).toContainText('Punt');await expect(a.locator('#togglePickControls')).toHaveText('Edit next-possession picks');
   await a.locator('#togglePickControls').click();await expect(a.locator('#pickControls')).toBeVisible();
   await a.getByRole('button',{name:'Force a turnover',exact:true}).click();await a.locator('#lockPick').click();
   await expect(a.locator('#pickControls')).toBeHidden();await expect(a.locator('#savedPickStatus')).toContainText('saved');
   stage=2;
   for(const p of pages)await expect.poll(()=>p.evaluate(()=>driveNumber),{timeout:25000}).toBe(2);
-  await expect(a.locator('#trackerQueuedPicks')).toBeHidden();await expect(a.locator('#trackerLockedTitle')).toContainText('Possession 2');await expect(a.locator('#pickTarget')).toHaveAttribute('data-target','current');await expect(a.locator('#possessionField')).toHaveAttribute('data-side','home');await expect(a.locator('#possessionArrow')).toHaveText('→');await expect(a.locator('#trackerLockedPicks')).toContainText('You');await expect(a.locator('#trackerLockedPicks')).toContainText('Punt');await expect(b.locator('#trackerLockedPicks')).toContainText('Auto Browser 1');
+  await expect(a.locator('#offenseTabBadge')).toHaveText('🔒 LOCKED · P2');await expect(a.locator('#defenseTabBadge')).toHaveText('🔒 LOCKED · P2');await expect(a.locator('#trackerQueuedPicks')).toBeHidden();await expect(a.locator('#trackerLockedTitle')).toContainText('Possession 2');await expect(a.locator('#pickTarget')).toHaveAttribute('data-target','current');await expect(a.locator('#possessionField')).toHaveAttribute('data-side','home');await expect(a.locator('#possessionArrow')).toHaveText('→');await expect(a.locator('#trackerLockedPicks')).toContainText('You');await expect(a.locator('#trackerLockedPicks')).toContainText('Punt');await expect(b.locator('#trackerLockedPicks')).toContainText('Auto Browser 1');
   await expect(a.locator('#pickControls')).toBeHidden();
   await expect(a.locator('#lockPick')).toHaveText('✓ Offense Pick Locked');await expect(a.locator('#cancelNextPick')).toBeHidden();
   await expect(a.locator('#picks button[data-pick="Punt"]')).toBeDisabled();
