@@ -53,6 +53,10 @@ async function waitFor(fn,ms=12000){const start=Date.now();while(Date.now()-star
   if(persistedOnce.error)throw persistedOnce.error;
   assert.equal(persistedOnce.data.score,10);
   assert.equal(persistedOnce.data.revision,1);
+  assert.equal(first.events.filter(e=>e.revision===1&&e.score===10).length,1,
+    'First subscriber received a duplicate score event');
+  assert.equal(second.events.filter(e=>e.revision===1&&e.score===10).length,1,
+    'Second subscriber received a duplicate score event');
   assert.equal(first.events.at(-1).score,10);
   assert.equal(second.events.at(-1).score,10);
   const persisted=await admin.from('realtime_probe').select('score,revision').eq('id',insert.data.id).single();
