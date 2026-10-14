@@ -58,11 +58,11 @@ jobs:
       - name: Install local Supabase CLI and client
         run: |
           npm install --no-save supabase@2 @supabase/supabase-js@2
-          npx supabase init --force
+          if [ ! -f supabase/config.toml ]; then npx supabase init; fi
           mkdir -p supabase/migrations
           cp tests/local-realtime-probe.sql supabase/migrations/20261014000000_local_realtime_probe.sql
       - name: Start ephemeral local Supabase
-        run: npx supabase start
+        run: npx supabase start --exclude studio,imgproxy,mailpit,analytics,vector,supavisor
       - name: Run real two-client realtime test
         shell: bash
         run: |
