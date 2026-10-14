@@ -82,9 +82,17 @@ jobs:
           set -euo pipefail
           npx supabase status -o env > /tmp/local-supabase.env
           source /tmp/local-supabase.env
-          export TEST_SUPABASE_URL="${API_URL}"
-          export TEST_SUPABASE_ANON_KEY="${ANON_KEY}"
-          export TEST_SUPABASE_SERVICE_KEY="${SERVICE_ROLE_KEY}"
+          export TEST_SUPABASE_URL="${API_URL:-}"
+          export TEST_SUPABASE_ANON_KEY="${ANON_KEY:-${PUBLISHABLE_KEY:-}}"
+          export TEST_SUPABASE_SERVICE_KEY="${SERVICE_ROLE_KEY:-${SECRET_KEY:-}}"
+          if [[ -z "$TEST_SUPABASE_URL" || -z "$TEST_SUPABASE_ANON_KEY" || -z "$TEST_SUPABASE_SERVICE_KEY" ]]; then
+            echo "::error::Local Supabase CLI did not return the expected URL and API keys"
+            exit 1
+          fi
+          case "$TEST_SUPABASE_URL" in
+            http://127.0.0.1:*|http://localhost:*) ;;
+            *) echo "::error::Refusing nonlocal Supabase API URL"; exit 1 ;;
+          esac
           node tests/local-realtime-transport.cjs
       - name: Capture local database diagnostics
         if: failure()
