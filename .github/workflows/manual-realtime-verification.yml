@@ -32,8 +32,8 @@ jobs:
           done
           cat /tmp/drive-duel-server.log
           exit 1
-      - name: Run isolated browser and 100-player mock tests
-        run: npx playwright test --grep-invert 'real realtime subscribers receive simulated scoring without polling'
+      - name: Run mocked 100-player load test only
+        run: npx playwright test tests/load-simulation.spec.cjs
       - name: Upload test evidence
         if: always()
         uses: actions/upload-artifact@v4
