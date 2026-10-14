@@ -1,29 +1,34 @@
-name: Manual realtime verification
+name: Manual isolated browser verification
 on:
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
-  realtime-probe:
+  browser-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    environment: drive-duel-test
+    timeout-minutes: 25
     env:
-      RUN_REALTIME_LOAD_PROBE: '1'
+      RUN_LARGE_LOAD_TEST: '1'
+      RUN_REALTIME_LOAD_PROBE: '0'
       TEST_URL: http://127.0.0.1:8000
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Verify isolated test configuration
-        env:
-          TEST_SUPABASE_URL: ${{ secrets.TEST_SUPABASE_URL }}
-          TEST_SUPABASE_ANON_KEY: ${{ secrets.TEST_SUPABASE_ANON_KEY }}
+      - name: Install Playwright
         run: |
-          test -n "$TEST_SUPABASE_URL" || { echo 'Missing TEST_SUPABASE_URL in drive-duel-test environment'; exit 1; }
-          test -n "$TEST_SUPABASE_ANON_KEY" || { echo 'Missing TEST_SUPABASE_ANON_KEY in drive-duel-test environment'; exit 1; }
-          echo 'Isolated test credentials present. The application must also be configured to use this test project.'
-          exit 1
-      # Intentionally fail closed until the application supports explicit test-project injection.
-      # Never execute this against the production database.
+          npm install --no-save @playwright/test@1.61.1
+          npx playwright install --with-deps chromium
+      - name: Start local application
+        run: python3 -m http.server 8000 > /tmp/drive-duel-server.log 2>&1 &
+      - name: Run isolated browser and 100-player mock tests
+        run: npx playwright test --grep-invert 'real realtime subscribers receive simulated scoring without polling'
+      - name: Upload test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: isolated-browser-test-evidence
+          path: |
+            playwright-report/
+            test-results/
