@@ -34,6 +34,8 @@ jobs:
           exit 1
       - name: Run mocked 100-player load test only
         run: npx playwright test tests/load-simulation.spec.cjs
+      - name: Validate 100-player report
+        run: node tests/verify-load-report.cjs
       - name: Upload test evidence
         if: always()
         uses: actions/upload-artifact@v4
