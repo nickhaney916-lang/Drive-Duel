@@ -19,6 +19,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Verify local database isolation
+        run: node --test tests/prepare-local-app.test.cjs
       - name: Install Playwright
         run: |
           npm install --no-save @playwright/test@1.61.1
