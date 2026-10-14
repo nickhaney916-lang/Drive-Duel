@@ -21,7 +21,7 @@ function subscribe(client, label){
   const timeout=setTimeout(()=>reject(Error('Supabase Realtime subscription timed out')),subscriptionTimeoutMs);
   const events=[];
   const channel=client.channel('probe-'+randomUUID())
-   .on('postgres_changes',{event:'UPDATE',schema:'public',table:'realtime_probe'},payload=>{
+   .on('postgres_changes',{event:'UPDATE',schema:'public',table:'realtime_probe',filter:`room_code=eq.${room}`},payload=>{
     if(payload.new.room_code===room){events.push(payload.new);console.log('Realtime event',label,JSON.stringify(payload.new));}
    }).subscribe(status=>{realtimeDebug[label].push(status);console.log('Realtime status',label,status);if(status==='SUBSCRIBED'){clearTimeout(timeout);resolve({events,channel});}if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'){clearTimeout(timeout);reject(Error(status));}});
   channels.push(channel);
