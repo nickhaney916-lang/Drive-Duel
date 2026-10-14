@@ -14,21 +14,22 @@ const b=createClient(url,anon,{auth:{persistSession:false}});
 const room='probe-'+randomUUID();
 const channels=[];
 const subscriptionTimeoutMs=20000;
-function subscribe(client){
+const realtimeDebug={a:[],b:[]};
+function subscribe(client, label){
  return new Promise((resolve,reject)=>{
   const timeout=setTimeout(()=>reject(Error('Supabase Realtime subscription timed out')),subscriptionTimeoutMs);
   const events=[];
   const channel=client.channel('probe-'+randomUUID())
    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'realtime_probe'},payload=>{
-    if(payload.new.room_code===room)events.push(payload.new);
-   }).subscribe(status=>{if(status==='SUBSCRIBED'){clearTimeout(timeout);resolve({events,channel});}if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'){clearTimeout(timeout);reject(Error(status));}});
+    if(payload.new.room_code===room){events.push(payload.new);console.log('Realtime event',label,JSON.stringify(payload.new));}
+   }).subscribe(status=>{realtimeDebug[label].push(status);console.log('Realtime status',label,status);if(status==='SUBSCRIBED'){clearTimeout(timeout);resolve({events,channel});}if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'){clearTimeout(timeout);reject(Error(status));}});
   channels.push(channel);
  });
 }
 async function waitFor(fn,ms=12000){const start=Date.now();while(Date.now()-start<ms){if(fn())return;await new Promise(r=>setTimeout(r,100));}throw Error('Realtime event delivery timeout');}
 (async()=>{
  try{
-  const [first,second]=await Promise.all([subscribe(a),subscribe(b)]);
+  const [first,second]=await Promise.all([subscribe(a,'a'),subscribe(b,'b')]);
   const insert=await admin.from('realtime_probe').insert({room_code:room,revision:0,score:0}).select('id').single();
   if(insert.error)throw insert.error;
   // Give Realtime a moment to attach the database change stream after subscription.
@@ -46,7 +47,15 @@ async function waitFor(fn,ms=12000){const start=Date.now();while(Date.now()-star
   assert.equal(before.data.revision,0);
   const change=await admin.from('realtime_probe').update({revision:1,score:10}).eq('id',insert.data.id);
   if(change.error)throw change.error;
-  await waitFor(()=>first.events.some(e=>e.revision===1&&e.score===10)&&second.events.some(e=>e.revision===1&&e.score===10));
+  try{
+    await waitFor(()=>first.events.some(e=>e.revision===1&&e.score===10)&&second.events.some(e=>e.revision===1&&e.score===10));
+  }catch(error){
+    console.error('Realtime delivery diagnostic',JSON.stringify({
+      firstEvents:first.events,secondEvents:second.events,statuses:realtimeDebug,
+      room,expectedRevision:1
+    }));
+    throw error;
+  }
   // Revision guard rejects stale updates even if the score payload differs.
   const duplicate=await admin.from('realtime_probe').update({revision:2,score:20}).eq('id',insert.data.id).eq('revision',0).select('id');
   if(duplicate.error)throw duplicate.error;
