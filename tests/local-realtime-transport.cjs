@@ -31,6 +31,8 @@ async function waitFor(fn,ms=12000){const start=Date.now();while(Date.now()-star
   const [first,second]=await Promise.all([subscribe(a),subscribe(b)]);
   const insert=await admin.from('realtime_probe').insert({room_code:room,revision:0,score:0}).select('id').single();
   if(insert.error)throw insert.error;
+  // Give Realtime a moment to attach the database change stream after subscription.
+  await new Promise(r=>setTimeout(r,1000));
   const change=await admin.from('realtime_probe').update({revision:1,score:10}).eq('id',insert.data.id);
   if(change.error)throw change.error;
   await waitFor(()=>first.events.some(e=>e.revision===1&&e.score===10)&&second.events.some(e=>e.revision===1&&e.score===10));
