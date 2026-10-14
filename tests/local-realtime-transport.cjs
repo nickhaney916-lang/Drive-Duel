@@ -36,6 +36,12 @@ async function waitFor(fn,ms=12000){const start=Date.now();while(Date.now()-star
   const change=await admin.from('realtime_probe').update({revision:1,score:10}).eq('id',insert.data.id);
   if(change.error)throw change.error;
   await waitFor(()=>first.events.some(e=>e.revision===1&&e.score===10)&&second.events.some(e=>e.revision===1&&e.score===10));
+  const duplicate=await admin.from('realtime_probe').update({revision:1,score:10}).eq('id',insert.data.id);
+  if(duplicate.error)throw duplicate.error;
+  const persistedOnce=await admin.from('realtime_probe').select('score,revision').eq('id',insert.data.id).single();
+  if(persistedOnce.error)throw persistedOnce.error;
+  assert.equal(persistedOnce.data.score,10);
+  assert.equal(persistedOnce.data.revision,1);
   assert.equal(first.events.at(-1).score,10);
   assert.equal(second.events.at(-1).score,10);
   const persisted=await admin.from('realtime_probe').select('score,revision').eq('id',insert.data.id).single();
