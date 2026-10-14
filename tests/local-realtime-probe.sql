@@ -16,3 +16,18 @@ begin
  alter publication supabase_realtime add table public.realtime_probe;
 exception when duplicate_object then null;
 end $$;
+
+-- Ensure UPDATE payloads include the complete row for both subscribers.
+alter table public.realtime_probe replica identity full;
+-- Fail local setup if the test table was not actually published.
+do $$
+begin
+ if not exists (
+   select 1 from pg_publication_tables
+   where pubname = 'supabase_realtime'
+     and schemaname = 'public'
+     and tablename = 'realtime_probe'
+ ) then
+   raise exception 'realtime_probe is missing from supabase_realtime publication';
+ end if;
+end $$;
