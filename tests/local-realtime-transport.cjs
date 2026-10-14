@@ -39,6 +39,7 @@ async function waitFor(fn,ms=12000){const start=Date.now();while(Date.now()-star
     .eq('id',insert.data.id)
     .select('id');
   assert.equal(unauthorized.data?.length ?? 0,0,'Anonymous score write unexpectedly succeeded');
+  if(unauthorized.error && !['42501','PGRST301'].includes(unauthorized.error.code)) throw unauthorized.error;
   const before=await admin.from('realtime_probe').select('score,revision').eq('id',insert.data.id).single();
   if(before.error)throw before.error;
   assert.equal(before.data.score,0);
@@ -46,7 +47,8 @@ async function waitFor(fn,ms=12000){const start=Date.now();while(Date.now()-star
   const change=await admin.from('realtime_probe').update({revision:1,score:10}).eq('id',insert.data.id);
   if(change.error)throw change.error;
   await waitFor(()=>first.events.some(e=>e.revision===1&&e.score===10)&&second.events.some(e=>e.revision===1&&e.score===10));
-  const duplicate=await admin.from('realtime_probe').update({revision:1,score:10}).eq('id',insert.data.id).eq('revision',0).select('id');
+  // Revision guard rejects stale updates even if the score payload differs.
+  const duplicate=await admin.from('realtime_probe').update({revision:2,score:20}).eq('id',insert.data.id).eq('revision',0).select('id');
   if(duplicate.error)throw duplicate.error;
   assert.equal(duplicate.data.length,0,'Stale revision unexpectedly accepted');
   const persistedOnce=await admin.from('realtime_probe').select('score,revision').eq('id',insert.data.id).single();
