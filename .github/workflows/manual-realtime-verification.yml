@@ -58,7 +58,11 @@ jobs:
       - name: Install local Supabase CLI and client
         run: |
           npm install --no-save supabase@2 @supabase/supabase-js@2
-          if [ ! -f supabase/config.toml ]; then npx supabase init; fi
+          if [ ! -f supabase/config.toml ]; then
+            # This repo already has a supabase/ directory containing SQL scripts.
+            # The CLI requires --force to initialize inside that existing directory.
+            npx supabase init --force
+          fi
           mkdir -p supabase/migrations
           cp tests/local-realtime-probe.sql supabase/migrations/20261014000000_local_realtime_probe.sql
       - name: Check local test prerequisites
@@ -93,7 +97,8 @@ jobs:
             http://127.0.0.1:*|http://localhost:*) ;;
             *) echo "::error::Refusing nonlocal Supabase API URL"; exit 1 ;;
           esac
-          node tests/local-realtime-transport.cjs
+          mkdir -p test-results/local-supabase
+          node tests/local-realtime-transport.cjs 2>&1 | tee test-results/local-supabase/realtime-test.log
       - name: Capture local database diagnostics
         if: failure()
         run: |
