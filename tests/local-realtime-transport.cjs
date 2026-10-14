@@ -45,8 +45,11 @@ async function waitFor(fn,ms=12000){const start=Date.now();while(Date.now()-star
   if(before.error)throw before.error;
   assert.equal(before.data.score,0);
   assert.equal(before.data.revision,0);
-  const change=await admin.from('realtime_probe').update({revision:1,score:10}).eq('id',insert.data.id);
+  const change=await admin.from('realtime_probe').update({revision:1,score:10}).eq('id',insert.data.id).select('id,room_code,revision,score').single();
   if(change.error)throw change.error;
+  assert.equal(change.data.room_code,room);
+  assert.equal(change.data.revision,1);
+  console.log('Authoritative database update confirmed',JSON.stringify(change.data));
   try{
     await waitFor(()=>first.events.some(e=>e.revision===1&&e.score===10)&&second.events.some(e=>e.revision===1&&e.score===10));
   }catch(error){
