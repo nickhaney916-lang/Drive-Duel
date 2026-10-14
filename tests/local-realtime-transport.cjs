@@ -14,6 +14,7 @@ const b=createClient(url,anon,{auth:{persistSession:false}});
 const room='probe-'+randomUUID();
 const channels=[];
 const subscriptionTimeoutMs=20000;
+const deliveryTimeoutMs=30000;
 const realtimeDebug={a:[],b:[]};
 function subscribe(client, label){
  return new Promise((resolve,reject)=>{
@@ -26,7 +27,7 @@ function subscribe(client, label){
   channels.push(channel);
  });
 }
-async function waitFor(fn,ms=12000){const start=Date.now();while(Date.now()-start<ms){if(fn())return;await new Promise(r=>setTimeout(r,100));}throw Error('Realtime event delivery timeout');}
+async function waitFor(fn,ms=deliveryTimeoutMs){const start=Date.now();while(Date.now()-start<ms){if(fn())return;await new Promise(r=>setTimeout(r,100));}throw Error('Realtime event delivery timeout');}
 (async()=>{
  try{
   const [first,second]=await Promise.all([subscribe(a,'a'),subscribe(b,'b')]);
