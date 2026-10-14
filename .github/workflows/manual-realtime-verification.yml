@@ -46,3 +46,33 @@ jobs:
           path: |
             playwright-report/
             test-results/
+
+  local-realtime-transport:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install local Supabase CLI and client
+        run: |
+          npm install --no-save supabase@2 @supabase/supabase-js@2
+          npx supabase init --force
+          mkdir -p supabase/migrations
+          cp tests/local-realtime-probe.sql supabase/migrations/20261014000000_local_realtime_probe.sql
+      - name: Start ephemeral local Supabase
+        run: npx supabase start
+      - name: Run real two-client realtime test
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx supabase status -o env > /tmp/local-supabase.env
+          source /tmp/local-supabase.env
+          export TEST_SUPABASE_URL="${API_URL}"
+          export TEST_SUPABASE_ANON_KEY="${ANON_KEY}"
+          export TEST_SUPABASE_SERVICE_KEY="${SERVICE_ROLE_KEY}"
+          node tests/local-realtime-transport.cjs
+      - name: Stop ephemeral Supabase
+        if: always()
+        run: npx supabase stop --no-backup || true
