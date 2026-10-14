@@ -61,8 +61,21 @@ jobs:
           if [ ! -f supabase/config.toml ]; then npx supabase init; fi
           mkdir -p supabase/migrations
           cp tests/local-realtime-probe.sql supabase/migrations/20261014000000_local_realtime_probe.sql
+      - name: Check local test prerequisites
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker info >/dev/null
+          npx supabase --version
+          test -f supabase/config.toml
+          test -f supabase/migrations/20261014000000_local_realtime_probe.sql
+          echo "Docker, CLI, and local migration are available"
       - name: Start ephemeral local Supabase
-        run: npx supabase start --exclude studio,imgproxy,mailpit,analytics,vector,supavisor
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p test-results/local-supabase
+          npx supabase start --exclude studio,imgproxy,mailpit,analytics,vector,supavisor 2>&1 | tee test-results/local-supabase/start.log
       - name: Run real two-client realtime test
         shell: bash
         run: |
