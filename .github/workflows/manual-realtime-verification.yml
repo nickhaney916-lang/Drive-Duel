@@ -73,6 +73,19 @@ jobs:
           export TEST_SUPABASE_ANON_KEY="${ANON_KEY}"
           export TEST_SUPABASE_SERVICE_KEY="${SERVICE_ROLE_KEY}"
           node tests/local-realtime-transport.cjs
+      - name: Capture local database diagnostics
+        if: failure()
+        run: |
+          mkdir -p test-results/local-supabase
+          docker ps -a --format '{{.Names}} {{.Status}}' > test-results/local-supabase/containers.txt || true
+          npx supabase status > test-results/local-supabase/status.txt 2>&1 || true
+      - name: Upload local realtime diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: local-realtime-diagnostics
+          path: test-results/local-supabase/
+          if-no-files-found: ignore
       - name: Stop ephemeral Supabase
         if: always()
         run: npx supabase stop --no-backup || true
