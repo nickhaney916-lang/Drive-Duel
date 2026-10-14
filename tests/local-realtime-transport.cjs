@@ -13,13 +13,15 @@ const a=createClient(url,anon,{auth:{persistSession:false}});
 const b=createClient(url,anon,{auth:{persistSession:false}});
 const room='probe-'+randomUUID();
 const channels=[];
+const subscriptionTimeoutMs=20000;
 function subscribe(client){
  return new Promise((resolve,reject)=>{
+  const timeout=setTimeout(()=>reject(Error('Supabase Realtime subscription timed out')),subscriptionTimeoutMs);
   const events=[];
   const channel=client.channel('probe-'+randomUUID())
    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'realtime_probe'},payload=>{
     if(payload.new.room_code===room)events.push(payload.new);
-   }).subscribe(status=>{if(status==='SUBSCRIBED')resolve({events,channel});if(status==='CHANNEL_ERROR'||status==='TIMED_OUT')reject(Error(status));});
+   }).subscribe(status=>{if(status==='SUBSCRIBED'){clearTimeout(timeout);resolve({events,channel});}if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'){clearTimeout(timeout);reject(Error(status));}});
   channels.push(channel);
  });
 }
@@ -34,6 +36,10 @@ async function waitFor(fn,ms=12000){const start=Date.now();while(Date.now()-star
   await waitFor(()=>first.events.some(e=>e.revision===1&&e.score===10)&&second.events.some(e=>e.revision===1&&e.score===10));
   assert.equal(first.events.at(-1).score,10);
   assert.equal(second.events.at(-1).score,10);
+  const persisted=await admin.from('realtime_probe').select('score,revision').eq('id',insert.data.id).single();
+  if(persisted.error)throw persisted.error;
+  assert.equal(persisted.data.score,10);
+  assert.equal(persisted.data.revision,1);
   console.log('PASS: real local Supabase Postgres Changes delivered the same score to two clients');
  }finally{
   await Promise.all(channels.map(c=>c.unsubscribe()));
