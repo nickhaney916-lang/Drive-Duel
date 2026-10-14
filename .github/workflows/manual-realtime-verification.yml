@@ -99,6 +99,23 @@ jobs:
           esac
           mkdir -p test-results/local-supabase
           node tests/local-realtime-transport.cjs 2>&1 | tee test-results/local-supabase/realtime-test.log
+      - name: Summarize realtime integration result
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## Local Supabase realtime test"
+            if [[ -f test-results/local-supabase/realtime-test.log ]]; then
+              if grep -q '^PASS:' test-results/local-supabase/realtime-test.log; then
+                echo "Two-client transport check: PASS"
+              else
+                echo "Two-client transport check: not confirmed"
+              fi
+              echo "See local-realtime-diagnostics artifact for the complete test output."
+            else
+              echo "Test did not reach the Node integration step; inspect startup logs."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
       - name: Capture local database diagnostics
         if: failure()
         run: |
