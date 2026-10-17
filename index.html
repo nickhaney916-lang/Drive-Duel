@@ -106,6 +106,31 @@ body.game-active .dualPickChoices button{border-radius:17px}
 body.game-active .dualPickSave{border-radius:19px}
 body.game-active #trackerView>.sectionhead{margin:5px 2px}
 body.game-active #trackerTitle{font-size:18px!important}
+
+/* pigskinTheme: lightweight football-game identity; no external images or performance-heavy effects */
+:root{--stadium-gold:#f4c878;--pigskin:#98532d;--turf-bright:#3dc58a}
+body{background:radial-gradient(ellipse at 50% -12%,#174f4a 0%,transparent 52%),linear-gradient(180deg,#071822 0%,#08131e 100%)}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.12;background:repeating-radial-gradient(circle at 4px 4px,#a5d4b7 0 0.65px,transparent 1.2px 9px);background-size:18px 18px;z-index:0}
+body>.wrap{position:relative;z-index:1}
+body.game-active .tracker{background:transparent}
+body.game-active .gamePickEntry{border:1px solid #8e6545;background:radial-gradient(ellipse at 95% 0%,#b16b3640,transparent 58%),linear-gradient(135deg,#432819,#1d2d31 75%);box-shadow:inset 0 1px #f4c87830,0 8px 22px #0005}
+body.game-active .gamePickEntry:before{content:"FOOTBALL GAME DAY";font-size:10px;color:#edc18b;letter-spacing:2px;font-weight:850}
+body.game-active #makePicksNow{border-radius:48% / 75%;border:2px solid #ffe0a8;min-height:64px;background:linear-gradient(180deg,#bd7945,#8c462a);color:#fff7e9;box-shadow:inset 0 2px #ffe0ac4f,inset 0 -4px #401b1790,0 5px 13px #0007;position:relative;text-shadow:0 1px 2px #452017;padding-left:40px}
+body.game-active #makePicksNow:before{content:"╫";position:absolute;left:14px;top:50%;transform:translateY(-50%) rotate(-24deg);color:#fff8e6;font-size:24px;line-height:1}
+body.game-active .dualPickPanel{background:linear-gradient(155deg,#193b46,#102b39 85%);border-color:#66858b;box-shadow:inset 0 1px #defbea20}
+body.game-active .dualPickPanel h3{color:#fff0d5}
+body.game-active .dualPickChoices button{border-radius:26px;background:linear-gradient(180deg,#20475a,#133244);border-color:#5f8794;box-shadow:inset 0 1px #ffffff16;transition:background .12s ease,border-color .12s ease}
+body.game-active .dualPickChoices button.selected{background:linear-gradient(180deg,#1f8057,#145d3f);border-color:#b1ffd3;color:#fff;box-shadow:0 0 0 2px #4bec9b30,inset 0 1px #ffffff35}
+body.game-active .dualPickSave{border-radius:45% / 70%;min-height:65px;border:2px solid #e1ca91;background:linear-gradient(180deg,#a96339,#783a26);color:#fffaf0;box-shadow:inset 0 2px #ffe8b040,inset 0 -3px #421e13;position:relative;text-shadow:0 1px #421e13}
+body.game-active .dualPickSave:not(:disabled):active,body.game-active #makePicksNow:active{transform:translateY(2px)}
+body.game-active .dualPickSave:disabled{background:#35554e;color:#d6e8df;box-shadow:none}
+body.game-active #pickWindowBanner[data-state="open"]{border-color:#66e6a1;background:linear-gradient(120deg,#0d4433,#15342e)}
+body.game-active .liveTrackerDetails{border-radius:19px;border-color:#617e85;box-shadow:0 6px 18px #0004}
+body.game-active .liveTrackerDetails>summary{background:linear-gradient(110deg,#143a43,#142836);border-radius:18px}
+body.game-active .possessionField{box-shadow:inset 0 0 18px #001d1770,0 3px 9px #0004}
+body.game-active .back,body.game-active #togglePickControls{border-radius:22px}
+body.game-active button:focus-visible{outline:3px solid #ffde86;outline-offset:3px}
+@media(prefers-reduced-motion:reduce){body.game-active .dualPickChoices button{transition:none}}
 </style></head>
 <body><div class="wrap">
 <header class="top"><div class="brand"><div class="ball" aria-hidden="true"><span class="laces">≋</span></div><div><h1>DRIVE <span>DUEL</span></h1><div class="tag">EVERY DRIVE. EVERY PICK.</div></div></div><div class="clock"><div id="today" class="date"></div><div id="now" class="time"></div></div></header>
