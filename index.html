@@ -410,6 +410,18 @@ function renderPossessionDiagram(data){
  const owns=(team)=>!!possession&&!!team&&(team.includes(possession)||possession.includes(team));
  const side=owns(away)?'away':owns(home)?'home':'unknown';
  $('possessionField').dataset.side=side;
+ const rawSpot=data.fieldPosition;
+ const numericSpot=typeof rawSpot==='number'?rawSpot:(typeof rawSpot==='string'&&/^\\d{1,3}$/.test(rawSpot.trim())?Number(rawSpot.trim()):NaN);
+ const ball=$('possessionField').querySelector('.fieldBall');
+ // Only position the ball when a numeric 0–100 field coordinate is supplied.
+ // Text like "WASH 46" has no reliable shared orientation; leave neutral rather than inventing one.
+ if(Number.isFinite(numericSpot)&&numericSpot>=0&&numericSpot<=100){
+  ball.style.left=(10+numericSpot*.8)+'%';
+  $('possessionField').dataset.ballPosition='verified-numeric';
+ }else{
+  ball.style.left='50%';
+  $('possessionField').dataset.ballPosition='unavailable';
+ }
  $('awayName').classList.toggle('hasPossession',side==='away');$('homeName').classList.toggle('hasPossession',side==='home');
  $('fieldAway').classList.toggle('hasPossession',side==='away');$('fieldHome').classList.toggle('hasPossession',side==='home');
  $('fieldAway').textContent=String(data.away||'Away').split(' ').at(-1);
