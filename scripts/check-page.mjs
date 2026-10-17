@@ -18,5 +18,14 @@ try {
  for(const id of ['games','trackerView','myCurrentPicks','dualOffenseChoices','dualDefenseChoices']){
   if(!html.includes('id="'+id+'"'))throw Error('Missing essential UI element: '+id);
  }
+ // Protect the core one-tap and confirmation flow against accidental regression.
+ for(const [label,pattern] of [
+  ['one-tap choice save',/target\.addEventListener\('click',[\s\S]*?\$\('lockPick'\)\.click\(\)/],
+  ['server-side locked pick',/db\.rpc\('drive_duel_lock_prediction'/],
+  ['server-side queued pick',/db\.rpc\('drive_duel_queue_pick'/],
+  ['saved pick shown above game',/id="myCurrentPicks"/],
+  ['queue refresh failure not treated as save failure',/Queued pick saved; refresh pending:/],
+  ['locked picks can be reopened',/View locked picks/]
+ ]) if(!pattern.test(html))throw Error('Gameplay regression: missing '+label);
  console.log('Drive Duel markup and inline JavaScript syntax: PASS');
 }finally{await rm(dir,{recursive:true,force:true});}
