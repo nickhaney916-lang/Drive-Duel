@@ -175,6 +175,12 @@ body.game-active .liveGameTracker .trackerScore{font-size:23px!important}
 body.game-active .gamePickEntry{margin:12px 0;padding:12px}
 body.game-active .gamePickEntry strong{font-size:16px}
 body.game-active .gamePickEntry span{font-size:12px}
+
+/* One tap saves: keep large touch targets, hide redundant second save buttons. */
+body.game-active .dualPickSave{display:none!important}
+body.game-active .dualPickChoices button{min-height:57px;touch-action:manipulation}
+body.game-active .dualPickPanel h3 span{font-size:12px;color:#d9f4e8}
+body.game-active .dualPickPanel p{min-height:0;margin-bottom:9px}
 </style></head>
 <body><div class="wrap">
 <header class="top"><div class="brand"><div class="ball" aria-hidden="true"><span class="laces">≋</span></div><div><h1>DRIVE <span>DUEL</span></h1><div class="tag">EVERY DRIVE. EVERY PICK.</div></div></div><div class="clock"><div id="today" class="date"></div><div id="now" class="time"></div></div></header>
@@ -357,7 +363,7 @@ function renderDualPickPanels(){
    button.setAttribute('aria-pressed',String(button.dataset.pick===selected));
    button.disabled=!ready||(!next&&saved)||queueBusy||lockingBusy;
   }
-  $('dual'+name+'State').textContent=saved?(next?'✓ QUEUED':'🔒 LOCKED'):selected?'SELECTED · NOT SAVED':'NOT SAVED';
+  $('dual'+name+'State').textContent=(queueBusy||lockingBusy)&&type===activePredictionType?'SAVING…':saved?(next?'✓ SAVED FOR NEXT DRIVE':'🔒 LOCKED'):selected?'SAVING…':'TAP TO SAVE';
   const save=$('dual'+name+'Save');
   save.disabled=!ready||(!next&&saved)||!selected||scoringBusy||lockingBusy||queueBusy;
   save.textContent=queueBusy||lockingBusy?'Saving…':next?(saved?'Update '+type+' queue':'Save '+type+' for next drive'):saved?'✓ '+name+' locked':'🔒 Lock '+type+' pick';
@@ -367,11 +373,16 @@ for(const type of ['offense','defense']){
  const name=type==='offense'?'Offense':'Defense';
  const target=$('dual'+name+'Choices');
  target.innerHTML=dualPickOptions[type].map(p=>'<button type="button" data-pick="'+p.replaceAll('"','&quot;')+'">'+pickLabel(p)+'</button>').join('');
- target.addEventListener('click',e=>{const button=e.target.closest('button[data-pick]');if(!button||button.disabled)return;
+ target.addEventListener('click',e=>{
+  const button=e.target.closest('button[data-pick]');
+  if(!button||button.disabled||lockingBusy||queueBusy)return;
   activePredictionType=type;
   if(pickingNext())queueSelections[type]=button.dataset.pick;
   else if(!lockedTypes[type])chosenPicks[type]=button.dataset.pick;
   renderChoices();
+  // The existing server-backed save handler enforces the shared deadline and lock rules.
+  // A selection never displays as saved until that handler confirms it.
+  if(!$('lockPick').disabled)$('lockPick').click();
  });
  $('dual'+name+'Save').addEventListener('click',()=>{activePredictionType=type;renderChoices();$('lockPick').click();});
 }
