@@ -404,11 +404,11 @@ function renderPickControls(){
  const ended=queueState?.game_state==='post';
  if(ended)pickControlsExpanded=false;
  $('pickControls').hidden=!pickControlsExpanded;
- $('makePicksNow').textContent=pickControlsExpanded?'✓ Picks open · Edit selections':completion?'✎ View or edit picks':'🏈 Make Picks Now ↓';
+ $('makePicksNow').textContent=pickControlsExpanded?'View picks below':!next&&bothLocked?'🔒 View my locked picks':queued?'✓ View saved next-drive picks':'🏈 Make Picks Now ↓';
  const button=$('togglePickControls');
- button.disabled=ended||(!next&&bothLocked&&!pickControlsExpanded);
+ button.disabled=ended;
  button.setAttribute('aria-expanded',String(pickControlsExpanded));
- button.textContent=ended?'Game ended':pickControlsExpanded?'Hide picks':!next&&bothLocked?'Picks locked':next?(queued?'Edit next-possession picks':'Make next-possession picks'):'Make picks';
+ button.textContent=ended?'Game ended':pickControlsExpanded?'Hide picks':!next&&bothLocked?'View locked picks':next?(queued?'View next-drive picks':'Make next-drive picks'):'Make picks';
  $('savedPickStatus').textContent=queued?'✓ Your next-possession picks are saved':bothLocked?'✓ Possession '+driveNumber+' picks locked':pickControlsExpanded?'':'Picks available below';
 }
 $('togglePickControls').addEventListener('click',()=>{pickControlsExpanded=!pickControlsExpanded;renderPickControls();if(pickControlsExpanded){$('pickControls').scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>document.querySelector('#picks .pick:not(:disabled)')?.focus({preventScroll:true}),250);}});
@@ -710,7 +710,7 @@ async function saveNextPick(cancel=false,requestedType=activePredictionType,requ
  if(error)throw error;
  if(!cancel)markGameWithPick(game);
  if(selectedGame?.id===game){if(cancel)queueSelections[type]='';await syncSharedDrive();}
- }catch(e){if(selectedGame?.id===game){await syncSharedDrive();queueError='Could not '+(cancel?'cancel':'save')+' queued pick: '+e.message;}}
+ }catch(e){if(selectedGame?.id===game){try{await syncSharedDrive();}catch(syncError){console.warn('Queue refresh failed:',syncError.message)}queueError='Could not '+(cancel?'cancel':'save')+' queued pick: '+e.message;}}
  finally{queueBusy=false;if(selectedGame?.id===game){renderNextPicks();}}
 }
 $('cancelNextPick').addEventListener('click',()=>saveNextPick(true));
