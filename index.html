@@ -363,7 +363,7 @@ function renderDualPickPanels(){
    button.setAttribute('aria-pressed',String(button.dataset.pick===selected));
    button.disabled=!ready||(!next&&saved)||queueBusy||lockingBusy;
   }
-  $('dual'+name+'State').textContent=(queueBusy||lockingBusy)&&type===activePredictionType?'SAVING…':saved?(next?'✓ SAVED FOR NEXT DRIVE':'🔒 LOCKED'):selected?'SAVING…':'TAP TO SAVE';
+  $('dual'+name+'State').textContent=(queueBusy||lockingBusy)&&type===activePredictionType?'SAVING…':queueError&&type===activePredictionType?'⚠ NOT SAVED':saved?(next?'✓ SAVED FOR NEXT DRIVE':'🔒 LOCKED'):selected?'TAP AGAIN TO SAVE':'TAP TO SAVE';
   const save=$('dual'+name+'Save');
   save.disabled=!ready||(!next&&saved)||!selected||scoringBusy||lockingBusy||queueBusy;
   save.textContent=queueBusy||lockingBusy?'Saving…':next?(saved?'Update '+type+' queue':'Save '+type+' for next drive'):saved?'✓ '+name+' locked':'🔒 Lock '+type+' pick';
@@ -377,6 +377,7 @@ for(const type of ['offense','defense']){
   const button=e.target.closest('button[data-pick]');
   if(!button||button.disabled||lockingBusy||queueBusy)return;
   activePredictionType=type;
+  queueError='';
   if(pickingNext())queueSelections[type]=button.dataset.pick;
   else if(!lockedTypes[type])chosenPicks[type]=button.dataset.pick;
   renderChoices();
@@ -454,7 +455,7 @@ $('lockPick').addEventListener('click',async()=>{
    }
    throw error;
  }
- markGameWithPick(selectedGame?.id);
+ queueError='';markGameWithPick(selectedGame?.id);
  if(currentDriveId===drive){lockedTypes[type]=true;chosenPicks[type]=pick;}
  await refreshRemotePicks();loadRoomPlayers().catch(e=>console.warn('Player refresh pending:',e.message));
  }catch(e){queueError='Could not save pick: '+e.message;}
