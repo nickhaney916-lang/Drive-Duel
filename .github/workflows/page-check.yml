@@ -1,0 +1,23 @@
+name: Drive Duel page checks
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'scripts/check-page.mjs'
+      - '.github/workflows/page-check.yml'
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'scripts/check-page.mjs'
+      - '.github/workflows/page-check.yml'
+jobs:
+  page-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify HTML application JavaScript and essential controls
+        run: node scripts/check-page.mjs
