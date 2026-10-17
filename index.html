@@ -139,6 +139,16 @@ body.game-active button:focus-visible{outline:3px solid #ffde86;outline-offset:3
 .game.hasPicks .match{color:#b9ffda!important}
 .game.hasPicks .score{color:#b9ffda!important}
 .game.hasPicks .badge.live{background:#612c34;color:#ffb4b4}
+
+body.game-active .myCurrentPicks{border:2px solid #76dcb1;border-radius:18px;background:linear-gradient(120deg,#114735,#102d36);padding:15px;margin:10px 0 14px;box-shadow:0 5px 16px #0004}
+body.game-active .myCurrentPicks[hidden]{display:none!important}
+body.game-active .myPicksHeading{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:11px}
+body.game-active .myPicksHeading strong{color:#d4ffe8;font-size:16px;line-height:1.25}
+body.game-active .myPicksHeading span{color:#b2f7cc;font-size:10px;font-weight:900;white-space:nowrap}
+body.game-active .myPickValues{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+body.game-active .myPickValues>div{background:#0c2430;border:1px solid #588a83;border-radius:13px;padding:12px 10px;min-width:0}
+body.game-active .myPickValues small{display:block;color:#a5cfce;font-size:11px;font-weight:850;letter-spacing:.4px;margin-bottom:6px}
+body.game-active .myPickValues strong{display:block;color:#fff;font-size:clamp(16px,4.5vw,22px);line-height:1.2;overflow-wrap:anywhere}
 </style></head>
 <body><div class="wrap">
 <header class="top"><div class="brand"><div class="ball" aria-hidden="true"><span class="laces">≋</span></div><div><h1>DRIVE <span>DUEL</span></h1><div class="tag">EVERY DRIVE. EVERY PICK.</div></div></div><div class="clock"><div id="today" class="date"></div><div id="now" class="time"></div></div></header>
@@ -158,7 +168,7 @@ body.game-active button:focus-visible{outline:3px solid #ffde86;outline-offset:3
 <div class="sectionhead"><div><div class="lobbyTitle"><span class="stepNum">2</span><h3 id="listTitle">NFL Matchups</h3></div><p id="listSub">Tap a game to open it.</p></div><div id="loadStatus" class="status">LOADING…</div></div><div id="games" class="games"><div class="loading">Loading real ESPN matchups…</div></div><div class="footer">MATCHUPS AND SCORES FROM ESPN · TIMES SHOWN IN YOUR LOCAL TIME</div></section>
 <section id="roomView" hidden class="hidden"><button id="roomBack" hidden>Back to games</button><div id="roomPageStatus"></div><div id="roomDetailsMount"></div><div id="roomLeaderboardMount"></div><div id="roomGamesMount"></div></section>
 <section id="trackerView" class="hidden"><button id="back" class="back">← All Games</button><div class="play hidden" id="trackerRoomBanner" style="margin-bottom:12px"><strong id="trackerRoomLabel">Group loading…</strong><div id="trackerPlayerSummary" class="meta"></div><button id="trackerShare" class="secondaryAction" style="margin-top:10px">↗ Invite players</button></div><div class="sectionhead"><div><div class="eyebrow">STEP 3 · MAKE YOUR PICK</div><h3 id="trackerTitle">Game tracker</h3><p id="trackerMeta"></p></div><div id="trackerStatus" class="status">GAME CENTER</div></div>
-<div class="tracker"><div class="pickWindowBanner" id="pickWindowBanner" data-state="waiting"><div><strong id="pickWindowLabel">WAITING FOR POSSESSION</strong><span id="pickWindowHint">Picks open together at the next possession.</span></div><button type="button" id="jumpToPicks" hidden>Make a pick ↓</button></div><details id="liveTrackerDetails" class="liveTrackerDetails" open><summary>🏟️ View live game · Score, field & possession <span>▾</span></summary><div class="liveGameTracker" id="liveGameTracker" role="region" aria-label="Live game tracker">
+<div class="tracker"><div class="pickWindowBanner" id="pickWindowBanner" data-state="waiting"><div><strong id="pickWindowLabel">WAITING FOR POSSESSION</strong><span id="pickWindowHint">Picks open together at the next possession.</span></div><button type="button" id="jumpToPicks" hidden>Make a pick ↓</button></div><section id="myCurrentPicks" class="myCurrentPicks" hidden aria-live="polite"><div class="myPicksHeading"><strong id="myPicksPossession">YOUR LOCKED PICKS</strong><span>🔒 SAVED</span></div><div class="myPickValues"><div><small>🏈 OFFENSE</small><strong id="myOffensePick">—</strong></div><div><small>🛡️ DEFENSE</small><strong id="myDefensePick">—</strong></div></div></section><details id="liveTrackerDetails" class="liveTrackerDetails" open><summary>🏟️ View live game · Score, field & possession <span>▾</span></summary><div class="liveGameTracker" id="liveGameTracker" role="region" aria-label="Live game tracker">
 <div class="liveTrackerHeading"><strong>LIVE GAME TRACKER</strong><span id="gameStatus">Loading…</span></div>
 <div class="trackerTeams"><span id="awayName">Away</span><span class="trackerScore"><span id="awayScore">—</span> : <span id="homeScore">—</span></span><span id="homeName">Home</span></div>
 <div class="trackerReadout"><b id="clockInfo" title="Quarter and clock">—</b><span id="downDistance" title="Down and distance">—</span><span id="fieldPosition" title="Reported field position">—</span></div><div id="possessionField" class="possessionField" role="img" aria-label="Waiting for possession"><span id="fieldAway" class="fieldTeam away">Away</span><span id="possessionArrow" class="possessionArrow" aria-hidden="true"></span><span class="fieldYards" aria-hidden="true"><i>10</i><i>20</i><i>30</i><i>40</i><i>50</i><i>40</i><i>30</i><i>20</i><i>10</i></span><span class="fieldGoal goalLeft" aria-hidden="true"></span><span class="fieldGoal goalRight" aria-hidden="true"></span><span class="fieldBall" aria-hidden="true">🏈</span><span id="fieldHome" class="fieldTeam home">Home</span></div><div class="possessionCaption"><b id="currentPossessionTag">Waiting for possession</b><span id="possession">Waiting for possession</span><small> · possession</small></div>
@@ -445,7 +455,19 @@ function renderTrackerRoom(){renderRosterStatus();renderGroupScores();renderLock
 
 function resetLockedTracker(){lockedTrackerRows=[];lockedTrackerDrive=null;lockedTrackerNumber=null;renderLockedTracker();}
 const shortPick=p=>({'Stopped on downs':'Downs','Safety':'Safety','Force a safety':'Safety','Missed Field Goal':'Miss FG','Force a missed field goal':'Miss FG','End of half/game':'End','End without a score':'End','Touchdown':'TD','Field Goal':'FG','Turnover':'TO','Force a punt':'Punt','Force a turnover':'TO','Stop on downs':'Downs','Hold to a field goal':'FG','Allow a touchdown':'TD'}[p]||p);
-function renderLockedTracker(){renderGroupScores();
+function renderMyCurrentPicks(){
+ const panel=$('myCurrentPicks');if(!panel)return;
+ const own=lockedTrackerRows.filter(p=>String(p.player_id)===String(playerId)&&p.is_locked);
+ const current=lockedTrackerNumber===driveNumber&&!!currentDriveId;
+ panel.hidden=!current||!own.length;
+ if(panel.hidden)return;
+ $('myPicksPossession').textContent='POSSESSION '+driveNumber+' · YOUR LOCKED PICKS';
+ for(const [type,id] of [['offense','myOffensePick'],['defense','myDefensePick']]){
+  const entry=own.find(p=>p.prediction_type===type);
+  $(id).textContent=entry?pickLabel(entry.predicted_outcome):'Not locked';
+ }
+}
+function renderLockedTracker(){renderGroupScores();renderMyCurrentPicks();
  const panel=$('trackerLockedPicks');if(!panel)return;
  panel.hidden=!lockedTrackerRows.length;
  $('trackerLockedTitle').textContent='Possession '+(lockedTrackerNumber??'—')+' · 🔒 Locked picks';
