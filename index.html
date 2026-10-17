@@ -149,6 +149,32 @@ body.game-active .myPickValues{display:grid;grid-template-columns:repeat(2,minma
 body.game-active .myPickValues>div{background:#0c2430;border:1px solid #588a83;border-radius:13px;padding:12px 10px;min-width:0}
 body.game-active .myPickValues small{display:block;color:#a5cfce;font-size:11px;font-weight:850;letter-spacing:.4px;margin-bottom:6px}
 body.game-active .myPickValues strong{display:block;color:#fff;font-size:clamp(16px,4.5vw,22px);line-height:1.2;overflow-wrap:anywhere}
+
+/* Simplified, high-legibility game view for older players: no duplicate giant alerts. */
+body.game-active #trackerView>.sectionhead .eyebrow{font-size:10px;letter-spacing:1px}
+body.game-active #trackerView>.sectionhead #trackerTitle{font-size:19px!important;line-height:1.2}
+body.game-active #trackerView>.sectionhead #trackerMeta{font-size:12px;line-height:1.3}
+body.game-active #trackerView>.sectionhead #trackerStatus{font-size:11px}
+body.game-active #pickWindowBanner{border:0;border-left:5px solid #66d9a8;border-radius:10px;padding:10px 13px;background:#173143;box-shadow:none;margin:5px 0 10px}
+body.game-active #pickWindowBanner strong{font-size:15px!important;line-height:1.25;letter-spacing:0}
+body.game-active #pickWindowBanner span{font-size:12px!important;margin-top:2px}
+body.game-active #pickWindowBanner[data-state="locked"],body.game-active #pickWindowBanner[data-state="closed"]{background:#173143;border-color:#77cdb1}
+body.game-active #pickWindowBanner[data-state="locked"] strong,body.game-active #pickWindowBanner[data-state="closed"] strong{color:#ddf8eb}
+body.game-active .myCurrentPicks{margin:6px 0 12px;padding:12px;border:1px solid #4f9f82;border-radius:13px;background:#11352f;box-shadow:none}
+body.game-active .myPicksHeading{margin-bottom:8px}
+body.game-active .myPicksHeading strong{font-size:16px;line-height:1.2}
+body.game-active .myPicksHeading span{font-size:11px}
+body.game-active .myPickValues{gap:8px}
+body.game-active .myPickValues>div{padding:11px 9px;border-radius:10px;border:1px solid #527b76}
+body.game-active .myPickValues small{font-size:12px;margin-bottom:4px}
+body.game-active .myPickValues strong{font-size:clamp(17px,4.8vw,21px);line-height:1.25}
+body.game-active .liveTrackerDetails{margin-top:9px}
+body.game-active .liveTrackerDetails>summary{min-height:45px;padding:10px 13px;font-size:15px}
+body.game-active .liveGameTracker .trackerTeams{font-size:13px}
+body.game-active .liveGameTracker .trackerScore{font-size:23px!important}
+body.game-active .gamePickEntry{margin:12px 0;padding:12px}
+body.game-active .gamePickEntry strong{font-size:16px}
+body.game-active .gamePickEntry span{font-size:12px}
 </style></head>
 <body><div class="wrap">
 <header class="top"><div class="brand"><div class="ball" aria-hidden="true"><span class="laces">≋</span></div><div><h1>DRIVE <span>DUEL</span></h1><div class="tag">EVERY DRIVE. EVERY PICK.</div></div></div><div class="clock"><div id="today" class="date"></div><div id="now" class="time"></div></div></header>
@@ -167,8 +193,8 @@ body.game-active .myPickValues strong{display:block;color:#fff;font-size:clamp(1
 </section><div id="homeLeaderboardMount"><section id="mainLeaderboard" class="hidden"><div class="leaderCardsHeading"><strong>GROUP LEADERS</strong><span id="leaderCardsGroup"></span></div><div id="leaderCards" class="leaderCards"><button type="button" class="leaderCard" data-leader-period="day"><span>☀️ TODAY</span><b id="dayLeaderName">Loading…</b><strong id="dayLeaderPoints">—</strong></button><button type="button" class="leaderCard" data-leader-period="week"><span>📅 THIS WEEK</span><b id="weekLeaderName">Loading…</b><strong id="weekLeaderPoints">—</strong></button><button type="button" class="leaderCard" data-leader-period="season"><span>🏆 SEASON</span><b id="seasonLeaderName">Loading…</b><strong id="seasonLeaderPoints">—</strong></button></div><button id="standingsSummary" class="standingsSummary" type="button">🏆 Today’s standings</button><details id="standingsPanel" class="standingsPanel"><summary>See standings & achievements <span id="standingsGroup"></span></summary><div class="standingsTabs" role="tablist" aria-label="Standings period"><button data-period="day" role="tab" aria-selected="true">Day</button><button data-period="week" role="tab" aria-selected="false">Week</button><button data-period="season" role="tab" aria-selected="false">Season</button></div><div class="standingsFilters"><label id="standingsGameLabel" hidden>Matchup<select id="standingsGame"></select></label><label id="standingsDateLabel" hidden>Date<input type="date" id="standingsDate"></label></div><div id="standingsStatus" role="status" class="meta"></div><div id="standingsLeader" class="achievementLeader"></div><div class="standingsTableWrap"><table class="standingsTable"><thead><tr><th>Player</th><th>Points</th><th>Games</th><th>Wins</th></tr></thead><tbody id="standingsRows"></tbody></table></div><div id="standingsAchievements" class="note"></div><p class="note">Group totals · Pacific time · Tuesday–Monday weeks · July–June seasons. Shared wins count for each tied player. Winners wait for final, confirmed scoring.</p></details></section></div><div class="tabs" role="tablist" aria-label="Football league"><button class="tab active" id="nflTab" role="tab" aria-selected="true" data-league="nfl"><span class="emoji">🏈</span><span><strong>NFL</strong><small>PRO FOOTBALL</small></span></button><button class="tab" id="cfbTab" role="tab" aria-selected="false" data-league="college"><span class="emoji">🎓</span><span><strong>College Football</strong><small>FBS MATCHUPS</small></span></button></div>
 <div class="sectionhead"><div><div class="lobbyTitle"><span class="stepNum">2</span><h3 id="listTitle">NFL Matchups</h3></div><p id="listSub">Tap a game to open it.</p></div><div id="loadStatus" class="status">LOADING…</div></div><div id="games" class="games"><div class="loading">Loading real ESPN matchups…</div></div><div class="footer">MATCHUPS AND SCORES FROM ESPN · TIMES SHOWN IN YOUR LOCAL TIME</div></section>
 <section id="roomView" hidden class="hidden"><button id="roomBack" hidden>Back to games</button><div id="roomPageStatus"></div><div id="roomDetailsMount"></div><div id="roomLeaderboardMount"></div><div id="roomGamesMount"></div></section>
-<section id="trackerView" class="hidden"><button id="back" class="back">← All Games</button><div class="play hidden" id="trackerRoomBanner" style="margin-bottom:12px"><strong id="trackerRoomLabel">Group loading…</strong><div id="trackerPlayerSummary" class="meta"></div><button id="trackerShare" class="secondaryAction" style="margin-top:10px">↗ Invite players</button></div><div class="sectionhead"><div><div class="eyebrow">STEP 3 · MAKE YOUR PICK</div><h3 id="trackerTitle">Game tracker</h3><p id="trackerMeta"></p></div><div id="trackerStatus" class="status">GAME CENTER</div></div>
-<div class="tracker"><div class="pickWindowBanner" id="pickWindowBanner" data-state="waiting"><div><strong id="pickWindowLabel">WAITING FOR POSSESSION</strong><span id="pickWindowHint">Picks open together at the next possession.</span></div><button type="button" id="jumpToPicks" hidden>Make a pick ↓</button></div><section id="myCurrentPicks" class="myCurrentPicks" hidden aria-live="polite"><div class="myPicksHeading"><strong id="myPicksPossession">YOUR LOCKED PICKS</strong><span>🔒 SAVED</span></div><div class="myPickValues"><div><small>🏈 OFFENSE</small><strong id="myOffensePick">—</strong></div><div><small>🛡️ DEFENSE</small><strong id="myDefensePick">—</strong></div></div></section><details id="liveTrackerDetails" class="liveTrackerDetails" open><summary>🏟️ View live game · Score, field & possession <span>▾</span></summary><div class="liveGameTracker" id="liveGameTracker" role="region" aria-label="Live game tracker">
+<section id="trackerView" class="hidden"><button id="back" class="back">← All Games</button><div class="play hidden" id="trackerRoomBanner" style="margin-bottom:12px"><strong id="trackerRoomLabel">Group loading…</strong><div id="trackerPlayerSummary" class="meta"></div><button id="trackerShare" class="secondaryAction" style="margin-top:10px">↗ Invite players</button></div><div class="sectionhead"><div><div class="eyebrow">LIVE GAME</div><h3 id="trackerTitle">Game tracker</h3><p id="trackerMeta"></p></div><div id="trackerStatus" class="status">GAME CENTER</div></div>
+<div class="tracker"><div class="pickWindowBanner" id="pickWindowBanner" data-state="waiting"><div><strong id="pickWindowLabel">WAITING FOR POSSESSION</strong><span id="pickWindowHint">Picks open together at the next possession.</span></div><button type="button" id="jumpToPicks" hidden>Make a pick ↓</button></div><section id="myCurrentPicks" class="myCurrentPicks" hidden aria-live="polite"><div class="myPicksHeading"><strong id="myPicksPossession">YOUR LOCKED PICKS</strong><span>✓ LOCKED</span></div><div class="myPickValues"><div><small>🏈 OFFENSE</small><strong id="myOffensePick">—</strong></div><div><small>🛡️ DEFENSE</small><strong id="myDefensePick">—</strong></div></div></section><details id="liveTrackerDetails" class="liveTrackerDetails" open><summary>🏟️ Live Score & Field <span>▾</span></summary><div class="liveGameTracker" id="liveGameTracker" role="region" aria-label="Live game tracker">
 <div class="liveTrackerHeading"><strong>LIVE GAME TRACKER</strong><span id="gameStatus">Loading…</span></div>
 <div class="trackerTeams"><span id="awayName">Away</span><span class="trackerScore"><span id="awayScore">—</span> : <span id="homeScore">—</span></span><span id="homeName">Home</span></div>
 <div class="trackerReadout"><b id="clockInfo" title="Quarter and clock">—</b><span id="downDistance" title="Down and distance">—</span><span id="fieldPosition" title="Reported field position">—</span></div><div id="possessionField" class="possessionField" role="img" aria-label="Waiting for possession"><span id="fieldAway" class="fieldTeam away">Away</span><span id="possessionArrow" class="possessionArrow" aria-hidden="true"></span><span class="fieldYards" aria-hidden="true"><i>10</i><i>20</i><i>30</i><i>40</i><i>50</i><i>40</i><i>30</i><i>20</i><i>10</i></span><span class="fieldGoal goalLeft" aria-hidden="true"></span><span class="fieldGoal goalRight" aria-hidden="true"></span><span class="fieldBall" aria-hidden="true">🏈</span><span id="fieldHome" class="fieldTeam home">Home</span></div><div class="possessionCaption"><b id="currentPossessionTag">Waiting for possession</b><span id="possession">Waiting for possession</span><small> · possession</small></div>
@@ -461,7 +487,7 @@ function renderMyCurrentPicks(){
  const current=lockedTrackerNumber===driveNumber&&!!currentDriveId;
  panel.hidden=!current||!own.length;
  if(panel.hidden)return;
- $('myPicksPossession').textContent='POSSESSION '+driveNumber+' · YOUR LOCKED PICKS';
+ $('myPicksPossession').textContent='YOUR PICKS · DRIVE '+driveNumber;
  for(const [type,id] of [['offense','myOffensePick'],['defense','myDefensePick']]){
   const entry=own.find(p=>p.prediction_type===type);
   $(id).textContent=entry?pickLabel(entry.predicted_outcome):'Not locked';
@@ -612,9 +638,9 @@ function displayPickWindow(message,state,remaining=0){
  $('driveStatus').textContent=message;
  $('pickWindowBanner').dataset.state=state;
  const type=activePredictionType==='offense'?'OFFENSE':'DEFENSE';
- const labels={open:'PICKS OPEN · '+remaining+'s LEFT',closed:'PICKS CLOSED · NEXT POSSESSION',locked:type+(remaining?' PICK LOCKED':' LOCKED · WINDOW CLOSED'),waiting:'WAITING FOR POSSESSION'};
- $('pickWindowLabel').textContent=labels[state]+(state==='locked'?' · P'+driveNumber:'');
- $('pickWindowHint').textContent=state==='open'?'Choose and lock your pick before the countdown ends.':state==='closed'?'Pick below for the next possession.':state==='locked'?'Your pick is saved for this possession.':'Picks open together when the next possession is confirmed.';
+ const labels={open:'MAKE YOUR PICKS · '+remaining+'s',closed:'NEXT DRIVE · PICKS AVAILABLE',locked:'PICKS SAVED',waiting:'WAITING FOR NEXT DRIVE'};
+ $('pickWindowLabel').textContent=labels[state];
+ $('pickWindowHint').textContent=state==='open'?'Tap your picks below.':state==='closed'?'You can prepare picks for the next drive.':state==='locked'?'Your choices are shown below.':'We will show you when picks open.';
  $('jumpToPicks').hidden=state!=='open';
  $('picks').dataset.window=state;
 }
