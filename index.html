@@ -712,8 +712,7 @@ async function saveNextPick(cancel=false,requestedType=activePredictionType,requ
  if(!cancel)markGameWithPick(game);
  if(selectedGame?.id===game){
   if(cancel){queueSelections[type]='';queueRows[type]=null;}
-  else queueRows[type]={...(row||{}),predicted_outcome:pick,consumed_at:null,version:version??0};
-  try{await syncSharedDrive();}catch(syncError){console.warn('Queued pick saved; refresh pending:',syncError.message)}
+  try{await syncSharedDrive();}catch(syncError){console.warn('Queued pick saved; refresh pending:',syncError.message);queueError='Pick saved. Refresh pending; please wait before changing it.'}
  }
  }catch(e){if(selectedGame?.id===game){try{await syncSharedDrive();}catch(syncError){console.warn('Queue refresh failed:',syncError.message)}queueError='Could not '+(cancel?'cancel':'save')+' queued pick: '+e.message;}}
  finally{queueBusy=false;if(selectedGame?.id===game){renderNextPicks();}}
