@@ -136,6 +136,11 @@ body.game-active button:focus-visible{outline:3px solid #ffde86;outline-offset:3
 .game.hasPicks{border:2px solid #67e7ad!important;background:linear-gradient(110deg,#174538,#123447)!important;box-shadow:inset 4px 0 #64e7aa,0 0 0 1px #4ab58238}
 .game .myPickBadge{display:inline-block;margin:7px 6px 2px 0;padding:5px 9px;border-radius:18px;background:#c1fbe0;color:#063e2b;font-size:11px;font-weight:950;letter-spacing:.4px}
 .game .myPickBadge[hidden]{display:none!important}
+.game.hasPicks .match{color:#b9ffda!important}
+.game.hasPicks .score{color:#b9ffda!important}
+.game.hasPicks .badge.live{background:#612c34;color:#ffb4b4}
+.game.hasPicks:before{content:"✓";display:grid;place-items:center;position:absolute;right:8px;top:8px;width:25px;height:25px;border-radius:50%;background:#a7ffd2;color:#07452b;font-weight:950}
+.game.hasPicks{position:relative}
 </style></head>
 <body><div class="wrap">
 <header class="top"><div class="brand"><div class="ball" aria-hidden="true"><span class="laces">≋</span></div><div><h1>DRIVE <span>DUEL</span></h1><div class="tag">EVERY DRIVE. EVERY PICK.</div></div></div><div class="clock"><div id="today" class="date"></div><div id="now" class="time"></div></div></header>
@@ -196,9 +201,35 @@ function updatePickedGameMarkers(){
   if(label)label.hidden=!picked;
  }
 }
-async function loadGames(){const box=$('games');$('loadStatus').textContent='LOADING…';box.innerHTML='<div class="loading">Fetching current matchups from ESPN…</div>';const week=footballWeekDates();const keys=week.keys;let all=[],errors=0;try{await ensureAuth();const {data,error}=await db.functions.invoke('drive-duel-live-feed',{body:{operation:'schedule',league,dates:keys}});if(error||!data?.ok)throw error||new Error('Schedule unavailable');all=data.events||[]}catch(e){errors=keys.length}const seen=new Set();all=all.filter(e=>{if(seen.has(e.id))return false;seen.add(e.id);return true}).sort((a,b)=>new Date(a.date)-new Date(b.date));lastEvents=all;$('listTitle').textContent=league==='nfl'?'This Week’s NFL Games':'This Week’s College Football Games';$('listSub').textContent='Thursday–Monday · '+week.start.toLocaleDateString(undefined,{month:'short',day:'numeric'})+'–'+week.end.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' · local kickoff times';$('loadStatus').textContent=all.length?all.length+' GAMES':'ESPN FEED';if(!all.length){box.innerHTML='<div class="error">'+(errors===keys.length?'Could not reach ESPN right now. Check your connection and refresh.':'No matchups were returned for this football week.')+'</div>';renderRoomGames();return}box.innerHTML=all.map(e=>{const t=teams(e),state=eventState(e),live=e.status?.type?.state==='in';return '<button class="game" data-id="'+esc(e.id)+'"><span><span class="match">'+esc(t.away?.team?.shortDisplayName||t.away?.team?.displayName||'Away')+' <span style="color:var(--muted);font-weight:500">@</span> '+esc(t.home?.team?.shortDisplayName||t.home?.team?.displayName||'Home')+'</span><span class="meta">'+esc(fmtTime(e.date))+'</span><span class="myPickBadge" hidden>✓ PICKS MADE</span><span class="badge '+(live?'live':'')+'">'+esc(state)+'</span></span><span class="score">'+esc(t.away?.score??'—')+'<span class="arrow">›</span><br>'+esc(t.home?.score??'—')+'</span></button>'}).join('');box.querySelectorAll('.game').forEach(b=>b.addEventListener('click',()=>openGame(all.find(e=>e.id===b.dataset.id))));renderRoomGames();updatePickedGameMarkers()}
+let pickedGameRefreshEpoch=0;
+async function refreshPickedGamesFromServer(){
+ const room=roomId,player=playerId,epoch=++pickedGameRefreshEpoch;
+ if(!db||!room||!player)return;
+ try{
+  const ids=[...new Set(lastEvents.map(e=>String(e.id)))];
+  if(!ids.length)return;
+  const confirmed=new Set();
+  const {data:queued,error:qe}=await db.from('queued_predictions').select('game_id').eq('room_id',room).eq('player_id',player).in('game_id',ids);
+  if(qe)throw qe;
+  for(const p of queued||[])confirmed.add(String(p.game_id));
+  const {data:drives,error:de}=await db.from('drives').select('id,game_id').eq('room_id',room).in('game_id',ids);
+  if(de)throw de;
+  const driveIds=(drives||[]).map(d=>d.id);
+  for(let start=0;start<driveIds.length;start+=100){
+   const {data:predictions,error:pe}=await db.from('predictions').select('drive_id').eq('player_id',player).eq('is_locked',true).in('drive_id',driveIds.slice(start,start+100));
+   if(pe)throw pe;
+   const matches=new Set((predictions||[]).map(p=>String(p.drive_id)));
+   for(const drive of drives||[])if(matches.has(String(drive.id)))confirmed.add(String(drive.game_id));
+  }
+  if(room!==roomId||player!==playerId||epoch!==pickedGameRefreshEpoch)return;
+  const key=pickedGameKey();
+  if(key){try{const merged=new Set([...pickedGameIds(),...confirmed]);localStorage.setItem(key,JSON.stringify([...merged].slice(-200)))}catch{}}
+  updatePickedGameMarkers();
+ }catch(e){console.warn('Could not refresh picked-game highlights:',e.message)}
+}
+async function loadGames(){const box=$('games');$('loadStatus').textContent='LOADING…';box.innerHTML='<div class="loading">Fetching current matchups from ESPN…</div>';const week=footballWeekDates();const keys=week.keys;let all=[],errors=0;try{await ensureAuth();const {data,error}=await db.functions.invoke('drive-duel-live-feed',{body:{operation:'schedule',league,dates:keys}});if(error||!data?.ok)throw error||new Error('Schedule unavailable');all=data.events||[]}catch(e){errors=keys.length}const seen=new Set();all=all.filter(e=>{if(seen.has(e.id))return false;seen.add(e.id);return true}).sort((a,b)=>new Date(a.date)-new Date(b.date));lastEvents=all;$('listTitle').textContent=league==='nfl'?'This Week’s NFL Games':'This Week’s College Football Games';$('listSub').textContent='Thursday–Monday · '+week.start.toLocaleDateString(undefined,{month:'short',day:'numeric'})+'–'+week.end.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' · local kickoff times';$('loadStatus').textContent=all.length?all.length+' GAMES':'ESPN FEED';if(!all.length){box.innerHTML='<div class="error">'+(errors===keys.length?'Could not reach ESPN right now. Check your connection and refresh.':'No matchups were returned for this football week.')+'</div>';renderRoomGames();return}box.innerHTML=all.map(e=>{const t=teams(e),state=eventState(e),live=e.status?.type?.state==='in';return '<button class="game" data-id="'+esc(e.id)+'"><span><span class="match">'+esc(t.away?.team?.shortDisplayName||t.away?.team?.displayName||'Away')+' <span style="color:var(--muted);font-weight:500">@</span> '+esc(t.home?.team?.shortDisplayName||t.home?.team?.displayName||'Home')+'</span><span class="meta">'+esc(fmtTime(e.date))+'</span><span class="myPickBadge" hidden>✓ PICKS MADE</span><span class="badge '+(live?'live':'')+'">'+esc(state)+'</span></span><span class="score">'+esc(t.away?.score??'—')+'<span class="arrow">›</span><br>'+esc(t.home?.score??'—')+'</span></button>'}).join('');box.querySelectorAll('.game').forEach(b=>b.addEventListener('click',()=>openGame(all.find(e=>e.id===b.dataset.id))));renderRoomGames();updatePickedGameMarkers();refreshPickedGamesFromServer()}
 async function openGame(e){if(!e)return;if(frontPageRestorePromise)await frontPageRestorePromise;const name=humanName()||currentUser?.user_metadata?.player_name;if(!name&&!roomId){document.body.classList.remove('game-active');$('home').classList.remove('hidden');$('trackerView').classList.add('hidden');return}selectedGame={id:e.id,name:e.name,league:league,date:e.date};$('standingsGame').value=String(e.id);gamePlayerIds=new Set();renderPossessionDiagram({});$('lastPlay').textContent='Waiting for play updates…';$('playDetail').open=false;pickCollapseKey='';pickCompletionKey='';document.body.classList.add('game-active');const initialTeams=teams(e);setTrackerTeamStyle(initialTeams);$('awayName').textContent=initialTeams.away?.team?.shortDisplayName||initialTeams.away?.team?.displayName||'Away';$('homeName').textContent=initialTeams.home?.team?.shortDisplayName||initialTeams.home?.team?.displayName||'Home';$('awayScore').textContent=initialTeams.away?.score??'—';$('homeScore').textContent=initialTeams.home?.score??'—';driveNumber=1;currentDriveId=null;driveScored=false;chosenPick='';resetNextPicks();resetDrivePicks();$('home').classList.add('hidden');$('trackerView').classList.remove('hidden');$('trackerTitle').textContent=e.name||'Game tracker';$('trackerMeta').textContent=fmtTime(e.date);if(!roomId){try{await startRoomForGame()}catch(err){$('pickNote').textContent='Could not start your room: '+err.message;document.body.classList.remove('game-active');return}}$('roomView').classList.add('hidden');try{const cpuIds=await ensureGameOpponent();await enterSelectedGame(cpuIds);await rememberGameCalendar(e);await loadRoomPlayers();}catch(err){$('pickNote').textContent='Could not enter this game: '+err.message;document.body.classList.remove('game-active');showRoomView();return;}await refreshGame();if(roomId){await initRemoteDrive();await syncSharedDrive();renderTrackerRoom();saveGroupBookmark(e)}if(refreshTimer)clearInterval(refreshTimer);refreshTimer=setInterval(()=>{if(selectedGame)refreshGame()},5000);window.scrollTo({top:0,behavior:'smooth'})}
-$('back').addEventListener('click',()=>{document.body.classList.remove('game-active');selectedGame=null;if(refreshTimer)clearInterval(refreshTimer);$('trackerView').classList.add('hidden');if(roomId){showRoomView()}else{$('home').classList.remove('hidden')}window.scrollTo({top:0,behavior:'smooth'})});
+$('back').addEventListener('click',()=>{document.body.classList.remove('game-active');selectedGame=null;if(refreshTimer)clearInterval(refreshTimer);$('trackerView').classList.add('hidden');if(roomId){showRoomView()}else{$('home').classList.remove('hidden')}window.scrollTo({top:0,behavior:'smooth'});refreshPickedGamesFromServer()});
 document.querySelectorAll('.tab[data-league]').forEach(b=>b.addEventListener('click',()=>{league=b.dataset.league;document.querySelectorAll('.tab').forEach(x=>{const active=x===b;x.classList.toggle('active',active);x.setAttribute('aria-selected',String(active))});loadGames()}));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&selectedGame)refreshGame()});
 window.addEventListener('focus',()=>{if(selectedGame)refreshGame()});
@@ -707,7 +738,7 @@ function renderRoomGames(){$('roomGamesMount').innerHTML=$('games').innerHTML;$(
 function showRoomView(){
  if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null;}selectedGame=null;currentDriveId=null;
  document.body.classList.remove('game-active');$('trackerView').classList.add('hidden');$('roomView').classList.add('hidden');$('home').classList.remove('hidden');
- $('homeLeaderboardMount').appendChild($('mainLeaderboard'));renderPlayers();renderStandings();refreshStandings();window.scrollTo({top:0,behavior:'smooth'});
+ $('homeLeaderboardMount').appendChild($('mainLeaderboard'));renderPlayers();renderStandings();refreshStandings();updatePickedGameMarkers();refreshPickedGamesFromServer();window.scrollTo({top:0,behavior:'smooth'});
 }
 $('roomBack').addEventListener('click',()=>{ renderPlayers();$('homeLeaderboardMount').appendChild($('mainLeaderboard'));renderStandings();document.body.classList.remove('game-active');$('roomView').classList.add('hidden');$('home').classList.remove('hidden');window.scrollTo({top:0,behavior:'smooth'})});
 async function quickJoinRoom(){const name=requirePlayerName();if(!name)return;$('joinOptions').classList.remove('hidden');$('createRoom').textContent='✓ Name entered';statusRoom('Ready, '+name+'. Enter a group code or choose any live game below. A CPU room is created only after choosing a game.');$('games').scrollIntoView({behavior:'smooth',block:'nearest'});}
