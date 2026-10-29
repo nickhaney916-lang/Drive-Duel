@@ -670,7 +670,7 @@ for(const type of ['offense','defense']){
  $('dual'+name+'Save').addEventListener('click',()=>{activePredictionType=type;renderChoices();$('lockPick').click();});
 }
 
-let picksManuallyOpened=false,picksEntryGameKey='';
+let picksManuallyOpened=true,picksEntryGameKey='';
 function updateAdvancedPickMode(){
  const advanced=$('advancedPickDetails').open;
  $('dualPickPanels').hidden=advanced;
