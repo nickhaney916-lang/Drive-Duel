@@ -920,9 +920,9 @@ function renderRoomInvite(){saveGroupBookmark();renderGroupCard();if(!$('roomCod
 function ensureDb(){if(!window.supabase){statusRoom('Multiplayer client did not load. Check your connection and reload.');return false}if(!db)db=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);return true}
 let authInitPromise=null;
 async function ensureAuth(){
- if(!authInitPromise)authInitPromise=(async()=>{if(!ensureDb())throw new Error('Supabase client failed to load');let {data:{session}}=await db.auth.getSession();if(!session){const {data,error}=await db.auth.signInAnonymously();if(error)throw new Error('Supabase anonymous sign-in failed: '+error.message+'. Anonymous sign-ins may need to be enabled in Supabase Auth settings.');session=data.session}currentUser=session?.user||null;if(!currentUser)throw new Error('Could not establish a multiplayer session.');return currentUser})();
+ if(!authInitPromise)authInitPromise=(async()=>{if(!ensureDb())throw new Error('Supabase client failed to load');let {data:{session}}=await db.auth.getSession();if(!session){const {data,error}=await db.auth.signInAnonymously();if(error)throw new Error('Supabase anonymous sign-in failed: '+error.message+'. Anonymous sign-ins may need to be enabled in Supabase Auth settings.');session=data.session}currentUser=session?.user||null;if(!currentUser)throw new Error('Could not establish a multiplayer session.');if(!roomId)setConnectionState('connected','✓ Game service connected · Choose a matchup');return currentUser})();
  const pending=authInitPromise;
- try{return await pending}finally{if(authInitPromise===pending)authInitPromise=null}
+ try{return await pending}catch(error){setConnectionState('warning','Unable to connect · Check your internet or try again');throw error}finally{if(authInitPromise===pending)authInitPromise=null}
 }
 
 function humanName(){return $('playerName').value.trim().slice(0,24)}
@@ -1025,7 +1025,12 @@ async function readRoomPlayers(){
  renderPlayers();renderTrackerRoom();await refreshScoreLog();await refreshStandings();
  if(roomId===readingRoom)renderTrackerRoom();
 }
-function setRealtimeStatus(msg,good=false){const el=$('realtimeStatus');if(!el)return;el.textContent='Realtime connection: '+msg;el.style.color=good?'var(--green)':'var(--gold)'}
+function setRealtimeStatus(msg,good=false){
+ const el=$('realtimeStatus');if(el){el.textContent='Realtime connection: '+msg;el.style.color=good?'var(--green)':'var(--gold)'}
+ if(!navigator.onLine)setConnectionState('offline','Internet disconnected · Reconnect to continue playing');
+ else if(good)setConnectionState('connected','✓ Connected · Group updates are working');
+ else setConnectionState('warning','Reconnecting to your group · Saved picks are preserved');
+}
 function watchRoom(){
  if(!db||!roomId)return;
  if(roomChannel)db.removeChannel(roomChannel);
@@ -1088,7 +1093,17 @@ async function quickJoinRoom(){const name=requirePlayerName();if(!name)return;$(
 $('joinRoom').addEventListener('click',async()=>{try{const name=requirePlayerName();if(!name)return;const code=$('joinCode').value.trim().toUpperCase();if(!code){statusRoom('Enter a group code, or tap a live game below to start against the CPU.');return}await joinRoom();if(roomId&&!selectedGame)showRoomView()}catch(e){statusRoom('Could not enter group: '+e.message)}});
 $('createRoom').addEventListener('click',quickJoinRoom);
 
-$('trackerShare').addEventListener('click',()=>{if(!roomCode)return;showRoomView()});
+$('trackerShare').addEventListener('click',async()=>{
+ if(!roomCode)return;
+ renderRoomInvite();
+ if(navigator.share){
+  try{await navigator.share({title:'Drive Duel',text:inviteText(),url:invitationUrl()});return}
+  catch(error){if(error?.name==='AbortError')return}
+ }
+ showRoomView();renderRoomInvite();
+ if($('inviteDetails').classList.contains('hidden'))$('groupInvite').click();
+ $('groupInvite').scrollIntoView({behavior:'smooth',block:'nearest'});
+});
 function inviteText(){return 'Play Drive Duel football with me! Tap this link, enter your name, and join: '+invitationUrl()+' (backup group code: '+roomCode+')'}
 $('shareInvite').addEventListener('click',async()=>{if(!roomCode){statusRoom('Join a room first.');return}try{if(navigator.share){await navigator.share({title:'Drive Duel Invite',text:inviteText(),url:$('roomLinkDisplay').value})}else if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(inviteText());statusRoom('Invite link and code copied. Send it to your opponent.')}else{statusRoom(inviteText())}}catch(e){statusRoom(inviteText())}});
 $('copyInvite').addEventListener('click',async()=>{if(!roomCode){statusRoom('Join a room first.');return}try{await navigator.clipboard.writeText(inviteText());statusRoom('Invite link and code copied. Send it to your opponent.')}catch(e){statusRoom(inviteText())}});
@@ -1127,7 +1142,12 @@ async function resumeGroup(){
  finally{$('resumeGroup').disabled=false;}
 }
 $('resumeGroup').addEventListener('click',resumeGroup);
-window.addEventListener('online',()=>{if(roomId){watchRoom();loadRoomPlayers();if(selectedGame)refreshGame();}});
+window.addEventListener('offline',()=>setConnectionState('offline','Internet disconnected · Reconnect to continue playing'));
+window.addEventListener('online',()=>{
+ setConnectionState('connecting','Reconnecting to Drive Duel…');
+ if(roomId){watchRoom();loadRoomPlayers();if(selectedGame)refreshGame();}
+ else loadGames();
+});
 renderResumeGroup();
 
 let groupActionEpoch=0,frontPageRestorePromise=null;
@@ -1254,5 +1274,19 @@ for(const [button,panel] of [['groupInvite','inviteDetails'],['groupSwitch','gro
 renderGroupCard();
 
 frontPageRestorePromise=restoreFrontPageGroup();
+frontPageRestorePromise.then(async()=>{
+ const saved=readGroupBookmark();
+ if(!roomId||selectedGame||!saved?.game||roomCode!==saved.code)return;
+ let remembered=saved.game;
+ const wanted=invitedRoom()===roomCode?invitedGameId():'';
+ if(wanted&&String(remembered.id)!==wanted){
+  await loadGames();remembered=lastEvents.find(e=>String(e.id)===wanted);
+  if(!remembered){$('resumeStatus').textContent='Group restored. Please select the invited game below.';return}
+ }
+ if(remembered?.id){
+  try{await openGame(remembered)}
+  catch(error){$('resumeStatus').textContent='Rejoined group. Select your game below to continue.'}
+ }
+}).catch(error=>console.warn('Automatic game restore pending:',String(error?.message||error)));
 loadGames();
 </script></body></html>
