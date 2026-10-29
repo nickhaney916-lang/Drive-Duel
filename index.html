@@ -337,6 +337,7 @@ let pickToastTimer=null;
 function showPickToast(message,kind='success'){
  const el=$('pickToast');if(!el)return;
  clearTimeout(pickToastTimer);el.dataset.kind=kind;el.textContent=message;el.hidden=false;
+ if(kind!=='error'&&/✓/.test(message))gentleGameAlert('saved');
  pickToastTimer=setTimeout(()=>{el.hidden=true},4400);
 }
 const practiceOutcomes=['Punt','Touchdown','Field Goal','Turnover'];
@@ -592,12 +593,12 @@ async function loadGames(){
  box.querySelectorAll('.game').forEach(b=>b.addEventListener('click',()=>openGame(all.find(e=>String(e.id)===b.dataset.id))));
  renderRoomGames();updatePickedGameMarkers();refreshPickedGamesFromServer();
 }
-async function openGame(e){if(!e)return;if(frontPageRestorePromise)await frontPageRestorePromise;const soloStart=!roomId&&!invitedRoom()&&!$('joinCode').value.trim();const name=humanName()||currentUser?.user_metadata?.player_name;if(!name&&!roomId){document.body.classList.remove('game-active');$('home').classList.remove('hidden');$('trackerView').classList.add('hidden');return}selectedGame={id:e.id,name:e.name,league:league,date:e.date,competitions:e.competitions,status:e.status};if(roomId)saveGroupBookmark(e);$('standingsGame').value=String(e.id);gamePlayerIds=new Set();renderPossessionDiagram({});$('lastPlay').textContent='Waiting for play updates…';$('playDetail').open=false;pickCollapseKey='';pickCompletionKey='';document.body.classList.add('game-active');const initialTeams=teams(e);setTrackerTeamStyle(initialTeams);$('awayName').textContent=initialTeams.away?.team?.shortDisplayName||initialTeams.away?.team?.displayName||'Away';$('homeName').textContent=initialTeams.home?.team?.shortDisplayName||initialTeams.home?.team?.displayName||'Home';$('awayScore').textContent=initialTeams.away?.score??'—';$('homeScore').textContent=initialTeams.home?.score??'—';driveNumber=1;currentDriveId=null;driveScored=false;chosenPick='';resetNextPicks();resetDrivePicks();$('home').classList.add('hidden');$('trackerView').classList.remove('hidden');$('trackerTitle').textContent=e.name||'Game tracker';$('trackerMeta').textContent=fmtTime(e.date);if(!roomId){try{await startRoomForGame()}catch(err){$('pickNote').textContent='Could not start your room: '+err.message;document.body.classList.remove('game-active');return}}$('roomView').classList.add('hidden');try{const cpuIds=await ensureGameOpponent(soloStart);await enterSelectedGame(cpuIds);await rememberGameCalendar(e);await loadRoomPlayers();}catch(err){$('pickNote').textContent='Could not enter this game: '+err.message;document.body.classList.remove('game-active');showRoomView();return;}await refreshGame();if(roomId){await initRemoteDrive();await syncSharedDrive();renderTrackerRoom();saveGroupBookmark(e)}if(refreshTimer)clearInterval(refreshTimer);refreshTimer=setInterval(()=>{if(selectedGame)refreshGame()},5000);window.scrollTo({top:0,behavior:'smooth'})}
+async function openGame(e){if(!e)return;if(frontPageRestorePromise)await frontPageRestorePromise;const soloStart=!roomId&&!invitedRoom()&&!$('joinCode').value.trim();const name=humanName()||currentUser?.user_metadata?.player_name;if(!name&&!roomId){document.body.classList.remove('game-active');$('home').classList.remove('hidden');$('trackerView').classList.add('hidden');return}selectedGame={id:e.id,name:e.name,league:league,date:e.date,competitions:e.competitions,status:e.status};if(roomId)saveGroupBookmark(e);$('standingsGame').value=String(e.id);gamePlayerIds=new Set();renderPossessionDiagram({});lastVerifiedPlay='';$('lastPlay').textContent='Waiting for play updates…';$('playDetail').open=false;pickCollapseKey='';pickCompletionKey='';document.body.classList.add('game-active');const initialTeams=teams(e);setTrackerTeamStyle(initialTeams);$('awayName').textContent=initialTeams.away?.team?.shortDisplayName||initialTeams.away?.team?.displayName||'Away';$('homeName').textContent=initialTeams.home?.team?.shortDisplayName||initialTeams.home?.team?.displayName||'Home';$('awayScore').textContent=initialTeams.away?.score??'—';$('homeScore').textContent=initialTeams.home?.score??'—';driveNumber=1;currentDriveId=null;driveScored=false;chosenPick='';resetNextPicks();resetDrivePicks();$('home').classList.add('hidden');$('trackerView').classList.remove('hidden');$('trackerTitle').textContent=e.name||'Game tracker';$('trackerMeta').textContent=fmtTime(e.date);if(!roomId){try{await startRoomForGame()}catch(err){$('pickNote').textContent='Could not start your room: '+err.message;document.body.classList.remove('game-active');return}}$('roomView').classList.add('hidden');try{const cpuIds=await ensureGameOpponent(soloStart);await enterSelectedGame(cpuIds);await rememberGameCalendar(e);await loadRoomPlayers();}catch(err){$('pickNote').textContent='Could not enter this game: '+err.message;document.body.classList.remove('game-active');showRoomView();return;}await refreshGame();if(roomId){await initRemoteDrive();await syncSharedDrive();renderTrackerRoom();saveGroupBookmark(e)}if(refreshTimer)clearInterval(refreshTimer);refreshTimer=setInterval(()=>{if(selectedGame)refreshGame()},5000);window.scrollTo({top:0,behavior:'smooth'})}
 $('back').addEventListener('click',()=>{document.body.classList.remove('game-active');selectedGame=null;if(refreshTimer)clearInterval(refreshTimer);$('trackerView').classList.add('hidden');if(roomId){showRoomView()}else{$('home').classList.remove('hidden')}window.scrollTo({top:0,behavior:'smooth'});refreshPickedGamesFromServer()});
 document.querySelectorAll('.tab[data-league]').forEach(b=>b.addEventListener('click',()=>{league=b.dataset.league;document.querySelectorAll('.tab').forEach(x=>{const active=x===b;x.classList.toggle('active',active);x.setAttribute('aria-selected',String(active))});loadGames()}));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&selectedGame)refreshGame()});
 window.addEventListener('focus',()=>{if(selectedGame)refreshGame()});
-let feedRefreshBusy=false,fallbackRefreshUntil=0;
+let feedRefreshBusy=false,fallbackRefreshUntil=0,lastVerifiedPlay='';
 async function refreshGame(){
  if(!selectedGame||feedRefreshBusy||Date.now()<fallbackRefreshUntil)return;feedRefreshBusy=true;const refreshingGame=selectedGame.id;
  $('trackerStatus').textContent='CHECKING FEEDS…';
@@ -636,7 +637,8 @@ async function refreshGame(){
    $('possession').textContent=e.possession||'Possession not confirmed';renderPossessionDiagram(e);
    $('downDistance').textContent=e.downDistance||'—';
    $('fieldPosition').textContent=e.fieldPosition===0||e.fieldPosition?String(e.fieldPosition):'—';
-   $('lastPlay').textContent=e.lastPlay||'No play detail in scoreboard feed';
+   if(payload.scoringSafe===true&&e.lastPlay)lastVerifiedPlay=e.lastPlay;
+   $('lastPlay').textContent=e.lastPlay||(lastVerifiedPlay?lastVerifiedPlay+' · Last verified play; new play-by-play unavailable':'Play-by-play unavailable from this provider');
    $('summary').textContent=(e.lastPlay?e.lastPlay+' · ':'')+e.status+'.';
    automaticReady=payload.scoringSafe===true;automaticPending=!!e.automatic?.pending;
    $('trackerStatus').textContent=automaticReady?(e.state==='in'?'LIVE · VERIFIED':'UPDATED · VERIFIED'):'SCORES ONLY · DRIVE VERIFICATION PENDING';
@@ -929,6 +931,7 @@ function renderGroupScores(){
  const el=$('liveGroupScoreChips');if(!el)return;
  const ordered=[...gamePlayers()].sort((a,b)=>a.id===playerId?-1:b.id===playerId?1:0);
  el.hidden=!!lockedTrackerRows.length;
+ renderHeadToHead(ordered);
  el.innerHTML=ordered.map(p=>'<span class="groupScoreChip'+(p.id===playerId?' mine':'')+'" title="'+esc(p.player_name||'Player')+'"><b>'+esc(p.id===playerId?'You':p.player_name||'Player')+(p.is_cpu?' 🤖':'')+'</b><strong>'+esc(playerGameScore(p.id))+' pts</strong></span>').join('')||'<span class="note">Waiting for players</span>';
  const text=scoreReceipt?'Possession '+scoreReceipt.drive.drive_number+' scored · '+ordered.map(p=>(p.id===playerId?'You':p.player_name||'Player')+' +'+(scoreReceipt.points[p.id]||0)).join(' · '):'No scored possessions yet.';
  $('liveScoreLog').textContent=text;$('liveScoreLog').title=text;
@@ -960,6 +963,11 @@ async function refreshScoreLog(){
  }
  if(!stillCurrent())return;
  const totals={};for(const receipt of receipts)for(const [id,points] of Object.entries(receipt.points))totals[id]=(totals[id]||0)+points;
+ const alertKey=room+':'+game+':'+playerId;
+ const before=lastAnnouncedPoints.get(alertKey);
+ const ownPoints=Number(totals[playerId])||0;
+ if(before!==undefined&&ownPoints>before)gentleGameAlert('points');
+ lastAnnouncedPoints.set(alertKey,ownPoints);
  gamePoints=totals;scoreReceipt=receipts[0]||null;
  renderPlayers();renderTrackerRoom();
  }catch(e){console.warn('Confirmed game scores pending:',e.message);}
@@ -992,6 +1000,72 @@ async function ensureAuth(){
 
 function humanName(){return $('playerName').value.trim().slice(0,24)}
 function requirePlayerName(){const name=humanName();if(!name){$('playerName').focus();statusRoom('Enter your player name first so everyone can identify you in the room.');return null}return name}
+
+const ALERT_PREFS_KEY='drive-duel-alerts-v1';
+function readAlertPrefs(){try{const o=JSON.parse(localStorage.getItem(ALERT_PREFS_KEY)||'{}');return {sound:o.sound===true,vibration:o.vibration===true}}catch{return {sound:false,vibration:false}}}
+let alertPrefs=readAlertPrefs(),alertAudioContext=null,lastNotifiedDrive=null,lastAnnouncedPoints=new Map();
+$('alertSound').checked=alertPrefs.sound;
+$('alertVibration').checked=alertPrefs.vibration;
+function storeAlertPrefs(){
+ alertPrefs={sound:$('alertSound').checked,vibration:$('alertVibration').checked};
+ try{localStorage.setItem(ALERT_PREFS_KEY,JSON.stringify(alertPrefs))}catch{}
+}
+$('alertSound').addEventListener('change',storeAlertPrefs);
+$('alertVibration').addEventListener('change',storeAlertPrefs);
+function gentleGameAlert(type){
+ if(alertPrefs.vibration&&navigator.vibrate){
+  try{navigator.vibrate(type==='points'?[75,60,75]:[75])}catch{}
+ }
+ if(!alertPrefs.sound)return;
+ try{
+  const AudioEngine=window.AudioContext||window.webkitAudioContext;
+  if(!AudioEngine)return;
+  if(!alertAudioContext)alertAudioContext=new AudioEngine();
+  if(alertAudioContext.state==='suspended')alertAudioContext.resume().catch(()=>{});
+  const start=alertAudioContext.currentTime,osc=alertAudioContext.createOscillator(),gain=alertAudioContext.createGain();
+  osc.type='sine';osc.frequency.value=type==='points'?850:type==='drive'?700:590;
+  gain.gain.setValueAtTime(0.0001,start);gain.gain.exponentialRampToValueAtTime(0.065,start+0.016);
+  gain.gain.exponentialRampToValueAtTime(0.0001,start+0.18);
+  osc.connect(gain);gain.connect(alertAudioContext.destination);osc.start(start);osc.stop(start+0.2);
+ }catch(error){console.warn('Optional sound unavailable:',String(error?.message||error).slice(0,80))}
+}
+function renderHeadToHead(ordered){
+ const wrap=$('headToHead');if(!wrap)return;wrap.replaceChildren();
+ if(!ordered.length){
+  const hint=document.createElement('span');hint.textContent='Waiting for players to join…';wrap.append(hint);
+  $('headToHeadStatus').textContent='Points update after verified drives are scored.';return;
+ }
+ const highest=Math.max(...ordered.map(p=>Number(playerGameScore(p.id))||0));
+ for(const player of ordered){
+  const row=document.createElement('span');row.className='headPlayer'+(player.id===playerId?' mine':'');
+  const label=document.createElement('span');label.textContent=(player.id===playerId?'You':player.player_name||'Player')+(player.is_cpu?' 🤖':'');
+  const score=document.createElement('strong');score.textContent=String(playerGameScore(player.id));
+  row.append(label,score);wrap.appendChild(row);
+ }
+ const leaders=ordered.filter(p=>(Number(playerGameScore(p.id))||0)===highest);
+ $('headToHeadStatus').textContent=ordered.length===1?'Waiting for another player · '+highest+' points':
+  leaders.length>1?'Tied at '+highest+' points':
+  (leaders[0].id===playerId?'You are ahead':(leaders[0].player_name||'A player')+' is ahead')+' · '+highest+' points';
+}
+function renderCompactPickTimer(state,remaining){
+ const bar=$('pickCountdown');if(!bar)return;
+ const time=Math.max(0,Math.ceil(Number(remaining)||0));
+ bar.dataset.state=state;
+ if(state==='open'){
+  $('pickCountdownLabel').textContent='Make your pick now · '+driveNumber;
+  $('pickCountdownNumber').textContent=time+'s';
+ }else if(state==='locked'){
+  $('pickCountdownLabel').textContent='Pick locked · waiting for result';
+  $('pickCountdownNumber').textContent='✓';
+ }else if(state==='closed'){
+  $('pickCountdownLabel').textContent='Window closed · next drive soon';
+  $('pickCountdownNumber').textContent='—';
+ }else{
+  $('pickCountdownLabel').textContent=automaticReady?'Waiting for next possession':'Waiting for verified live data';
+  $('pickCountdownNumber').textContent='—';
+ }
+}
+
 function displayPickWindow(message,state,remaining=0){
  $('driveStatus').textContent=message;
  $('pickWindowBanner').dataset.state=state;
@@ -1001,6 +1075,7 @@ function displayPickWindow(message,state,remaining=0){
  $('pickWindowHint').textContent=state==='open'?'Tap your picks below.':state==='closed'?'You can prepare picks for the next drive.':state==='locked'?'Your choices are shown below.':'We will show you when picks open.';
  $('jumpToPicks').hidden=state!=='open';
  $('picks').dataset.window=state;
+ renderCompactPickTimer(state,remaining);
 }
 $('jumpToPicks').addEventListener('click',()=>{pickControlsExpanded=true;renderPickControls();$('picks').scrollIntoView({behavior:'smooth',block:'center'});document.querySelector('#picks .pick:not(:disabled)')?.focus({preventScroll:true})});
 function renderAutomaticStatus(){
@@ -1028,7 +1103,7 @@ async function syncSharedDrive(){
   if(!state.active_drive_id){currentDriveId=null;feedClosed=true;driveScored=false;renderPick();await loadRoomPlayers();return}
   const {data:d,error:de}=await db.from('drives').select('*').eq('id',state.active_drive_id).single();if(de)throw de;
   if(selectedGame?.id!==game)return;
-  if(currentDriveId!==d.id){resetLockedTracker();currentDriveId=d.id;driveNumber=d.drive_number;activePredictionType='offense';resetDrivePicks();}
+  if(currentDriveId!==d.id){resetLockedTracker();currentDriveId=d.id;driveNumber=d.drive_number;activePredictionType='offense';resetDrivePicks();if(lastNotifiedDrive!==d.id){lastNotifiedDrive=d.id;gentleGameAlert('drive')}}
   feedClosed=d.feed_closed;predictionDeadline=d.prediction_deadline?Date.parse(d.prediction_deadline):null;driveScored=d.status==='scored';
   await refreshRemotePicks();await loadRoomPlayers();renderPick();
  }catch(e){automaticReady=false;$('pickNote').textContent='Shared drive verification pending. '+e.message;renderPick()}
