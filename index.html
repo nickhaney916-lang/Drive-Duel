@@ -364,7 +364,7 @@ $('joinInviteOneTap').addEventListener('click',async()=>{
 });
 function invitationUrl(){
  if(!roomCode)return '';
- const url=new URL('https://nickhaney916-lang.github.io/Drive-Duel/');
+ const url=new URL(location.pathname||'/',location.origin);
  url.searchParams.set('room',roomCode);
  const saved=readGroupBookmark();
  const game=selectedGame||(saved?.code===roomCode&&saved?.league===league?saved.game:null);
