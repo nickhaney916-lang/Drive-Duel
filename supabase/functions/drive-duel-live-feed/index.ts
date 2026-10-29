@@ -135,7 +135,7 @@ function nflSportsDbMatch(e: any, away: string, home: string) {
 }
 function sportsDbDate(e: any) {
  const input=String(e.strTimestamp||((e.dateEvent||"")+"T"+(e.strTime||"00:00:00")));
- return /^\\d{4}-\\d{2}-\\d{2}T/.test(input)?(/[zZ]|[+-]\\d{2}:?\\d{2}$/.test(input)?input:input+"Z"):null;
+ return /^\d{4}-\d{2}-\d{2}T/.test(input)?(/[zZ]|[+-]\d{2}:?\d{2}$/.test(input)?input:input+"Z"):null;
 }
 function sportsDbScheduleEvent(e: any) {
  if(!nflSportsDb(e)||!e.idEvent||!e.strHomeTeam||!e.strAwayTeam)return null;
@@ -171,7 +171,7 @@ async function independentNflResult(body: any, date: string, attempts: string[])
  try {
   const id=String(body.eventId);
   let game=null;
-  if(/^tsdb-\\d+$/.test(id)){
+  if(/^tsdb-\d+$/.test(id)){
    const response=await timeoutFetch(sportsDbBase+"lookupevent.php?id="+encodeURIComponent(id.slice(5)),6500);
    if(!response.ok)throw Error("Independent game HTTP "+response.status);
    const data=await response.json();
@@ -180,7 +180,8 @@ async function independentNflResult(body: any, date: string, attempts: string[])
    game=(await sportsDbByDay(date)).find((e:any)=>nflSportsDbMatch(e,body.awayName,body.homeName));
   }
   const result=sportsDbScore(game,body);
-  if(result && (!result.startDate || String(result.startDate).slice(0,10)===date.slice(0,4)+"-"+date.slice(4,6)+"-"+date.slice(6)))
+  const eventDay=String(game?.dateEvent||result?.startDate||"").slice(0,10);
+  if(result && eventDay===date.slice(0,4)+"-"+date.slice(4,6)+"-"+date.slice(6))
    return json({ok:true,data:result,attempts,scoringSafe:false,note:"Independent scoreboard available; verified drive history unavailable."});
   attempts.push("TheSportsDB: matching dated game or score unavailable");
  }catch(error){attempts.push("TheSportsDB: "+(error instanceof Error?error.message:"request unavailable"))}
@@ -296,7 +297,7 @@ Deno.serve(async (req: Request) => {
     const part=(type:string)=>parts.find(p=>p.type===type)?.value??"";
     const dates = dateOnly?utcDay:part("year")+part("month")+part("day");
     const collegeArgs = league === "college" ? "&groups=80&limit=100" : "";
-    if(league==="nfl" && /^tsdb-\\d+$/.test(eventId)){
+    if(league==="nfl" && /^tsdb-\d+$/.test(eventId)){
       const backup=await independentNflResult(body,dates,[]);
       return backup??json({ok:false,scoringSafe:false,error:"Independent game is unavailable or has no verified score."},503);
     }
