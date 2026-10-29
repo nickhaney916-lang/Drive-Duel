@@ -232,7 +232,36 @@ function dateKey(d){return d.getFullYear()+String(d.getMonth()+1).padStart(2,'0'
 function fmtTime(v){if(!v)return 'Time TBA';const d=new Date(v);return isNaN(d)?'Time TBA':d.toLocaleString(undefined,{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}
 function eventState(e){return e.status?.type?.detail||e.status?.type?.shortDetail||e.status?.type?.description||'Scheduled'}
 function teams(e){const c=e.competitions?.[0]?.competitors||[];return {away:c.find(t=>t.homeAway==='away')||c[1],home:c.find(t=>t.homeAway==='home')||c[0]}}
-async function fetchDay(kind,key){const url=kind==='nfl'?'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates='+key:'https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=100&dates='+key;const r=await fetch(url);if(!r.ok)throw Error('ESPN HTTP '+r.status);return r.json()}
+async function fetchDay(kind,key){
+ const url=kind==='nfl'?'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates='+key:'https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=100&dates='+key;
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),7000);
+ try{const r=await fetch(url,{signal:controller.signal});if(!r.ok)throw Error('Direct scoreboard HTTP '+r.status);return r.json()}
+ finally{clearTimeout(timer)}
+}
+function sportsDbMatch(e){
+ if(!e||!e.idEvent||!e.strHomeTeam||!e.strAwayTeam)return null;
+ if(e.strLeague!=='NFL'&&String(e.idLeague)!=='4391')return null;
+ const rawDate=e.strTimestamp||((e.dateEvent||'')+'T'+(e.strTime||'00:00:00'));
+ if(!/^\\d{4}-\\d{2}-\\d{2}T/.test(rawDate))return null;
+ const date=rawDate.match(/[zZ]|[+-]\\d{2}:?\\d{2}$/)?rawDate:rawDate+'Z';
+ const status=e.strStatus||e.strProgress||'Scheduled';
+ const state=/^(FT|AOT)$|final|finished/i.test(status)?'post':/^(Q[1-4]|OT|HT)$|in play|halftime/i.test(status)?'in':'pre';
+ return {id:'tsdb-'+e.idEvent,name:e.strAwayTeam+' at '+e.strHomeTeam,date,source:'TheSportsDB',partial:true,
+  status:{type:{state,detail:status}},competitions:[{competitors:[
+   {homeAway:'away',team:{displayName:e.strAwayTeam,shortDisplayName:e.strAwayTeam},score:e.intAwayScore??'—'},
+   {homeAway:'home',team:{displayName:e.strHomeTeam,shortDisplayName:e.strHomeTeam},score:e.intHomeScore??'—'}
+  ]}]};
+}
+async function fetchSportsDbDay(key){
+ const date=key.slice(0,4)+'-'+key.slice(4,6)+'-'+key.slice(6);
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),7000);
+ try{
+  const r=await fetch('https://www.thesportsdb.com/api/v1/json/123/eventsday.php?d='+date+'&l=NFL',{signal:controller.signal});
+  if(!r.ok)throw Error('Independent schedule HTTP '+r.status);
+  const payload=await r.json();
+  return (Array.isArray(payload.events)?payload.events:[]).map(sportsDbMatch).filter(Boolean);
+ }finally{clearTimeout(timer)}
+}
 function footballWeekDates(now=new Date()){
  const start=new Date(now.getFullYear(),now.getMonth(),now.getDate(),12);
  const day=start.getDay();
@@ -285,7 +314,43 @@ async function refreshPickedGamesFromServer(){
   updatePickedGameMarkers();
  }catch(e){console.warn('Could not refresh picked-game highlights:',e.message)}
 }
-async function loadGames(){const box=$('games');$('loadStatus').textContent='LOADING…';box.innerHTML='<div class="loading">Fetching current matchups from ESPN…</div>';const week=footballWeekDates();const keys=week.keys;let all=[],errors=0;try{await ensureAuth();const {data,error}=await db.functions.invoke('drive-duel-live-feed',{body:{operation:'schedule',league,dates:keys}});if(error||!data?.ok)throw error||new Error('Schedule unavailable');all=data.events||[]}catch(e){errors=keys.length}const seen=new Set();all=all.filter(e=>{if(seen.has(e.id))return false;seen.add(e.id);return true}).sort((a,b)=>new Date(a.date)-new Date(b.date));lastEvents=all;$('listTitle').textContent=league==='nfl'?'This Week’s NFL Games':'This Week’s College Football Games';$('listSub').textContent='Thursday–Monday · '+week.start.toLocaleDateString(undefined,{month:'short',day:'numeric'})+'–'+week.end.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' · local kickoff times';$('loadStatus').textContent=all.length?all.length+' GAMES':'ESPN FEED';if(!all.length){box.innerHTML='<div class="error">'+(errors===keys.length?'Could not reach ESPN right now. Check your connection and refresh.':'No matchups were returned for this football week.')+'</div>';renderRoomGames();return}box.innerHTML=all.map(e=>{const t=teams(e),state=eventState(e),live=e.status?.type?.state==='in';return '<button class="game" data-id="'+esc(e.id)+'"><span><span class="match">'+esc(t.away?.team?.shortDisplayName||t.away?.team?.displayName||'Away')+' <span style="color:var(--muted);font-weight:500">@</span> '+esc(t.home?.team?.shortDisplayName||t.home?.team?.displayName||'Home')+'</span><span class="meta">'+esc(fmtTime(e.date))+'</span><span class="myPickBadge" hidden>PICKS MADE</span><span class="badge '+(live?'live':'')+'">'+esc(state)+'</span></span><span class="score">'+esc(t.away?.score??'—')+'<span class="arrow">›</span><br>'+esc(t.home?.score??'—')+'</span></button>'}).join('');box.querySelectorAll('.game').forEach(b=>b.addEventListener('click',()=>openGame(all.find(e=>e.id===b.dataset.id))));renderRoomGames();updatePickedGameMarkers();refreshPickedGamesFromServer()}
+async function loadGames(){
+ const box=$('games'),week=footballWeekDates(),keys=week.keys;
+ $('loadStatus').textContent='LOADING…';box.innerHTML='<div class="loading">Checking football schedules from multiple feeds…</div>';
+ let all=[],sourceLabel='Live feed',partial=false,failures=[];
+ try{
+  await ensureAuth();
+  const {data,error}=await db.functions.invoke('drive-duel-live-feed',{body:{operation:'schedule',league,dates:keys}});
+  if(error||!data?.ok)throw error||new Error(data?.error||'Live schedule service unavailable');
+  all=data.events||[];partial=!!data.partial;sourceLabel=data.sourceLabel||'Live feed';
+ }catch(e){failures.push('Schedule service: '+String(e?.message||e).slice(0,100))}
+ if(!all.length){
+  const direct=await Promise.allSettled(keys.map(key=>fetchDay(league,key)));
+  all=direct.flatMap(r=>r.status==='fulfilled'&&Array.isArray(r.value?.events)?r.value.events:[]);
+  if(all.length){sourceLabel='Direct scoreboard fallback';partial=direct.some(r=>r.status==='rejected')}
+  else failures.push('Direct scoreboard unavailable');
+ }
+ if(!all.length&&league==='nfl'){
+  const backup=await Promise.allSettled(keys.map(fetchSportsDbDay));
+  all=backup.flatMap(r=>r.status==='fulfilled'?r.value:[]);
+  if(all.length){sourceLabel='TheSportsDB backup';partial=true}
+  else failures.push('Independent NFL schedule unavailable');
+ }
+ const seen=new Set();
+ all=all.filter(e=>{if(!e?.id||seen.has(String(e.id)))return false;seen.add(String(e.id));return true})
+  .sort((a,b)=>new Date(a.date)-new Date(b.date));
+ lastEvents=all;
+ $('listTitle').textContent=league==='nfl'?'This Week’s NFL Games':'This Week’s College Football Games';
+ $('listSub').textContent='Thursday–Monday · '+week.start.toLocaleDateString(undefined,{month:'short',day:'numeric'})+'–'+week.end.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' · local kickoff times'+(partial?' · Backup may show only some games':'');
+ $('loadStatus').textContent=all.length?all.length+' GAMES · '+sourceLabel:'FEEDS OFFLINE';
+ if(!all.length){box.innerHTML='<div class="error">Football game feeds are unavailable right now. Refresh to retry. '+esc(failures.join(' · ').slice(0,240))+'</div>';renderRoomGames();return}
+ box.innerHTML=all.map(e=>{
+  const t=teams(e),state=eventState(e),live=e.status?.type?.state==='in';
+  return '<button class="game" data-id="'+esc(e.id)+'"><span><span class="match">'+esc(t.away?.team?.shortDisplayName||t.away?.team?.displayName||'Away')+' <span style="color:var(--muted);font-weight:500">@</span> '+esc(t.home?.team?.shortDisplayName||t.home?.team?.displayName||'Home')+'</span><span class="meta">'+esc(fmtTime(e.date))+'</span><span class="myPickBadge" hidden>PICKS MADE</span><span class="badge '+(live?'live':'')+'">'+esc(state)+'</span></span><span class="score">'+esc(t.away?.score??'—')+'<span class="arrow">›</span><br>'+esc(t.home?.score??'—')+'</span></button>';
+ }).join('');
+ box.querySelectorAll('.game').forEach(b=>b.addEventListener('click',()=>openGame(all.find(e=>String(e.id)===b.dataset.id))));
+ renderRoomGames();updatePickedGameMarkers();refreshPickedGamesFromServer();
+}
 async function openGame(e){if(!e)return;if(frontPageRestorePromise)await frontPageRestorePromise;const name=humanName()||currentUser?.user_metadata?.player_name;if(!name&&!roomId){document.body.classList.remove('game-active');$('home').classList.remove('hidden');$('trackerView').classList.add('hidden');return}selectedGame={id:e.id,name:e.name,league:league,date:e.date};$('standingsGame').value=String(e.id);gamePlayerIds=new Set();renderPossessionDiagram({});$('lastPlay').textContent='Waiting for play updates…';$('playDetail').open=false;pickCollapseKey='';pickCompletionKey='';document.body.classList.add('game-active');const initialTeams=teams(e);setTrackerTeamStyle(initialTeams);$('awayName').textContent=initialTeams.away?.team?.shortDisplayName||initialTeams.away?.team?.displayName||'Away';$('homeName').textContent=initialTeams.home?.team?.shortDisplayName||initialTeams.home?.team?.displayName||'Home';$('awayScore').textContent=initialTeams.away?.score??'—';$('homeScore').textContent=initialTeams.home?.score??'—';driveNumber=1;currentDriveId=null;driveScored=false;chosenPick='';resetNextPicks();resetDrivePicks();$('home').classList.add('hidden');$('trackerView').classList.remove('hidden');$('trackerTitle').textContent=e.name||'Game tracker';$('trackerMeta').textContent=fmtTime(e.date);if(!roomId){try{await startRoomForGame()}catch(err){$('pickNote').textContent='Could not start your room: '+err.message;document.body.classList.remove('game-active');return}}$('roomView').classList.add('hidden');try{const cpuIds=await ensureGameOpponent();await enterSelectedGame(cpuIds);await rememberGameCalendar(e);await loadRoomPlayers();}catch(err){$('pickNote').textContent='Could not enter this game: '+err.message;document.body.classList.remove('game-active');showRoomView();return;}await refreshGame();if(roomId){await initRemoteDrive();await syncSharedDrive();renderTrackerRoom();saveGroupBookmark(e)}if(refreshTimer)clearInterval(refreshTimer);refreshTimer=setInterval(()=>{if(selectedGame)refreshGame()},5000);window.scrollTo({top:0,behavior:'smooth'})}
 $('back').addEventListener('click',()=>{document.body.classList.remove('game-active');selectedGame=null;if(refreshTimer)clearInterval(refreshTimer);$('trackerView').classList.add('hidden');if(roomId){showRoomView()}else{$('home').classList.remove('hidden')}window.scrollTo({top:0,behavior:'smooth'});refreshPickedGamesFromServer()});
 document.querySelectorAll('.tab[data-league]').forEach(b=>b.addEventListener('click',()=>{league=b.dataset.league;document.querySelectorAll('.tab').forEach(x=>{const active=x===b;x.classList.toggle('active',active);x.setAttribute('aria-selected',String(active))});loadGames()}));
@@ -324,9 +389,10 @@ async function refreshGame(){
    $('fieldPosition').textContent=e.fieldPosition===0||e.fieldPosition?String(e.fieldPosition):'—';
    $('lastPlay').textContent=e.lastPlay||'No play detail in scoreboard feed';
    $('summary').textContent=(e.lastPlay?e.lastPlay+' · ':'')+e.status+'.';
-   $('trackerStatus').textContent=e.state==='in'?'LIVE · VERIFIED':'UPDATED · VERIFIED';
-   $('feedStatus').dataset.verified='true';automaticReady=payload.scoringSafe===true;automaticPending=!!e.automatic?.pending;await syncSharedDrive();
-   $('feedStatus').innerHTML='Live feed · Updated '+new Date(e.fetchedAt).toLocaleString([], {month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
+   automaticReady=payload.scoringSafe===true;automaticPending=!!e.automatic?.pending;
+   $('trackerStatus').textContent=automaticReady?(e.state==='in'?'LIVE · VERIFIED':'UPDATED · VERIFIED'):'SCORES ONLY · DRIVE VERIFICATION PENDING';
+   $('feedStatus').dataset.verified=automaticReady?'true':'false';await syncSharedDrive();
+   $('feedStatus').textContent=(e.provider||'Football feed')+' · Updated '+new Date(e.fetchedAt).toLocaleString([], {month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'})+(automaticReady?' · verified drives':' · automatic picks and scoring paused');
  }catch(err){
    $('feedStatus').dataset.verified='false';automaticReady=false;automaticPending=true;renderPick();
    $('trackerStatus').textContent='FEED UNVERIFIED';
