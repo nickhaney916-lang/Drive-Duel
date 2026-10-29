@@ -123,7 +123,7 @@ test('easy play: friend invitation, practice, two devices and no surprise CPU',a
     'possessionField','possession','lastPlay','pickCountdown','headToHead','headToHeadStatus']){
    await expect(guest.locator('#'+id)).toBeVisible();
   }
-  await expect(guest.locator('#headToHead')).toContainText('Dad');
+  await expect(guest.locator('#headToHead')).toContainText('You');
   await expect(guest.locator('#headToHead')).toContainText('Nick');
   expect(await guest.locator('#alertSound').isChecked()).toBe(false);
   expect(await guest.locator('#alertVibration').isChecked()).toBe(false);
