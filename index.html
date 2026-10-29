@@ -235,6 +235,56 @@ body.game-active .myCurrentPicks strong{letter-spacing:0}
 #pickToast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:1100;width:min(calc(100% - 24px),490px);border:2px solid var(--green);border-radius:14px;background:#113f2b;color:white;padding:17px;font-size:18px;font-weight:850;box-shadow:0 8px 30px #000b;text-align:center}
 #pickToast[data-kind=error]{border-color:#ffb8a4;background:#512925}
 @media(max-width:400px){#practiceDialog{padding:9px}#practiceCard{padding:14px}}
+
+/* Live game tracker is always visible: score, clock, down, possession, last play, picks. */
+body.game-active #trackerView>.sectionhead{margin:7px 0 6px}
+body.game-active #trackerView #trackerTitle{font-size:18px;line-height:1.15}
+body.game-active #trackerView #trackerMeta{font-size:12px}
+body.game-active #globalConnection{font-size:12px;min-height:32px;padding:5px 8px;margin:0 0 5px}
+body.game-active #trackerRoomBanner{padding:6px 8px;margin:0 0 5px!important}
+body.game-active #trackerRoomBanner #trackerPlayerSummary{display:none}
+body.game-active #trackerShare,body.game-active #trackerPracticeStart{min-height:37px;width:auto;margin:5px 5px 0 0;font-size:13px}
+body.game-active .tracker{padding:9px;margin:0}
+body.game-active #pickWindowBanner{padding:6px 10px;margin:5px 0}
+body.game-active .liveScoreTitle{font-size:13px}
+body.game-active #liveTrackerDetails{margin:4px 0 6px}
+body.game-active #liveTrackerDetails>summary{font-size:12px;padding:4px 7px}
+body.game-active #liveGameTracker{padding:7px}
+body.game-active .trackerTeams{margin:4px 0}
+body.game-active .trackerScore{font-size:clamp(22px,7vw,32px)}
+body.game-active .trackerReadout{margin:4px 0;gap:6px}
+body.game-active #possessionField{min-height:45px;margin:4px 0}
+body.game-active .possessionCaption{margin:3px 0}
+body.game-active #playDetail{display:block;padding:6px 8px;border-radius:9px;background:#173448;margin:4px 0}
+body.game-active #playDetail summary{display:block;cursor:default;font-size:13px;line-height:1.35}
+body.game-active #playDetail summary::marker{display:none}
+body.game-active #playDetail .playLabel{font-size:11px;margin-right:7px;color:#b3ccda}
+body.game-active #lastPlay{font-size:13px}
+body.game-active #liveRosterStatus,body.game-active #liveScoreLog{font-size:12px}
+body.game-active #trackerQueuedPicks,body.game-active #trackerLockedPicks{margin:4px 0}
+body.game-active .gamePickEntry{display:none}
+body.game-active #pickControls>details.helperDetails:first-child{display:none}
+body.game-active #pickControls .tabs{margin-bottom:4px}
+body.game-active .dualPickPanel{padding:9px}
+body.game-active .dualPickPanel>p{display:none}
+body.game-active .dualPickPanel h3{font-size:16px;margin:0 0 3px}
+body.game-active .primaryPickGrid button{min-height:50px;font-size:clamp(13px,3.8vw,16px)}
+body.game-active .dualPickSave{min-height:46px}
+#headToHead{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 4px}
+#headToHead .headPlayer{flex:1 1 100px;display:flex;align-items:center;justify-content:space-between;gap:6px;padding:8px;border-radius:10px;background:#1c3a4e;font-size:13px;font-weight:750}
+#headToHead .headPlayer.mine{border:1px solid var(--green)}
+#headToHead .headPlayer strong{font-size:18px;font-variant-numeric:tabular-nums}
+#headToHeadStatus{font-size:12px;color:#bfd4df;padding:0 2px}
+#pickCountdown{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:5px 0 8px;padding:7px 11px;border-radius:12px;background:#1b3549;border:1px solid #496980}
+#pickCountdown[data-state=open]{background:#164a34;border-color:#58c79e}
+#pickCountdown[data-state=closed]{background:#34303d;border-color:#876f82}
+#pickCountdownLabel{font-size:15px;font-weight:850}
+#pickCountdownNumber{font-size:27px;font-weight:950;font-variant-numeric:tabular-nums}
+#alertSettings{margin:6px 0}
+#alertSettings summary{padding:6px;font-size:13px;font-weight:800}
+#alertSettings label{display:flex;align-items:center;gap:8px;margin:9px 0;font-size:14px}
+#alertSettings input{width:22px;height:22px;accent-color:var(--green)}
+#alertSettings .alertExplanation{font-size:12px}
 </style></head>
 <body><div class="wrap">
 <header class="top"><div class="brand"><div class="ball" aria-hidden="true"><span class="laces">≋</span></div><div><h1>DRIVE <span>DUEL</span></h1><div class="tag">EVERY DRIVE. EVERY PICK.</div></div></div><div class="clock"><div id="today" class="date"></div><div id="now" class="time"></div></div></header>
@@ -255,11 +305,18 @@ body.game-active .myCurrentPicks strong{letter-spacing:0}
 <div class="sectionhead"><div><div class="lobbyTitle"><span class="stepNum">2</span><h3 id="listTitle">NFL Matchups</h3></div><p id="listSub">Tap a game to open it.</p></div><div id="loadStatus" class="status">LOADING…</div></div><div id="games" class="games"><div class="loading">Loading real ESPN matchups…</div></div><div class="footer">MATCHUPS AND SCORES FROM ESPN · TIMES SHOWN IN YOUR LOCAL TIME</div></section>
 <section id="roomView" hidden class="hidden"><button id="roomBack" hidden>Back to games</button><div id="roomPageStatus"></div><div id="roomDetailsMount"></div><div id="roomLeaderboardMount"></div><div id="roomGamesMount"></div></section>
 <section id="trackerView" class="hidden"><button id="back" class="back">← All Games</button><div class="play" id="trackerRoomBanner" style="margin-bottom:12px"><strong id="trackerRoomLabel">Group loading…</strong><div id="trackerPlayerSummary" class="meta"></div><button id="trackerShare" class="secondaryAction" style="margin-top:10px">↗ Invite players</button><button type="button" id="trackerPracticeStart">Practice a pick</button></div><div class="sectionhead"><div><div class="eyebrow">LIVE GAME</div><h3 id="trackerTitle">Game tracker</h3><p id="trackerMeta"></p></div><div id="trackerStatus" class="status">GAME CENTER</div></div>
-<div class="tracker"><div class="pickWindowBanner" id="pickWindowBanner" data-state="waiting"><div><strong id="pickWindowLabel">WAITING FOR POSSESSION</strong><span id="pickWindowHint">Picks open together at the next possession.</span></div><button type="button" id="jumpToPicks" hidden>Make a pick ↓</button></div><section id="myCurrentPicks" class="myCurrentPicks" hidden aria-live="polite"><div class="myPicksHeading"><strong id="myPicksPossession">YOUR LOCKED PICKS</strong><span>✓ LOCKED</span></div><div class="myPickValues"><div><small>🏈 OFFENSE</small><strong id="myOffensePick">—</strong></div><div><small>🛡️ DEFENSE</small><strong id="myDefensePick">—</strong></div></div></section><div class="liveScoreTitle" aria-hidden="true">🏟️ LIVE GAME</div><details id="liveTrackerDetails" class="liveTrackerDetails" open><summary>Scoreboard & field <span>▾</span></summary><div class="liveGameTracker" id="liveGameTracker" role="region" aria-label="Live game tracker">
+<div class="tracker"><div class="pickWindowBanner" id="pickWindowBanner" data-state="waiting"><div><strong id="pickWindowLabel">WAITING FOR POSSESSION</strong><span id="pickWindowHint">Picks open together at the next possession.</span></div><button type="button" id="jumpToPicks" hidden>Make a pick ↓</button></div><section id="myCurrentPicks" class="myCurrentPicks" hidden aria-live="polite"><div class="myPicksHeading"><strong id="myPicksPossession">YOUR LOCKED PICKS</strong><span>✓ LOCKED</span></div><div class="myPickValues"><div><small>🏈 OFFENSE</small><strong id="myOffensePick">—</strong></div><div><small>🛡️ DEFENSE</small><strong id="myDefensePick">—</strong></div></div></section><div id="pickCountdown" role="status" aria-live="off" data-state="waiting"><span id="pickCountdownLabel">Waiting for verified possession</span><strong id="pickCountdownNumber">—</strong></div>
+<div class="liveScoreTitle" aria-hidden="true">🏟️ LIVE GAME</div><details id="liveTrackerDetails" class="liveTrackerDetails" open><summary>Scoreboard & field <span>▾</span></summary><div class="liveGameTracker" id="liveGameTracker" role="region" aria-label="Live game tracker">
 <div class="liveTrackerHeading"><span id="gameStatus">Loading…</span></div>
 <div class="trackerTeams"><span id="awayName">Away</span><span class="trackerScore"><span id="awayScore">—</span> : <span id="homeScore">—</span></span><span id="homeName">Home</span></div>
-<div class="trackerReadout"><b id="clockInfo" title="Quarter and clock">—</b><span id="downDistance" title="Down and distance">—</span><span id="fieldPosition" title="Reported field position">—</span></div><div id="possessionField" class="possessionField" role="img" aria-label="Waiting for possession"><span id="fieldAway" class="fieldTeam away">Away</span><span id="possessionArrow" class="possessionArrow" aria-hidden="true"></span><span class="fieldYards" aria-hidden="true"><i>10</i><i>20</i><i>30</i><i>40</i><i>50</i><i>40</i><i>30</i><i>20</i><i>10</i></span><span class="fieldGoal goalLeft" aria-hidden="true"></span><span class="fieldGoal goalRight" aria-hidden="true"></span><span class="fieldBall" aria-hidden="true">🏈</span><span id="fieldHome" class="fieldTeam home">Home</span></div><div class="possessionCaption"><b id="currentPossessionTag">Waiting for possession</b><span id="possession">Waiting for possession</span><small> · possession</small></div>
-<div id="liveRosterStatus" class="liveRosterStatus" aria-live="polite"></div><div class="liveGroupScores" aria-label="Group scores"><div id="liveGroupScoreChips"></div><div id="liveScoreLog" aria-live="polite">No scored possessions yet.</div></div><div id="trackerLockedPicks" class="trackerLockedPicks" hidden aria-live="polite"><strong id="trackerLockedTitle"></strong><div id="trackerLockedRows"></div></div><div id="trackerQueuedPicks" class="trackerQueuedPicks" hidden aria-live="polite"><strong id="trackerQueuedTitle"></strong><div id="trackerQueuedRows"></div></div><details id="playDetail" class="compactPlay"><summary><span class="playLabel">LAST PLAY</span><span id="lastPlay" aria-live="polite">Waiting for play updates…</span></summary></details><div id="feedStatus" class="compactFeed">Connecting to live feed…</div></div></details><div id="summary" class="hidden"></div><div class="gamePickEntry"><div><strong>Ready to predict this possession?</strong><span>Check the score and possession above, then choose when to open your picks.</span></div><button type="button" id="makePicksNow">🏈 Make Picks Now ↓</button></div><div class="pickToggleRow"><span id="savedPickStatus" class="meta" aria-live="polite"></span><button id="togglePickControls" class="back" aria-controls="pickControls" aria-expanded="true">Hide picks</button></div><div id="pickControls"><details class="helperDetails" style="margin-bottom:12px"><summary>Scoring rules</summary><p>Correct prediction = 10 points. A correct touchdown prediction earns 2 bonus points if the extra point or 2-point conversion succeeds. The conversion is part of the same drive.</p></details><div class="tabs" role="tablist" aria-label="Prediction type"><button class="tab active" id="offenseTab" role="tab" aria-selected="true" aria-controls="predictionPanel"><span class="emoji">🏈</span><span><strong>Offense</strong><span id="offenseTabBadge" class="pickSavedBadge">NOT SAVED</span><small id="offenseTabPick">Choose your pick</small></span></button><button class="tab" id="defenseTab" role="tab" aria-selected="false" aria-controls="predictionPanel"><span class="emoji">🛡️</span><span><strong>Defense</strong><span id="defenseTabBadge" class="pickSavedBadge">NOT SAVED</span><small id="defenseTabPick">Choose your pick</small></span></button></div><div class="play" id="driveStatus" aria-live="polite" style="margin-bottom:12px">Waiting for verified drive data.</div><div id="dualPickPanels" class="dualPickPanels" aria-label="Offense and defense predictions"><section class="dualPickPanel" data-type="offense"><h3>🏈 Offense <span id="dualOffenseState">NOT SAVED</span></h3><p>How will the offense finish?</p><div id="dualOffenseChoices" class="dualPickChoices"></div><button type="button" id="dualOffenseSave" class="dualPickSave">Lock offense pick</button></section><section class="dualPickPanel" data-type="defense"><h3>🛡️ Defense <span id="dualDefenseState">NOT SAVED</span></h3><p>What will the defense allow or force?</p><div id="dualDefenseChoices" class="dualPickChoices"></div><button type="button" id="dualDefenseSave" class="dualPickSave">Lock defense pick</button></section></div><details id="advancedPickDetails" class="helperDetails"><summary>More pick options and advanced controls</summary><div id="predictionPanel"><div id="pickTarget" class="play" aria-live="polite" style="margin-bottom:12px">Waiting for possession data.</div><div class="sectionhead"><div><h3 id="pickHeading">Offensive drive prediction</h3><p id="pickSubheading">Tap one result, then press the big Lock In button.</p></div><span class="status" id="predictionStatus">OFFENSE · 10 PTS</span></div><div class="pickrow" id="picks"><button class="pick" data-pick="Touchdown">Touchdown</button><button class="pick" data-pick="Field Goal">Field Goal</button><button class="pick" data-pick="Punt">Punt</button><button class="pick" data-pick="Turnover">Turnover</button><button class="pick" data-pick="Other">Other</button></div><button id="lockPick" class="refresh" style="width:100%">🔒 Lock In Offense Pick</button><button id="cancelNextPick" class="back" style="margin-top:10px" hidden>Cancel queued pick</button><div id="queueStatus" class="note" aria-live="polite"></div><div id="pickNote" class="note" aria-live="polite">Pick during the shared prediction window. Results and points update automatically.</div><div class="play" id="cpuPanel" style="margin-top:12px"><strong>🤖 CPU Opponent</strong><div id="cpuPickText" style="margin-top:5px">Waiting for picks to lock.</div></div><div id="finalResultPanel" class="play hidden" style="margin-top:12px"><strong>What happened on the drive?</strong><div class="note">Use the agreed live feed as the source of truth. Score only after the drive is over; never score from an individual play.</div><label for="actualOutcome" class="meta" style="display:block;margin-top:10px">Final drive result</label><select id="actualOutcome" style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:#071522;color:var(--text);font:inherit;margin-top:5px"><option value="">Choose confirmed result…</option><option>Touchdown</option><option>Field Goal</option><option>Punt</option><option>Turnover</option><option>Stopped on downs</option><option>Other</option></select><div id="conversionWrap" class="hidden"><label for="conversionResult" class="meta" style="display:block;margin-top:10px">Was the extra point or 2-point conversion successful?</label><select id="conversionResult" style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:#071522;color:var(--text);font:inherit;margin-top:5px"><option value="">Choose conversion result…</option><option value="success">Successful (+2 bonus to correct touchdown picks)</option><option value="missed">Missed (no bonus; touchdown points remain)</option></select></div><button id="scoreDrive" class="refresh" style="width:100%">✓ Score this drive</button><div id="scoreStatus" class="note" aria-live="polite">Lock both picks before scoring.</div></div><button id="nextDrive" class="back" style="margin-top:12px" disabled>Next drive</button></div></details></div><button id="refresh" class="refresh">↻ Refresh score</button></div></section></div>
+<div id="headToHead" aria-label="Head-to-head points"><span>Waiting for players…</span></div><div id="headToHeadStatus">Points update after verified drives are scored.</div>
+<div class="trackerReadout"><b id="clockInfo" title="Quarter and clock">—</b><span id="downDistance" title="Down and distance">—</span><span id="fieldPosition" title="Reported field position">—</span></div><details id="playDetail" class="compactPlay"><summary><span class="playLabel">LAST PLAY</span><span id="lastPlay" aria-live="polite">Waiting for play updates…</span></summary></details><div id="possessionField" class="possessionField" role="img" aria-label="Waiting for possession"><span id="fieldAway" class="fieldTeam away">Away</span><span id="possessionArrow" class="possessionArrow" aria-hidden="true"></span><span class="fieldYards" aria-hidden="true"><i>10</i><i>20</i><i>30</i><i>40</i><i>50</i><i>40</i><i>30</i><i>20</i><i>10</i></span><span class="fieldGoal goalLeft" aria-hidden="true"></span><span class="fieldGoal goalRight" aria-hidden="true"></span><span class="fieldBall" aria-hidden="true">🏈</span><span id="fieldHome" class="fieldTeam home">Home</span></div><div class="possessionCaption"><b id="currentPossessionTag">Waiting for possession</b><span id="possession">Waiting for possession</span><small> · possession</small></div>
+<div id="liveRosterStatus" class="liveRosterStatus" aria-live="polite"></div><div class="liveGroupScores" aria-label="Group scores"><div id="liveGroupScoreChips"></div><div id="liveScoreLog" aria-live="polite">No scored possessions yet.</div></div><div id="trackerLockedPicks" class="trackerLockedPicks" hidden aria-live="polite"><strong id="trackerLockedTitle"></strong><div id="trackerLockedRows"></div></div><div id="trackerQueuedPicks" class="trackerQueuedPicks" hidden aria-live="polite"><strong id="trackerQueuedTitle"></strong><div id="trackerQueuedRows"></div></div><div id="feedStatus" class="compactFeed">Connecting to live feed…</div>
+<details id="alertSettings" class="helperDetails"><summary>Optional game alerts</summary>
+<label><input type="checkbox" id="alertSound"> Play a short sound for new drives and saved picks</label>
+<label><input type="checkbox" id="alertVibration"> Vibrate for new drives and saved picks</label>
+<p class="alertExplanation">Alerts are off by default. Settings apply only to this device. Sounds depend on your browser.</p>
+</details></div></details><div id="summary" class="hidden"></div><div class="gamePickEntry"><div><strong>Ready to predict this possession?</strong><span>Check the score and possession above, then choose when to open your picks.</span></div><button type="button" id="makePicksNow">🏈 Make Picks Now ↓</button></div><div class="pickToggleRow"><span id="savedPickStatus" class="meta" aria-live="polite"></span><button id="togglePickControls" class="back" aria-controls="pickControls" aria-expanded="true">Hide picks</button></div><div id="pickControls"><details class="helperDetails" style="margin-bottom:12px"><summary>Scoring rules</summary><p>Correct prediction = 10 points. A correct touchdown prediction earns 2 bonus points if the extra point or 2-point conversion succeeds. The conversion is part of the same drive.</p></details><div class="tabs" role="tablist" aria-label="Prediction type"><button class="tab active" id="offenseTab" role="tab" aria-selected="true" aria-controls="predictionPanel"><span class="emoji">🏈</span><span><strong>Offense</strong><span id="offenseTabBadge" class="pickSavedBadge">NOT SAVED</span><small id="offenseTabPick">Choose your pick</small></span></button><button class="tab" id="defenseTab" role="tab" aria-selected="false" aria-controls="predictionPanel"><span class="emoji">🛡️</span><span><strong>Defense</strong><span id="defenseTabBadge" class="pickSavedBadge">NOT SAVED</span><small id="defenseTabPick">Choose your pick</small></span></button></div><div class="play" id="driveStatus" aria-live="polite" style="margin-bottom:12px">Waiting for verified drive data.</div><div id="dualPickPanels" class="dualPickPanels" aria-label="Offense and defense predictions"><section class="dualPickPanel" data-type="offense"><h3>🏈 Offense <span id="dualOffenseState">NOT SAVED</span></h3><p>How will the offense finish?</p><div id="dualOffenseChoices" class="dualPickChoices"></div><button type="button" id="dualOffenseSave" class="dualPickSave">Lock offense pick</button></section><section class="dualPickPanel" data-type="defense"><h3>🛡️ Defense <span id="dualDefenseState">NOT SAVED</span></h3><p>What will the defense allow or force?</p><div id="dualDefenseChoices" class="dualPickChoices"></div><button type="button" id="dualDefenseSave" class="dualPickSave">Lock defense pick</button></section></div><details id="advancedPickDetails" class="helperDetails"><summary>More pick options and advanced controls</summary><div id="predictionPanel"><div id="pickTarget" class="play" aria-live="polite" style="margin-bottom:12px">Waiting for possession data.</div><div class="sectionhead"><div><h3 id="pickHeading">Offensive drive prediction</h3><p id="pickSubheading">Tap one result, then press the big Lock In button.</p></div><span class="status" id="predictionStatus">OFFENSE · 10 PTS</span></div><div class="pickrow" id="picks"><button class="pick" data-pick="Touchdown">Touchdown</button><button class="pick" data-pick="Field Goal">Field Goal</button><button class="pick" data-pick="Punt">Punt</button><button class="pick" data-pick="Turnover">Turnover</button><button class="pick" data-pick="Other">Other</button></div><button id="lockPick" class="refresh" style="width:100%">🔒 Lock In Offense Pick</button><button id="cancelNextPick" class="back" style="margin-top:10px" hidden>Cancel queued pick</button><div id="queueStatus" class="note" aria-live="polite"></div><div id="pickNote" class="note" aria-live="polite">Pick during the shared prediction window. Results and points update automatically.</div><div class="play" id="cpuPanel" style="margin-top:12px"><strong>🤖 CPU Opponent</strong><div id="cpuPickText" style="margin-top:5px">Waiting for picks to lock.</div></div><div id="finalResultPanel" class="play hidden" style="margin-top:12px"><strong>What happened on the drive?</strong><div class="note">Use the agreed live feed as the source of truth. Score only after the drive is over; never score from an individual play.</div><label for="actualOutcome" class="meta" style="display:block;margin-top:10px">Final drive result</label><select id="actualOutcome" style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:#071522;color:var(--text);font:inherit;margin-top:5px"><option value="">Choose confirmed result…</option><option>Touchdown</option><option>Field Goal</option><option>Punt</option><option>Turnover</option><option>Stopped on downs</option><option>Other</option></select><div id="conversionWrap" class="hidden"><label for="conversionResult" class="meta" style="display:block;margin-top:10px">Was the extra point or 2-point conversion successful?</label><select id="conversionResult" style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:#071522;color:var(--text);font:inherit;margin-top:5px"><option value="">Choose conversion result…</option><option value="success">Successful (+2 bonus to correct touchdown picks)</option><option value="missed">Missed (no bonus; touchdown points remain)</option></select></div><button id="scoreDrive" class="refresh" style="width:100%">✓ Score this drive</button><div id="scoreStatus" class="note" aria-live="polite">Lock both picks before scoring.</div></div><button id="nextDrive" class="back" style="margin-top:12px" disabled>Next drive</button></div></details></div><button id="refresh" class="refresh">↻ Refresh score</button></div></section></div>
 <div id="pickToast" role="status" aria-live="assertive" hidden></div>
 <div id="practiceDialog" role="dialog" aria-modal="true" aria-labelledby="practiceTitle" hidden>
 <div id="practiceCard"><button type="button" id="practiceClose">← Back to game</button><h2 id="practiceTitle">🏈 Practice Drive</h2>
@@ -280,6 +337,7 @@ let pickToastTimer=null;
 function showPickToast(message,kind='success'){
  const el=$('pickToast');if(!el)return;
  clearTimeout(pickToastTimer);el.dataset.kind=kind;el.textContent=message;el.hidden=false;
+ if(kind!=='error'&&/✓/.test(message))gentleGameAlert('saved');
  pickToastTimer=setTimeout(()=>{el.hidden=true},4400);
 }
 const practiceOutcomes=['Punt','Touchdown','Field Goal','Turnover'];
@@ -535,18 +593,23 @@ async function loadGames(){
  box.querySelectorAll('.game').forEach(b=>b.addEventListener('click',()=>openGame(all.find(e=>String(e.id)===b.dataset.id))));
  renderRoomGames();updatePickedGameMarkers();refreshPickedGamesFromServer();
 }
-async function openGame(e){if(!e)return;if(frontPageRestorePromise)await frontPageRestorePromise;const soloStart=!roomId&&!invitedRoom()&&!$('joinCode').value.trim();const name=humanName()||currentUser?.user_metadata?.player_name;if(!name&&!roomId){document.body.classList.remove('game-active');$('home').classList.remove('hidden');$('trackerView').classList.add('hidden');return}selectedGame={id:e.id,name:e.name,league:league,date:e.date,competitions:e.competitions,status:e.status};if(roomId)saveGroupBookmark(e);$('standingsGame').value=String(e.id);gamePlayerIds=new Set();renderPossessionDiagram({});$('lastPlay').textContent='Waiting for play updates…';$('playDetail').open=false;pickCollapseKey='';pickCompletionKey='';document.body.classList.add('game-active');const initialTeams=teams(e);setTrackerTeamStyle(initialTeams);$('awayName').textContent=initialTeams.away?.team?.shortDisplayName||initialTeams.away?.team?.displayName||'Away';$('homeName').textContent=initialTeams.home?.team?.shortDisplayName||initialTeams.home?.team?.displayName||'Home';$('awayScore').textContent=initialTeams.away?.score??'—';$('homeScore').textContent=initialTeams.home?.score??'—';driveNumber=1;currentDriveId=null;driveScored=false;chosenPick='';resetNextPicks();resetDrivePicks();$('home').classList.add('hidden');$('trackerView').classList.remove('hidden');$('trackerTitle').textContent=e.name||'Game tracker';$('trackerMeta').textContent=fmtTime(e.date);if(!roomId){try{await startRoomForGame()}catch(err){$('pickNote').textContent='Could not start your room: '+err.message;document.body.classList.remove('game-active');return}}$('roomView').classList.add('hidden');try{const cpuIds=await ensureGameOpponent(soloStart);await enterSelectedGame(cpuIds);await rememberGameCalendar(e);await loadRoomPlayers();}catch(err){$('pickNote').textContent='Could not enter this game: '+err.message;document.body.classList.remove('game-active');showRoomView();return;}await refreshGame();if(roomId){await initRemoteDrive();await syncSharedDrive();renderTrackerRoom();saveGroupBookmark(e)}if(refreshTimer)clearInterval(refreshTimer);refreshTimer=setInterval(()=>{if(selectedGame)refreshGame()},5000);window.scrollTo({top:0,behavior:'smooth'})}
+async function openGame(e){if(!e)return;if(frontPageRestorePromise)await frontPageRestorePromise;const soloStart=!roomId&&!invitedRoom()&&!$('joinCode').value.trim();const name=humanName()||currentUser?.user_metadata?.player_name;if(!name&&!roomId){document.body.classList.remove('game-active');$('home').classList.remove('hidden');$('trackerView').classList.add('hidden');return}selectedGame={id:e.id,name:e.name,league:league,date:e.date,competitions:e.competitions,status:e.status};if(roomId)saveGroupBookmark(e);$('standingsGame').value=String(e.id);gamePlayerIds=new Set();renderPossessionDiagram({});lastVerifiedPlay='';$('lastPlay').textContent='Waiting for play updates…';$('playDetail').open=false;pickCollapseKey='';pickCompletionKey='';document.body.classList.add('game-active');const initialTeams=teams(e);setTrackerTeamStyle(initialTeams);$('awayName').textContent=initialTeams.away?.team?.shortDisplayName||initialTeams.away?.team?.displayName||'Away';$('homeName').textContent=initialTeams.home?.team?.shortDisplayName||initialTeams.home?.team?.displayName||'Home';$('awayScore').textContent=initialTeams.away?.score??'—';$('homeScore').textContent=initialTeams.home?.score??'—';driveNumber=1;currentDriveId=null;driveScored=false;chosenPick='';resetNextPicks();resetDrivePicks();$('home').classList.add('hidden');$('trackerView').classList.remove('hidden');$('trackerTitle').textContent=e.name||'Game tracker';$('trackerMeta').textContent=fmtTime(e.date);if(!roomId){try{await startRoomForGame()}catch(err){$('pickNote').textContent='Could not start your room: '+err.message;document.body.classList.remove('game-active');return}}$('roomView').classList.add('hidden');try{const cpuIds=await ensureGameOpponent(soloStart);await enterSelectedGame(cpuIds);await rememberGameCalendar(e);await loadRoomPlayers();}catch(err){$('pickNote').textContent='Could not enter this game: '+err.message;document.body.classList.remove('game-active');showRoomView();return;}await refreshGame();if(roomId){await initRemoteDrive();await syncSharedDrive();renderTrackerRoom();saveGroupBookmark(e)}if(refreshTimer)clearInterval(refreshTimer);refreshTimer=setInterval(()=>{if(selectedGame)refreshGame()},5000);window.scrollTo({top:0,behavior:'smooth'})}
 $('back').addEventListener('click',()=>{document.body.classList.remove('game-active');selectedGame=null;if(refreshTimer)clearInterval(refreshTimer);$('trackerView').classList.add('hidden');if(roomId){showRoomView()}else{$('home').classList.remove('hidden')}window.scrollTo({top:0,behavior:'smooth'});refreshPickedGamesFromServer()});
 document.querySelectorAll('.tab[data-league]').forEach(b=>b.addEventListener('click',()=>{league=b.dataset.league;document.querySelectorAll('.tab').forEach(x=>{const active=x===b;x.classList.toggle('active',active);x.setAttribute('aria-selected',String(active))});loadGames()}));
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&selectedGame)refreshGame()});
+document.addEventListener('visibilitychange',()=>{
+ if(document.hidden)return;
+ if(roomId&&db){loadRoomPlayers().catch(e=>console.warn('Roster reconnect:',e.message));syncSharedDrive().catch(e=>console.warn('Drive reconnect:',e.message));}
+ if(selectedGame)refreshGame();
+});
 window.addEventListener('focus',()=>{if(selectedGame)refreshGame()});
-let feedRefreshBusy=false,fallbackRefreshUntil=0;
+let feedRefreshBusy=false,fallbackRefreshUntil=0,lastVerifiedPlay='';
 async function refreshGame(){
  if(!selectedGame||feedRefreshBusy||Date.now()<fallbackRefreshUntil)return;feedRefreshBusy=true;const refreshingGame=selectedGame.id;
  $('trackerStatus').textContent='CHECKING FEEDS…';
  $('feedStatus').textContent='Updating live feed…';
  try{
-   const teamsNow={away:$('awayName').textContent,home:$('homeName').textContent};
+   const currentTeams=teams(selectedGame);
+   const teamsNow={away:currentTeams.away?.team?.displayName||$('awayName').textContent,home:currentTeams.home?.team?.displayName||$('homeName').textContent};
    let payload;
    try{
     if(!db&&!ensureDb())throw Error('Multiplayer service unavailable');
@@ -579,7 +642,8 @@ async function refreshGame(){
    $('possession').textContent=e.possession||'Possession not confirmed';renderPossessionDiagram(e);
    $('downDistance').textContent=e.downDistance||'—';
    $('fieldPosition').textContent=e.fieldPosition===0||e.fieldPosition?String(e.fieldPosition):'—';
-   $('lastPlay').textContent=e.lastPlay||'No play detail in scoreboard feed';
+   if(payload.scoringSafe===true&&e.lastPlay)lastVerifiedPlay=e.lastPlay;
+   $('lastPlay').textContent=e.lastPlay||(lastVerifiedPlay?lastVerifiedPlay+' · Last verified play; new play-by-play unavailable':'Play-by-play unavailable from this provider');
    $('summary').textContent=(e.lastPlay?e.lastPlay+' · ':'')+e.status+'.';
    automaticReady=payload.scoringSafe===true;automaticPending=!!e.automatic?.pending;
    $('trackerStatus').textContent=automaticReady?(e.state==='in'?'LIVE · VERIFIED':'UPDATED · VERIFIED'):'SCORES ONLY · DRIVE VERIFICATION PENDING';
@@ -688,7 +752,7 @@ function renderPickControls(){
  const key=selectedGame?.id+':'+(currentDriveId||'waiting');
  if(key!==pickCollapseKey){pickCollapseKey=key;pickControlsExpanded=picksManuallyOpened;pickCompletionKey='';}
  const completion=queued?'queue:'+queueRows.offense.version+':'+queueRows.defense.version:bothLocked?'locked:'+currentDriveId:'';
- if(completion&&completion!==pickCompletionKey){pickControlsExpanded=false;pickCompletionKey=completion;}
+ if(completion&&completion!==pickCompletionKey){pickCompletionKey=completion;}
  if(!completion)pickCompletionKey='';
  const ended=queueState?.game_state==='post';
  if(ended)pickControlsExpanded=false;
@@ -872,6 +936,7 @@ function renderGroupScores(){
  const el=$('liveGroupScoreChips');if(!el)return;
  const ordered=[...gamePlayers()].sort((a,b)=>a.id===playerId?-1:b.id===playerId?1:0);
  el.hidden=!!lockedTrackerRows.length;
+ renderHeadToHead(ordered);
  el.innerHTML=ordered.map(p=>'<span class="groupScoreChip'+(p.id===playerId?' mine':'')+'" title="'+esc(p.player_name||'Player')+'"><b>'+esc(p.id===playerId?'You':p.player_name||'Player')+(p.is_cpu?' 🤖':'')+'</b><strong>'+esc(playerGameScore(p.id))+' pts</strong></span>').join('')||'<span class="note">Waiting for players</span>';
  const text=scoreReceipt?'Possession '+scoreReceipt.drive.drive_number+' scored · '+ordered.map(p=>(p.id===playerId?'You':p.player_name||'Player')+' +'+(scoreReceipt.points[p.id]||0)).join(' · '):'No scored possessions yet.';
  $('liveScoreLog').textContent=text;$('liveScoreLog').title=text;
@@ -903,6 +968,11 @@ async function refreshScoreLog(){
  }
  if(!stillCurrent())return;
  const totals={};for(const receipt of receipts)for(const [id,points] of Object.entries(receipt.points))totals[id]=(totals[id]||0)+points;
+ const alertKey=room+':'+game+':'+playerId;
+ const before=lastAnnouncedPoints.get(alertKey);
+ const ownPoints=Number(totals[playerId])||0;
+ if(before!==undefined&&ownPoints>before)gentleGameAlert('points');
+ lastAnnouncedPoints.set(alertKey,ownPoints);
  gamePoints=totals;scoreReceipt=receipts[0]||null;
  renderPlayers();renderTrackerRoom();
  }catch(e){console.warn('Confirmed game scores pending:',e.message);}
@@ -935,6 +1005,72 @@ async function ensureAuth(){
 
 function humanName(){return $('playerName').value.trim().slice(0,24)}
 function requirePlayerName(){const name=humanName();if(!name){$('playerName').focus();statusRoom('Enter your player name first so everyone can identify you in the room.');return null}return name}
+
+const ALERT_PREFS_KEY='drive-duel-alerts-v1';
+function readAlertPrefs(){try{const o=JSON.parse(localStorage.getItem(ALERT_PREFS_KEY)||'{}');return {sound:o.sound===true,vibration:o.vibration===true}}catch{return {sound:false,vibration:false}}}
+let alertPrefs=readAlertPrefs(),alertAudioContext=null,lastNotifiedDrive=null,lastAnnouncedPoints=new Map();
+$('alertSound').checked=alertPrefs.sound;
+$('alertVibration').checked=alertPrefs.vibration;
+function storeAlertPrefs(){
+ alertPrefs={sound:$('alertSound').checked,vibration:$('alertVibration').checked};
+ try{localStorage.setItem(ALERT_PREFS_KEY,JSON.stringify(alertPrefs))}catch{}
+}
+$('alertSound').addEventListener('change',storeAlertPrefs);
+$('alertVibration').addEventListener('change',storeAlertPrefs);
+function gentleGameAlert(type){
+ if(alertPrefs.vibration&&navigator.vibrate){
+  try{navigator.vibrate(type==='points'?[75,60,75]:[75])}catch{}
+ }
+ if(!alertPrefs.sound)return;
+ try{
+  const AudioEngine=window.AudioContext||window.webkitAudioContext;
+  if(!AudioEngine)return;
+  if(!alertAudioContext)alertAudioContext=new AudioEngine();
+  if(alertAudioContext.state==='suspended')alertAudioContext.resume().catch(()=>{});
+  const start=alertAudioContext.currentTime,osc=alertAudioContext.createOscillator(),gain=alertAudioContext.createGain();
+  osc.type='sine';osc.frequency.value=type==='points'?850:type==='drive'?700:590;
+  gain.gain.setValueAtTime(0.0001,start);gain.gain.exponentialRampToValueAtTime(0.065,start+0.016);
+  gain.gain.exponentialRampToValueAtTime(0.0001,start+0.18);
+  osc.connect(gain);gain.connect(alertAudioContext.destination);osc.start(start);osc.stop(start+0.2);
+ }catch(error){console.warn('Optional sound unavailable:',String(error?.message||error).slice(0,80))}
+}
+function renderHeadToHead(ordered){
+ const wrap=$('headToHead');if(!wrap)return;wrap.replaceChildren();
+ if(!ordered.length){
+  const hint=document.createElement('span');hint.textContent='Waiting for players to join…';wrap.append(hint);
+  $('headToHeadStatus').textContent='Points update after verified drives are scored.';return;
+ }
+ const highest=Math.max(...ordered.map(p=>Number(playerGameScore(p.id))||0));
+ for(const player of ordered){
+  const row=document.createElement('span');row.className='headPlayer'+(player.id===playerId?' mine':'');
+  const label=document.createElement('span');label.textContent=(player.id===playerId?'You':player.player_name||'Player')+(player.is_cpu?' 🤖':'');
+  const score=document.createElement('strong');score.textContent=String(playerGameScore(player.id));
+  row.append(label,score);wrap.appendChild(row);
+ }
+ const leaders=ordered.filter(p=>(Number(playerGameScore(p.id))||0)===highest);
+ $('headToHeadStatus').textContent=ordered.length===1?'Waiting for another player · '+highest+' points':
+  leaders.length>1?'Tied at '+highest+' points':
+  (leaders[0].id===playerId?'You are ahead':(leaders[0].player_name||'A player')+' is ahead')+' · '+highest+' points';
+}
+function renderCompactPickTimer(state,remaining){
+ const bar=$('pickCountdown');if(!bar)return;
+ const time=Math.max(0,Math.ceil(Number(remaining)||0));
+ bar.dataset.state=state;
+ if(state==='open'){
+  $('pickCountdownLabel').textContent='Make your pick now · '+driveNumber;
+  $('pickCountdownNumber').textContent=time+'s';
+ }else if(state==='locked'){
+  $('pickCountdownLabel').textContent='Pick locked · waiting for result';
+  $('pickCountdownNumber').textContent='✓';
+ }else if(state==='closed'){
+  $('pickCountdownLabel').textContent='Window closed · next drive soon';
+  $('pickCountdownNumber').textContent='—';
+ }else{
+  $('pickCountdownLabel').textContent=automaticReady?'Waiting for next possession':'Waiting for verified live data';
+  $('pickCountdownNumber').textContent='—';
+ }
+}
+
 function displayPickWindow(message,state,remaining=0){
  $('driveStatus').textContent=message;
  $('pickWindowBanner').dataset.state=state;
@@ -944,6 +1080,7 @@ function displayPickWindow(message,state,remaining=0){
  $('pickWindowHint').textContent=state==='open'?'Tap your picks below.':state==='closed'?'You can prepare picks for the next drive.':state==='locked'?'Your choices are shown below.':'We will show you when picks open.';
  $('jumpToPicks').hidden=state!=='open';
  $('picks').dataset.window=state;
+ renderCompactPickTimer(state,remaining);
 }
 $('jumpToPicks').addEventListener('click',()=>{pickControlsExpanded=true;renderPickControls();$('picks').scrollIntoView({behavior:'smooth',block:'center'});document.querySelector('#picks .pick:not(:disabled)')?.focus({preventScroll:true})});
 function renderAutomaticStatus(){
@@ -953,7 +1090,12 @@ function renderAutomaticStatus(){
  if(lockedTypes.offense&&lockedTypes.defense){displayPickWindow('Both of your picks are locked for possession '+driveNumber+'. Waiting for the confirmed result.','locked',feedClosed||automaticPending?0:remaining);$('pickWindowLabel').textContent='POSSESSION '+driveNumber+' · YOUR PICKS LOCKED ✓'+(remaining&&!feedClosed&&!automaticPending?'':' · WINDOW CLOSED');$('pickWindowHint').textContent='Your offense and defense picks are shown below.';return}
  if(lockedTypes[activePredictionType]){
   const type=activePredictionType==='offense'?'Offense':'Defense';
-  displayPickWindow(type+' pick locked for possession '+driveNumber+': '+chosenPicks[activePredictionType]+'. '+(feedClosed||automaticPending?'We are confirming the result and conversion before scoring.':'Waiting for this possession’s result.'),'locked',feedClosed||automaticPending?0:remaining);
+  const otherType=activePredictionType==='offense'?'defense':'offense';
+  if(automaticReady&&!feedClosed&&!automaticPending&&!lockedTypes[otherType]&&remaining>0){
+   displayPickWindow(type+' pick locked. '+(otherType==='offense'?'Offense':'Defense')+' is still open for '+remaining+' seconds.','open',remaining);
+   $('pickWindowLabel').textContent='OTHER PICK STILL OPEN · '+remaining+'s';
+   $('pickWindowHint').textContent='You can still save your '+otherType+' prediction before the shared deadline.';
+  }else displayPickWindow(type+' pick locked for possession '+driveNumber+'. '+(feedClosed||automaticPending?'Waiting for verified drive details.':'Waiting for the result.'),'locked',feedClosed||automaticPending?0:remaining);
   return;
  }
  if(!automaticReady){displayPickWindow('Waiting for verified possession data. Picks are temporarily paused.','waiting');return}
@@ -971,7 +1113,7 @@ async function syncSharedDrive(){
   if(!state.active_drive_id){currentDriveId=null;feedClosed=true;driveScored=false;renderPick();await loadRoomPlayers();return}
   const {data:d,error:de}=await db.from('drives').select('*').eq('id',state.active_drive_id).single();if(de)throw de;
   if(selectedGame?.id!==game)return;
-  if(currentDriveId!==d.id){resetLockedTracker();currentDriveId=d.id;driveNumber=d.drive_number;activePredictionType='offense';resetDrivePicks();}
+  if(currentDriveId!==d.id){resetLockedTracker();currentDriveId=d.id;driveNumber=d.drive_number;activePredictionType='offense';resetDrivePicks();if(lastNotifiedDrive!==d.id){lastNotifiedDrive=d.id;gentleGameAlert('drive')}}
   feedClosed=d.feed_closed;predictionDeadline=d.prediction_deadline?Date.parse(d.prediction_deadline):null;driveScored=d.status==='scored';
   await refreshRemotePicks();await loadRoomPlayers();renderPick();
  }catch(e){automaticReady=false;$('pickNote').textContent='Shared drive verification pending. '+e.message;renderPick()}

@@ -1,0 +1,43 @@
+name: Streamlined live game acceptance
+on:
+  push:
+    branches: ['feat/streamlined-live-game-20261029']
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'tests/easy-play-ui.spec.cjs'
+      - 'tests/easy-play.test.mjs'
+      - 'tests/multi-source-feed.test.mjs'
+      - '.github/workflows/streamlined-live-game.yml'
+permissions:
+  contents: read
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and verified feed safeguards
+        run: |
+          node scripts/check-page.mjs
+          node --test tests/easy-play.test.mjs tests/multi-source-feed.test.mjs
+      - name: Install browser test dependencies
+        run: |
+          npm install --no-save @playwright/test@1.61.1
+          npx playwright install --with-deps chromium
+      - name: Serve branch locally, never production
+        run: python3 -m http.server 8000 >/tmp/drive-duel-acceptance.log 2>&1 &
+      - name: Test two independent browsers and mobile layout
+        run: npx playwright test tests/easy-play-ui.spec.cjs --workers=1
+      - name: Upload acceptance screenshots and traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: streamlined-live-game-evidence
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
