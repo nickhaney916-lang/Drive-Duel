@@ -1,0 +1,46 @@
+name: Easy Play browser acceptance
+on:
+  push:
+    branches: ['feat/platform-easy-play-20261029']
+    paths:
+      - 'index.html'
+      - 'tests/easy-play*.mjs'
+      - 'tests/easy-play*.cjs'
+      - 'tests/multi-source-feed.test.mjs'
+      - '.github/workflows/easy-play-acceptance.yml'
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'tests/easy-play*.mjs'
+      - 'tests/easy-play*.cjs'
+      - '.github/workflows/easy-play-acceptance.yml'
+permissions:
+  contents: read
+jobs:
+  easy-play:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Fast pure JavaScript checks
+        run: node --test tests/easy-play.test.mjs tests/multi-source-feed.test.mjs
+      - name: Install test-only Chromium dependencies
+        run: |
+          npm install --no-save @playwright/test@1.61.1
+          npx playwright install --with-deps chromium
+      - name: Serve local version without deployment
+        run: python3 -m http.server 8000 >/tmp/drive-duel-easy-play.log 2>&1 &
+      - name: Simulated two-device browser acceptance and screenshots
+        run: npx playwright test tests/easy-play-ui.spec.cjs --workers=1
+      - name: Upload mobile browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: easy-play-mobile-screenshots
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore

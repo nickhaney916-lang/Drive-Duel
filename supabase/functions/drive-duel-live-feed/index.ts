@@ -120,6 +120,74 @@ function normalizeNflStatic(g: any, awayName: string, homeName: string) {
     startDate:g?.date??g?.startTime??null,fetchedAt:new Date().toISOString(),partial:true};
 }
 
+// Independent, scores-only backup. Its free tier can return partial schedules;
+// it MUST NOT drive possession locks, scoring, or server-side drive advancement.
+const sportsDbBase="https://www.thesportsdb.com/api/v1/json/123/";
+function sportsDbState(value: any) {
+ const status=String(value?.strStatus||value?.strProgress||"NS");
+ return /^(FT|AOT)$|final|finished/i.test(status)?"post":/^(Q[1-4]|OT|HT)$|in play|halftime/i.test(status)?"in":"pre";
+}
+function nflSportsDb(e: any) {
+ return !!e && (String(e.strLeague)==="NFL" || String(e.idLeague)==="4391");
+}
+function nflSportsDbMatch(e: any, away: string, home: string) {
+ return nflSportsDb(e) && nflAlias(e.strAwayTeam)===nflAlias(away) && nflAlias(e.strHomeTeam)===nflAlias(home);
+}
+function sportsDbDate(e: any) {
+ const input=String(e.strTimestamp||((e.dateEvent||"")+"T"+(e.strTime||"00:00:00")));
+ return /^\d{4}-\d{2}-\d{2}T/.test(input)?(/[zZ]|[+-]\d{2}:?\d{2}$/.test(input)?input:input+"Z"):null;
+}
+function sportsDbScheduleEvent(e: any) {
+ if(!nflSportsDb(e)||!e.idEvent||!e.strHomeTeam||!e.strAwayTeam)return null;
+ const date=sportsDbDate(e);if(!date)return null;
+ const status=String(e.strStatus||e.strProgress||"Scheduled");
+ return {id:"tsdb-"+e.idEvent,name:e.strAwayTeam+" at "+e.strHomeTeam,date,source:"TheSportsDB",partial:true,
+  status:{type:{state:sportsDbState(e),detail:status}},
+  competitions:[{competitors:[
+   {homeAway:"away",team:{displayName:e.strAwayTeam,shortDisplayName:e.strAwayTeam},score:e.intAwayScore??"—"},
+   {homeAway:"home",team:{displayName:e.strHomeTeam,shortDisplayName:e.strHomeTeam},score:e.intHomeScore??"—"}
+  ]}]};
+}
+function sportsDbScore(e: any, body: any) {
+ if(!nflSportsDbMatch(e,body.awayName,body.homeName))return null;
+ const state=sportsDbState(e);
+ const away=e.intAwayScore==null?null:Number(e.intAwayScore),home=e.intHomeScore==null?null:Number(e.intHomeScore);
+ if(state!=="pre"&&(!Number.isFinite(away)||!Number.isFinite(home)))return null;
+ return {provider:"TheSportsDB (independent backup)",eventId:String(body.eventId),name:e.strAwayTeam+" at "+e.strHomeTeam,
+  away:body.awayName,home:body.homeName,awayScore:away??"—",homeScore:home??"—",
+  state,status:String(e.strStatus||e.strProgress||"Scoreboard update"),period:Number((String(e.strStatus||"").match(/Q([1-4])/)||[])[1]||0),
+  clock:"",possession:"",downDistance:"",fieldPosition:"",lastPlay:"",
+  startDate:sportsDbDate(e),fetchedAt:new Date().toISOString(),partial:true,
+  automatic:{pending:true,reason:"Independent score data does not include verified possession history."}};
+}
+async function sportsDbByDay(date: string) {
+ const day=date.slice(0,4)+"-"+date.slice(4,6)+"-"+date.slice(6);
+ const response=await timeoutFetch(sportsDbBase+"eventsday.php?d="+day+"&l=NFL",6500);
+ if(!response.ok)throw Error("Independent scoreboard HTTP "+response.status);
+ const data=await response.json();
+ return (Array.isArray(data.events)?data.events:[]).filter(nflSportsDb);
+}
+async function independentNflResult(body: any, date: string, attempts: string[]) {
+ try {
+  const id=String(body.eventId);
+  let game=null;
+  if(/^tsdb-\d+$/.test(id)){
+   const response=await timeoutFetch(sportsDbBase+"lookupevent.php?id="+encodeURIComponent(id.slice(5)),6500);
+   if(!response.ok)throw Error("Independent game HTTP "+response.status);
+   const data=await response.json();
+   game=(Array.isArray(data.events)?data.events:[]).find((e:any)=>nflSportsDbMatch(e,body.awayName,body.homeName));
+  }else{
+   game=(await sportsDbByDay(date)).find((e:any)=>nflSportsDbMatch(e,body.awayName,body.homeName));
+  }
+  const result=sportsDbScore(game,body);
+  const eventDay=String(game?.dateEvent||result?.startDate||"").slice(0,10);
+  if(result && eventDay===date.slice(0,4)+"-"+date.slice(4,6)+"-"+date.slice(6))
+   return json({ok:true,data:result,attempts,scoringSafe:false,note:"Independent scoreboard available; verified drive history unavailable."});
+  attempts.push("TheSportsDB: matching dated game or score unavailable");
+ }catch(error){attempts.push("TheSportsDB: "+(error instanceof Error?error.message:"request unavailable"))}
+ return null;
+}
+
 const apiURL = Deno.env.get("SUPABASE_URL")!;
 const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -190,9 +258,21 @@ async function schedule(body:any){
   }
   return {date,events:[],ok:false};
  }));
- const seen=new Set();const events=days.flatMap(d=>d.events).filter(e=>{if(seen.has(e.id))return false;seen.add(e.id);return true;});
- if(days.some(d=>d.ok))return json({ok:true,events,unavailableDates:days.filter(d=>!d.ok).map(d=>d.date)});
- return json({ok:false,error:"Schedule temporarily unavailable"},503);
+ const failed=days.filter(d=>!d.ok);
+ let independent: any[]=[];
+ if(sport==="nfl"&&failed.length){
+  const backups=await Promise.all(failed.map(async d=>{
+   try{return (await sportsDbByDay(d.date)).map(sportsDbScheduleEvent).filter(Boolean)}
+   catch{return []}
+  }));
+  independent=backups.flat();
+ }
+ const seen=new Set();
+ const events=[...days.flatMap(d=>d.events),...independent].filter(e=>{if(seen.has(String(e.id)))return false;seen.add(String(e.id));return true;});
+ if(days.some(d=>d.ok)||independent.length)return json({ok:true,events,partial:failed.length>0,
+  sourceLabel:independent.length?"ESPN + independent NFL backup":"ESPN",
+  unavailableDates:failed.filter(d=>!independent.some(e=>String(e.date).startsWith(d.date.slice(0,4)+"-"+d.date.slice(4,6)+"-"+d.date.slice(6)))).map(d=>d.date)});
+ return json({ok:false,error:"Football schedule providers temporarily unavailable"},503);
 }
 
 Deno.serve(async (req: Request) => {
@@ -217,6 +297,10 @@ Deno.serve(async (req: Request) => {
     const part=(type:string)=>parts.find(p=>p.type===type)?.value??"";
     const dates = dateOnly?utcDay:part("year")+part("month")+part("day");
     const collegeArgs = league === "college" ? "&groups=80&limit=100" : "";
+    if(league==="nfl" && /^tsdb-\d+$/.test(eventId)){
+      const backup=await independentNflResult(body,dates,[]);
+      return backup??json({ok:false,scoringSafe:false,error:"Independent game is unavailable or has no verified score."},503);
+    }
     const candidates = [
       { provider: "ESPN", url: "https://site.api.espn.com/apis/site/v2/sports/football/" + sport + "/scoreboard?dates=" + dates + collegeArgs },
       { provider: "ESPN Backup", url: "https://site.web.api.espn.com/apis/site/v2/sports/football/" + sport + "/scoreboard?region=us&lang=en&contentorigin=espn&dates=" + dates + collegeArgs },
@@ -245,14 +329,29 @@ Deno.serve(async (req: Request) => {
         else {
           const game = findNflStaticGame(await response.json(), awayName, homeName);
           if (game) {
-            const data = normalizeNflStatic(game, awayName, homeName);
-            if (Number.isFinite(data.awayScore) && Number.isFinite(data.homeScore)) {
-              return json({ok:true,data:{...data,automatic:{pending:true,reason:"Backup scoreboard has no verified drive history."}},attempts,scoringSafe:false});
+            // Legacy NFL static data must match the requested game day; team names
+            // alone can accidentally match an old season's game.
+            const start=game.date??game.startTime??game.start_time??game.gameDate??game.gameTime;
+            const startDate=new Date(start||"");
+            const pieces=Number.isFinite(startDate.getTime())
+              ?new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(startDate):[];
+            const part=(type:string)=>pieces.find(p=>p.type===type)?.value??"";
+            const gameDay=part("year")+part("month")+part("day");
+            if(!start||gameDay!==dates)attempts.push("NFL static scoreboard: dated matchup could not be verified");
+            else {
+              const data=normalizeNflStatic(game,awayName,homeName);
+              if(Number.isFinite(data.awayScore)&&Number.isFinite(data.homeScore)){
+                return json({ok:true,data:{...data,automatic:{pending:true,reason:"Backup scoreboard has no verified drive history."}},attempts,scoringSafe:false});
+              }
+              attempts.push("NFL static scoreboard: matching game had invalid scores");
             }
-            attempts.push("NFL live scores: matching game had invalid scores");
           } else attempts.push("NFL live scores: matchup not found in backup feed");
         }
       } catch (error) { attempts.push("NFL live scores: " + (error instanceof Error && error.name === "AbortError" ? "timeout" : "request/parse failure")); }
+    }
+    if(league==="nfl"){
+      const backup=await independentNflResult(body,dates,attempts);
+      if(backup)return backup;
     }
     return json({ ok: false, scoringSafe: false, attempts, error: "No trusted feed returned this exact matchup. Keep the last verified display and pause drive scoring until a source recovers." }, 503);
   } catch {

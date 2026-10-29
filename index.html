@@ -199,12 +199,99 @@ body.game-active .myCurrentPicks strong{letter-spacing:0}
  body.game-active .myPickValues strong{font-size:18px}
  body.game-active #makePicksNow{min-height:55px}
 }
+
+/* Easy play is the default for every player and league. */
+#dualPickPanels[hidden]{display:none!important}
+#globalConnection{min-height:44px;display:flex;align-items:center;gap:10px;padding:10px 12px;margin:-10px 0 16px;background:#142d41;border:1px solid #53748b;border-radius:12px;font-size:14px;font-weight:750}
+#globalConnection:before{content:"";display:block;width:10px;height:10px;flex-shrink:0;border-radius:50%;background:var(--gold)}
+#globalConnection[data-state="connected"]:before{background:var(--green)}
+#globalConnection[data-state="offline"]:before{background:#ff8686}
+#inviteWelcome{background:#143b32;border:1px solid var(--green);border-radius:14px;padding:14px;margin-bottom:14px}
+#inviteWelcome strong{display:block;font-size:21px}
+#inviteWelcome p{font-size:16px;margin:8px 0 0}
+#joinInviteOneTap{width:100%;min-height:62px;background:var(--green);color:#041b12;border:0;border-radius:14px;font-size:20px;font-weight:900;margin:12px 0}
+#groupEntry.inviteFlow>.lobbyActions,#groupEntry.inviteFlow>.simpleHelp,#groupEntry.inviteFlow>#joinOptions{display:none!important}
+.groupInput,#playerName,#joinCode{font-size:18px;min-height:54px}
+.primaryAction,.secondaryAction,.back,.refresh{min-height:48px;font-size:16px}
+.game{min-height:78px}
+.dualPickChoices{display:block!important}
+.primaryPickGrid,.extraPickGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.primaryPickGrid button,.extraPickGrid button{min-height:64px;font-size:16px;font-weight:800;touch-action:manipulation}
+.extraPicks,#advancedPickDetails{border-top:1px solid var(--line);margin-top:12px;padding-top:10px}
+.extraPicks summary,#advancedPickDetails summary{font-size:16px;font-weight:800;padding:10px 2px;cursor:pointer}
+.extraPickGrid{margin-top:8px}
+#practiceStart,#trackerPracticeStart{min-height:54px;font-size:16px;font-weight:850;width:100%;border:1px solid #77a8c1;background:#18394e;border-radius:12px;color:white;margin-top:12px}
+#practiceDialog[hidden],#pickToast[hidden],#joinInviteOneTap[hidden],#inviteWelcome[hidden]{display:none!important}
+#practiceDialog{position:fixed;inset:0;z-index:1000;background:#051724e8;display:flex;align-items:center;justify-content:center;overflow-y:auto;padding:16px}
+#practiceCard{width:min(100%,530px);max-height:100%;overflow:auto;border:2px solid var(--green);background:#102c40;border-radius:18px;padding:20px;color:white}
+#practiceCard h2{font-size:27px;margin:10px 0}
+#practiceCard p{font-size:16px}
+#practiceChoices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+#practiceChoices button{min-height:68px;background:#1a3b52;border:1px solid #628ca4;border-radius:12px;color:white;font-size:18px;font-weight:800}
+#practiceChoices button[aria-pressed=true]{border:3px solid var(--green);background:#16503a}
+#practiceLock,#practiceNext{width:100%;min-height:54px;background:var(--green);border:0;color:#052018;border-radius:12px;font-size:18px;font-weight:900;margin:9px 0}
+#practiceClose{min-height:46px;border:1px solid #789aaa;border-radius:10px;background:transparent;color:white;font-size:16px;padding:9px 12px}
+#practiceResult{min-height:48px;background:#0a2130;border-radius:12px;padding:13px;font-size:17px;font-weight:800}
+#pickToast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:1100;width:min(calc(100% - 24px),490px);border:2px solid var(--green);border-radius:14px;background:#113f2b;color:white;padding:17px;font-size:18px;font-weight:850;box-shadow:0 8px 30px #000b;text-align:center}
+#pickToast[data-kind=error]{border-color:#ffb8a4;background:#512925}
+@media(max-width:400px){#practiceDialog{padding:9px}#practiceCard{padding:14px}}
+
+/* Live game tracker is always visible: score, clock, down, possession, last play, picks. */
+body.game-active #trackerView>.sectionhead{margin:7px 0 6px}
+body.game-active #trackerView #trackerTitle{font-size:18px;line-height:1.15}
+body.game-active #trackerView #trackerMeta{font-size:12px}
+body.game-active #globalConnection{font-size:12px;min-height:32px;padding:5px 8px;margin:0 0 5px}
+body.game-active #trackerRoomBanner{padding:6px 8px;margin:0 0 5px!important}
+body.game-active #trackerRoomBanner #trackerPlayerSummary{display:none}
+body.game-active #trackerShare,body.game-active #trackerPracticeStart{min-height:37px;width:auto;margin:5px 5px 0 0;font-size:13px}
+body.game-active .tracker{padding:9px;margin:0}
+body.game-active #pickWindowBanner{padding:6px 10px;margin:5px 0}
+body.game-active .liveScoreTitle{font-size:13px}
+body.game-active #liveTrackerDetails{margin:4px 0 6px}
+body.game-active #liveTrackerDetails>summary{font-size:12px;padding:4px 7px}
+body.game-active #liveGameTracker{padding:7px}
+body.game-active .trackerTeams{margin:4px 0}
+body.game-active .trackerScore{font-size:clamp(22px,7vw,32px)}
+body.game-active .trackerReadout{margin:4px 0;gap:6px}
+body.game-active #possessionField{min-height:45px;margin:4px 0}
+body.game-active .possessionCaption{margin:3px 0}
+body.game-active #playDetail{display:block;padding:6px 8px;border-radius:9px;background:#173448;margin:4px 0}
+body.game-active #playDetail summary{display:block;cursor:default;font-size:13px;line-height:1.35}
+body.game-active #playDetail summary::marker{display:none}
+body.game-active #playDetail .playLabel{font-size:11px;margin-right:7px;color:#b3ccda}
+body.game-active #lastPlay{font-size:13px}
+body.game-active #liveRosterStatus,body.game-active #liveScoreLog{font-size:12px}
+body.game-active #trackerQueuedPicks,body.game-active #trackerLockedPicks{margin:4px 0}
+body.game-active .gamePickEntry{display:none}
+body.game-active #pickControls>details.helperDetails:first-child{display:none}
+body.game-active #pickControls .tabs{margin-bottom:4px}
+body.game-active .dualPickPanel{padding:9px}
+body.game-active .dualPickPanel>p{display:none}
+body.game-active .dualPickPanel h3{font-size:16px;margin:0 0 3px}
+body.game-active .primaryPickGrid button{min-height:50px;font-size:clamp(13px,3.8vw,16px)}
+body.game-active .dualPickSave{min-height:46px}
+#headToHead{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 4px}
+#headToHead .headPlayer{flex:1 1 100px;display:flex;align-items:center;justify-content:space-between;gap:6px;padding:8px;border-radius:10px;background:#1c3a4e;font-size:13px;font-weight:750}
+#headToHead .headPlayer.mine{border:1px solid var(--green)}
+#headToHead .headPlayer strong{font-size:18px;font-variant-numeric:tabular-nums}
+#headToHeadStatus{font-size:12px;color:#bfd4df;padding:0 2px}
+#pickCountdown{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:5px 0 8px;padding:7px 11px;border-radius:12px;background:#1b3549;border:1px solid #496980}
+#pickCountdown[data-state=open]{background:#164a34;border-color:#58c79e}
+#pickCountdown[data-state=closed]{background:#34303d;border-color:#876f82}
+#pickCountdownLabel{font-size:15px;font-weight:850}
+#pickCountdownNumber{font-size:27px;font-weight:950;font-variant-numeric:tabular-nums}
+#alertSettings{margin:6px 0}
+#alertSettings summary{padding:6px;font-size:13px;font-weight:800}
+#alertSettings label{display:flex;align-items:center;gap:8px;margin:9px 0;font-size:14px}
+#alertSettings input{width:22px;height:22px;accent-color:var(--green)}
+#alertSettings .alertExplanation{font-size:12px}
 </style></head>
 <body><div class="wrap">
 <header class="top"><div class="brand"><div class="ball" aria-hidden="true"><span class="laces">≋</span></div><div><h1>DRIVE <span>DUEL</span></h1><div class="tag">EVERY DRIVE. EVERY PICK.</div></div></div><div class="clock"><div id="today" class="date"></div><div id="now" class="time"></div></div></header>
+<div id="globalConnection" role="status" aria-live="polite" data-state="connecting">Connecting to Drive Duel…</div>
 <section id="home"><section class="tracker groupCard" id="lobby">
 <div class="groupCardHeading"><h2 id="groupCardTitle">Play with friends</h2><span id="groupCardCode" class="groupCodePill" hidden></span></div>
-<div id="groupEntry"><label class="groupNameLabel" for="playerName">Enter your name</label><input id="playerName" maxlength="24" placeholder="Enter your name" class="groupInput">
+<div id="groupEntry"><div id="inviteWelcome" hidden><strong>🏈 You’re invited to play!</strong><p>Enter your name and tap Join. No codes or account to set up.</p></div><label class="groupNameLabel" for="playerName">Enter your name</label><input id="playerName" maxlength="24" autocomplete="nickname" placeholder="Your first name" class="groupInput"><button type="button" id="joinInviteOneTap" hidden>🏈 Join the game</button>
 <div class="lobbyActions"><button class="primaryAction" id="createNewGroup">Create group</button><button class="secondaryAction" id="joinAnotherGroup">Join with code</button></div>
 <div id="joinOptions" class="hidden"><label class="groupNameLabel" for="joinCode">Group code</label><div class="joinRow"><input id="joinCode" maxlength="8" placeholder="Group code" class="groupInput"><button class="primaryAction" id="joinRoom">Join group</button></div></div>
 <p class="simpleHelp">Or enter your name and choose a game below to play with the computer.</p></div>
@@ -214,25 +301,209 @@ body.game-active .myCurrentPicks strong{letter-spacing:0}
 <div id="roomInfo" class="simpleHelp" role="status">Enter your name to get started.</div><div id="resumeStatus" class="simpleHelp" role="status"></div>
 <div id="resumePanel" hidden><button id="resumeGroup">Resume your group</button><div id="resumeDetails"></div></div><button id="createRoom" hidden>Continue to games</button>
 <details class="helperDetails"><summary>How to play</summary><p>Choose a game, predict how the possession ends, and save your pick. Correct picks earn 10 points. Correct touchdown picks earn 2 extra points for a successful conversion.</p></details>
-</section><div id="homeLeaderboardMount"><section id="mainLeaderboard" class="hidden"><div class="leaderCardsHeading"><strong>GROUP LEADERS</strong><span id="leaderCardsGroup"></span></div><div id="leaderCards" class="leaderCards"><button type="button" class="leaderCard" data-leader-period="day"><span>☀️ TODAY</span><b id="dayLeaderName">Loading…</b><strong id="dayLeaderPoints">—</strong></button><button type="button" class="leaderCard" data-leader-period="week"><span>📅 THIS WEEK</span><b id="weekLeaderName">Loading…</b><strong id="weekLeaderPoints">—</strong></button><button type="button" class="leaderCard" data-leader-period="season"><span>🏆 SEASON</span><b id="seasonLeaderName">Loading…</b><strong id="seasonLeaderPoints">—</strong></button></div><button id="standingsSummary" class="standingsSummary" type="button">🏆 Today’s standings</button><details id="standingsPanel" class="standingsPanel"><summary>See standings & achievements <span id="standingsGroup"></span></summary><div class="standingsTabs" role="tablist" aria-label="Standings period"><button data-period="day" role="tab" aria-selected="true">Day</button><button data-period="week" role="tab" aria-selected="false">Week</button><button data-period="season" role="tab" aria-selected="false">Season</button></div><div class="standingsFilters"><label id="standingsGameLabel" hidden>Matchup<select id="standingsGame"></select></label><label id="standingsDateLabel" hidden>Date<input type="date" id="standingsDate"></label></div><div id="standingsStatus" role="status" class="meta"></div><div id="standingsLeader" class="achievementLeader"></div><div class="standingsTableWrap"><table class="standingsTable"><thead><tr><th>Player</th><th>Points</th><th>Games</th><th>Wins</th></tr></thead><tbody id="standingsRows"></tbody></table></div><div id="standingsAchievements" class="note"></div><p class="note">Group totals · Pacific time · Tuesday–Monday weeks · July–June seasons. Shared wins count for each tied player. Winners wait for final, confirmed scoring.</p></details></section></div><div class="tabs" role="tablist" aria-label="Football league"><button class="tab active" id="nflTab" role="tab" aria-selected="true" data-league="nfl"><span class="emoji">🏈</span><span><strong>NFL</strong><small>PRO FOOTBALL</small></span></button><button class="tab" id="cfbTab" role="tab" aria-selected="false" data-league="college"><span class="emoji">🎓</span><span><strong>College Football</strong><small>FBS MATCHUPS</small></span></button></div>
+<button type="button" id="practiceStart">🏈 Try a Practice Drive · No real points</button></section><div id="homeLeaderboardMount"><section id="mainLeaderboard" class="hidden"><div class="leaderCardsHeading"><strong>GROUP LEADERS</strong><span id="leaderCardsGroup"></span></div><div id="leaderCards" class="leaderCards"><button type="button" class="leaderCard" data-leader-period="day"><span>☀️ TODAY</span><b id="dayLeaderName">Loading…</b><strong id="dayLeaderPoints">—</strong></button><button type="button" class="leaderCard" data-leader-period="week"><span>📅 THIS WEEK</span><b id="weekLeaderName">Loading…</b><strong id="weekLeaderPoints">—</strong></button><button type="button" class="leaderCard" data-leader-period="season"><span>🏆 SEASON</span><b id="seasonLeaderName">Loading…</b><strong id="seasonLeaderPoints">—</strong></button></div><button id="standingsSummary" class="standingsSummary" type="button">🏆 Today’s standings</button><details id="standingsPanel" class="standingsPanel"><summary>See standings & achievements <span id="standingsGroup"></span></summary><div class="standingsTabs" role="tablist" aria-label="Standings period"><button data-period="day" role="tab" aria-selected="true">Day</button><button data-period="week" role="tab" aria-selected="false">Week</button><button data-period="season" role="tab" aria-selected="false">Season</button></div><div class="standingsFilters"><label id="standingsGameLabel" hidden>Matchup<select id="standingsGame"></select></label><label id="standingsDateLabel" hidden>Date<input type="date" id="standingsDate"></label></div><div id="standingsStatus" role="status" class="meta"></div><div id="standingsLeader" class="achievementLeader"></div><div class="standingsTableWrap"><table class="standingsTable"><thead><tr><th>Player</th><th>Points</th><th>Games</th><th>Wins</th></tr></thead><tbody id="standingsRows"></tbody></table></div><div id="standingsAchievements" class="note"></div><p class="note">Group totals · Pacific time · Tuesday–Monday weeks · July–June seasons. Shared wins count for each tied player. Winners wait for final, confirmed scoring.</p></details></section></div><div class="tabs" role="tablist" aria-label="Football league"><button class="tab active" id="nflTab" role="tab" aria-selected="true" data-league="nfl"><span class="emoji">🏈</span><span><strong>NFL</strong><small>PRO FOOTBALL</small></span></button><button class="tab" id="cfbTab" role="tab" aria-selected="false" data-league="college"><span class="emoji">🎓</span><span><strong>College Football</strong><small>FBS MATCHUPS</small></span></button></div>
 <div class="sectionhead"><div><div class="lobbyTitle"><span class="stepNum">2</span><h3 id="listTitle">NFL Matchups</h3></div><p id="listSub">Tap a game to open it.</p></div><div id="loadStatus" class="status">LOADING…</div></div><div id="games" class="games"><div class="loading">Loading real ESPN matchups…</div></div><div class="footer">MATCHUPS AND SCORES FROM ESPN · TIMES SHOWN IN YOUR LOCAL TIME</div></section>
 <section id="roomView" hidden class="hidden"><button id="roomBack" hidden>Back to games</button><div id="roomPageStatus"></div><div id="roomDetailsMount"></div><div id="roomLeaderboardMount"></div><div id="roomGamesMount"></div></section>
-<section id="trackerView" class="hidden"><button id="back" class="back">← All Games</button><div class="play hidden" id="trackerRoomBanner" style="margin-bottom:12px"><strong id="trackerRoomLabel">Group loading…</strong><div id="trackerPlayerSummary" class="meta"></div><button id="trackerShare" class="secondaryAction" style="margin-top:10px">↗ Invite players</button></div><div class="sectionhead"><div><div class="eyebrow">LIVE GAME</div><h3 id="trackerTitle">Game tracker</h3><p id="trackerMeta"></p></div><div id="trackerStatus" class="status">GAME CENTER</div></div>
-<div class="tracker"><div class="pickWindowBanner" id="pickWindowBanner" data-state="waiting"><div><strong id="pickWindowLabel">WAITING FOR POSSESSION</strong><span id="pickWindowHint">Picks open together at the next possession.</span></div><button type="button" id="jumpToPicks" hidden>Make a pick ↓</button></div><section id="myCurrentPicks" class="myCurrentPicks" hidden aria-live="polite"><div class="myPicksHeading"><strong id="myPicksPossession">YOUR LOCKED PICKS</strong><span>✓ LOCKED</span></div><div class="myPickValues"><div><small>🏈 OFFENSE</small><strong id="myOffensePick">—</strong></div><div><small>🛡️ DEFENSE</small><strong id="myDefensePick">—</strong></div></div></section><div class="liveScoreTitle" aria-hidden="true">🏟️ LIVE GAME</div><details id="liveTrackerDetails" class="liveTrackerDetails" open><summary>Scoreboard & field <span>▾</span></summary><div class="liveGameTracker" id="liveGameTracker" role="region" aria-label="Live game tracker">
+<section id="trackerView" class="hidden"><button id="back" class="back">← All Games</button><div class="play" id="trackerRoomBanner" style="margin-bottom:12px"><strong id="trackerRoomLabel">Group loading…</strong><div id="trackerPlayerSummary" class="meta"></div><button id="trackerShare" class="secondaryAction" style="margin-top:10px">↗ Invite players</button><button type="button" id="trackerPracticeStart">Practice a pick</button></div><div class="sectionhead"><div><div class="eyebrow">LIVE GAME</div><h3 id="trackerTitle">Game tracker</h3><p id="trackerMeta"></p></div><div id="trackerStatus" class="status">GAME CENTER</div></div>
+<div class="tracker"><div class="pickWindowBanner" id="pickWindowBanner" data-state="waiting"><div><strong id="pickWindowLabel">WAITING FOR POSSESSION</strong><span id="pickWindowHint">Picks open together at the next possession.</span></div><button type="button" id="jumpToPicks" hidden>Make a pick ↓</button></div><section id="myCurrentPicks" class="myCurrentPicks" hidden aria-live="polite"><div class="myPicksHeading"><strong id="myPicksPossession">YOUR LOCKED PICKS</strong><span>✓ LOCKED</span></div><div class="myPickValues"><div><small>🏈 OFFENSE</small><strong id="myOffensePick">—</strong></div><div><small>🛡️ DEFENSE</small><strong id="myDefensePick">—</strong></div></div></section><div id="pickCountdown" role="status" aria-live="off" data-state="waiting"><span id="pickCountdownLabel">Waiting for verified possession</span><strong id="pickCountdownNumber">—</strong></div>
+<div class="liveScoreTitle" aria-hidden="true">🏟️ LIVE GAME</div><details id="liveTrackerDetails" class="liveTrackerDetails" open><summary>Scoreboard & field <span>▾</span></summary><div class="liveGameTracker" id="liveGameTracker" role="region" aria-label="Live game tracker">
 <div class="liveTrackerHeading"><span id="gameStatus">Loading…</span></div>
 <div class="trackerTeams"><span id="awayName">Away</span><span class="trackerScore"><span id="awayScore">—</span> : <span id="homeScore">—</span></span><span id="homeName">Home</span></div>
-<div class="trackerReadout"><b id="clockInfo" title="Quarter and clock">—</b><span id="downDistance" title="Down and distance">—</span><span id="fieldPosition" title="Reported field position">—</span></div><div id="possessionField" class="possessionField" role="img" aria-label="Waiting for possession"><span id="fieldAway" class="fieldTeam away">Away</span><span id="possessionArrow" class="possessionArrow" aria-hidden="true"></span><span class="fieldYards" aria-hidden="true"><i>10</i><i>20</i><i>30</i><i>40</i><i>50</i><i>40</i><i>30</i><i>20</i><i>10</i></span><span class="fieldGoal goalLeft" aria-hidden="true"></span><span class="fieldGoal goalRight" aria-hidden="true"></span><span class="fieldBall" aria-hidden="true">🏈</span><span id="fieldHome" class="fieldTeam home">Home</span></div><div class="possessionCaption"><b id="currentPossessionTag">Waiting for possession</b><span id="possession">Waiting for possession</span><small> · possession</small></div>
-<div id="liveRosterStatus" class="liveRosterStatus" aria-live="polite"></div><div class="liveGroupScores" aria-label="Group scores"><div id="liveGroupScoreChips"></div><div id="liveScoreLog" aria-live="polite">No scored possessions yet.</div></div><div id="trackerLockedPicks" class="trackerLockedPicks" hidden aria-live="polite"><strong id="trackerLockedTitle"></strong><div id="trackerLockedRows"></div></div><div id="trackerQueuedPicks" class="trackerQueuedPicks" hidden aria-live="polite"><strong id="trackerQueuedTitle"></strong><div id="trackerQueuedRows"></div></div><details id="playDetail" class="compactPlay"><summary><span class="playLabel">LAST PLAY</span><span id="lastPlay" aria-live="polite">Waiting for play updates…</span></summary></details><div id="feedStatus" class="compactFeed">Connecting to live feed…</div></div></details><div id="summary" class="hidden"></div><div class="gamePickEntry"><div><strong>Ready to predict this possession?</strong><span>Check the score and possession above, then choose when to open your picks.</span></div><button type="button" id="makePicksNow">🏈 Make Picks Now ↓</button></div><div class="pickToggleRow"><span id="savedPickStatus" class="meta" aria-live="polite"></span><button id="togglePickControls" class="back" aria-controls="pickControls" aria-expanded="true">Hide picks</button></div><div id="pickControls"><details class="helperDetails" style="margin-bottom:12px"><summary>Scoring rules</summary><p>Correct prediction = 10 points. A correct touchdown prediction earns 2 bonus points if the extra point or 2-point conversion succeeds. The conversion is part of the same drive.</p></details><div class="tabs" role="tablist" aria-label="Prediction type"><button class="tab active" id="offenseTab" role="tab" aria-selected="true" aria-controls="predictionPanel"><span class="emoji">🏈</span><span><strong>Offense</strong><span id="offenseTabBadge" class="pickSavedBadge">NOT SAVED</span><small id="offenseTabPick">Choose your pick</small></span></button><button class="tab" id="defenseTab" role="tab" aria-selected="false" aria-controls="predictionPanel"><span class="emoji">🛡️</span><span><strong>Defense</strong><span id="defenseTabBadge" class="pickSavedBadge">NOT SAVED</span><small id="defenseTabPick">Choose your pick</small></span></button></div><div class="play" id="driveStatus" aria-live="polite" style="margin-bottom:12px">Waiting for verified drive data.</div><div id="dualPickPanels" class="dualPickPanels" aria-label="Offense and defense predictions"><section class="dualPickPanel" data-type="offense"><h3>🏈 Offense <span id="dualOffenseState">NOT SAVED</span></h3><p>How will the offense finish?</p><div id="dualOffenseChoices" class="dualPickChoices"></div><button type="button" id="dualOffenseSave" class="dualPickSave">Lock offense pick</button></section><section class="dualPickPanel" data-type="defense"><h3>🛡️ Defense <span id="dualDefenseState">NOT SAVED</span></h3><p>What will the defense allow or force?</p><div id="dualDefenseChoices" class="dualPickChoices"></div><button type="button" id="dualDefenseSave" class="dualPickSave">Lock defense pick</button></section></div><div id="predictionPanel"><div id="pickTarget" class="play" aria-live="polite" style="margin-bottom:12px">Waiting for possession data.</div><div class="sectionhead"><div><h3 id="pickHeading">Offensive drive prediction</h3><p id="pickSubheading">Tap one result, then press the big Lock In button.</p></div><span class="status" id="predictionStatus">OFFENSE · 10 PTS</span></div><div class="pickrow" id="picks"><button class="pick" data-pick="Touchdown">Touchdown</button><button class="pick" data-pick="Field Goal">Field Goal</button><button class="pick" data-pick="Punt">Punt</button><button class="pick" data-pick="Turnover">Turnover</button><button class="pick" data-pick="Other">Other</button></div><button id="lockPick" class="refresh" style="width:100%">🔒 Lock In Offense Pick</button><button id="cancelNextPick" class="back" style="margin-top:10px" hidden>Cancel queued pick</button><div id="queueStatus" class="note" aria-live="polite"></div><div id="pickNote" class="note" aria-live="polite">Pick during the shared prediction window. Results and points update automatically.</div><div class="play" id="cpuPanel" style="margin-top:12px"><strong>🤖 CPU Opponent</strong><div id="cpuPickText" style="margin-top:5px">Waiting for picks to lock.</div></div><div id="finalResultPanel" class="play hidden" style="margin-top:12px"><strong>What happened on the drive?</strong><div class="note">Use the agreed live feed as the source of truth. Score only after the drive is over; never score from an individual play.</div><label for="actualOutcome" class="meta" style="display:block;margin-top:10px">Final drive result</label><select id="actualOutcome" style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:#071522;color:var(--text);font:inherit;margin-top:5px"><option value="">Choose confirmed result…</option><option>Touchdown</option><option>Field Goal</option><option>Punt</option><option>Turnover</option><option>Stopped on downs</option><option>Other</option></select><div id="conversionWrap" class="hidden"><label for="conversionResult" class="meta" style="display:block;margin-top:10px">Was the extra point or 2-point conversion successful?</label><select id="conversionResult" style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:#071522;color:var(--text);font:inherit;margin-top:5px"><option value="">Choose conversion result…</option><option value="success">Successful (+2 bonus to correct touchdown picks)</option><option value="missed">Missed (no bonus; touchdown points remain)</option></select></div><button id="scoreDrive" class="refresh" style="width:100%">✓ Score this drive</button><div id="scoreStatus" class="note" aria-live="polite">Lock both picks before scoring.</div></div><button id="nextDrive" class="back" style="margin-top:12px" disabled>Next drive</button></div></div><button id="refresh" class="refresh">↻ Refresh score</button></div></section></div>
+<div id="headToHead" aria-label="Head-to-head points"><span>Waiting for players…</span></div><div id="headToHeadStatus">Points update after verified drives are scored.</div>
+<div class="trackerReadout"><b id="clockInfo" title="Quarter and clock">—</b><span id="downDistance" title="Down and distance">—</span><span id="fieldPosition" title="Reported field position">—</span></div><details id="playDetail" class="compactPlay"><summary><span class="playLabel">LAST PLAY</span><span id="lastPlay" aria-live="polite">Waiting for play updates…</span></summary></details><div id="possessionField" class="possessionField" role="img" aria-label="Waiting for possession"><span id="fieldAway" class="fieldTeam away">Away</span><span id="possessionArrow" class="possessionArrow" aria-hidden="true"></span><span class="fieldYards" aria-hidden="true"><i>10</i><i>20</i><i>30</i><i>40</i><i>50</i><i>40</i><i>30</i><i>20</i><i>10</i></span><span class="fieldGoal goalLeft" aria-hidden="true"></span><span class="fieldGoal goalRight" aria-hidden="true"></span><span class="fieldBall" aria-hidden="true">🏈</span><span id="fieldHome" class="fieldTeam home">Home</span></div><div class="possessionCaption"><b id="currentPossessionTag">Waiting for possession</b><span id="possession">Waiting for possession</span><small> · possession</small></div>
+<div id="liveRosterStatus" class="liveRosterStatus" aria-live="polite"></div><div class="liveGroupScores" aria-label="Group scores"><div id="liveGroupScoreChips"></div><div id="liveScoreLog" aria-live="polite">No scored possessions yet.</div></div><div id="trackerLockedPicks" class="trackerLockedPicks" hidden aria-live="polite"><strong id="trackerLockedTitle"></strong><div id="trackerLockedRows"></div></div><div id="trackerQueuedPicks" class="trackerQueuedPicks" hidden aria-live="polite"><strong id="trackerQueuedTitle"></strong><div id="trackerQueuedRows"></div></div><div id="feedStatus" class="compactFeed">Connecting to live feed…</div>
+<details id="alertSettings" class="helperDetails"><summary>Optional game alerts</summary>
+<label><input type="checkbox" id="alertSound"> Play a short sound for new drives and saved picks</label>
+<label><input type="checkbox" id="alertVibration"> Vibrate for new drives and saved picks</label>
+<p class="alertExplanation">Alerts are off by default. Settings apply only to this device. Sounds depend on your browser.</p>
+</details></div></details><div id="summary" class="hidden"></div><div class="gamePickEntry"><div><strong>Ready to predict this possession?</strong><span>Check the score and possession above, then choose when to open your picks.</span></div><button type="button" id="makePicksNow">🏈 Make Picks Now ↓</button></div><div class="pickToggleRow"><span id="savedPickStatus" class="meta" aria-live="polite"></span><button id="togglePickControls" class="back" aria-controls="pickControls" aria-expanded="true">Hide picks</button></div><div id="pickControls"><details class="helperDetails" style="margin-bottom:12px"><summary>Scoring rules</summary><p>Correct prediction = 10 points. A correct touchdown prediction earns 2 bonus points if the extra point or 2-point conversion succeeds. The conversion is part of the same drive.</p></details><div class="tabs" role="tablist" aria-label="Prediction type"><button class="tab active" id="offenseTab" role="tab" aria-selected="true" aria-controls="predictionPanel"><span class="emoji">🏈</span><span><strong>Offense</strong><span id="offenseTabBadge" class="pickSavedBadge">NOT SAVED</span><small id="offenseTabPick">Choose your pick</small></span></button><button class="tab" id="defenseTab" role="tab" aria-selected="false" aria-controls="predictionPanel"><span class="emoji">🛡️</span><span><strong>Defense</strong><span id="defenseTabBadge" class="pickSavedBadge">NOT SAVED</span><small id="defenseTabPick">Choose your pick</small></span></button></div><div class="play" id="driveStatus" aria-live="polite" style="margin-bottom:12px">Waiting for verified drive data.</div><div id="dualPickPanels" class="dualPickPanels" aria-label="Offense and defense predictions"><section class="dualPickPanel" data-type="offense"><h3>🏈 Offense <span id="dualOffenseState">NOT SAVED</span></h3><p>How will the offense finish?</p><div id="dualOffenseChoices" class="dualPickChoices"></div><button type="button" id="dualOffenseSave" class="dualPickSave">Lock offense pick</button></section><section class="dualPickPanel" data-type="defense"><h3>🛡️ Defense <span id="dualDefenseState">NOT SAVED</span></h3><p>What will the defense allow or force?</p><div id="dualDefenseChoices" class="dualPickChoices"></div><button type="button" id="dualDefenseSave" class="dualPickSave">Lock defense pick</button></section></div><details id="advancedPickDetails" class="helperDetails"><summary>More pick options and advanced controls</summary><div id="predictionPanel"><div id="pickTarget" class="play" aria-live="polite" style="margin-bottom:12px">Waiting for possession data.</div><div class="sectionhead"><div><h3 id="pickHeading">Offensive drive prediction</h3><p id="pickSubheading">Tap one result, then press the big Lock In button.</p></div><span class="status" id="predictionStatus">OFFENSE · 10 PTS</span></div><div class="pickrow" id="picks"><button class="pick" data-pick="Touchdown">Touchdown</button><button class="pick" data-pick="Field Goal">Field Goal</button><button class="pick" data-pick="Punt">Punt</button><button class="pick" data-pick="Turnover">Turnover</button><button class="pick" data-pick="Other">Other</button></div><button id="lockPick" class="refresh" style="width:100%">🔒 Lock In Offense Pick</button><button id="cancelNextPick" class="back" style="margin-top:10px" hidden>Cancel queued pick</button><div id="queueStatus" class="note" aria-live="polite"></div><div id="pickNote" class="note" aria-live="polite">Pick during the shared prediction window. Results and points update automatically.</div><div class="play" id="cpuPanel" style="margin-top:12px"><strong>🤖 CPU Opponent</strong><div id="cpuPickText" style="margin-top:5px">Waiting for picks to lock.</div></div><div id="finalResultPanel" class="play hidden" style="margin-top:12px"><strong>What happened on the drive?</strong><div class="note">Use the agreed live feed as the source of truth. Score only after the drive is over; never score from an individual play.</div><label for="actualOutcome" class="meta" style="display:block;margin-top:10px">Final drive result</label><select id="actualOutcome" style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:#071522;color:var(--text);font:inherit;margin-top:5px"><option value="">Choose confirmed result…</option><option>Touchdown</option><option>Field Goal</option><option>Punt</option><option>Turnover</option><option>Stopped on downs</option><option>Other</option></select><div id="conversionWrap" class="hidden"><label for="conversionResult" class="meta" style="display:block;margin-top:10px">Was the extra point or 2-point conversion successful?</label><select id="conversionResult" style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:#071522;color:var(--text);font:inherit;margin-top:5px"><option value="">Choose conversion result…</option><option value="success">Successful (+2 bonus to correct touchdown picks)</option><option value="missed">Missed (no bonus; touchdown points remain)</option></select></div><button id="scoreDrive" class="refresh" style="width:100%">✓ Score this drive</button><div id="scoreStatus" class="note" aria-live="polite">Lock both picks before scoring.</div></div><button id="nextDrive" class="back" style="margin-top:12px" disabled>Next drive</button></div></details></div><button id="refresh" class="refresh">↻ Refresh score</button></div></section></div>
+<div id="pickToast" role="status" aria-live="assertive" hidden></div>
+<div id="practiceDialog" role="dialog" aria-modal="true" aria-labelledby="practiceTitle" hidden>
+<div id="practiceCard"><button type="button" id="practiceClose">← Back to game</button><h2 id="practiceTitle">🏈 Practice Drive</h2>
+<p><strong>PRACTICE ONLY</strong> — No real picks or group scores are changed.</p><p id="practicePrompt">How will this possession end?</p>
+<div id="practiceChoices" aria-label="Practice picks"></div><button type="button" id="practiceLock" disabled>Choose a prediction</button>
+<div id="practiceResult" role="status" aria-live="polite">Try picking a result.</div>
+<button type="button" id="practiceNext" hidden>Try another practice drive</button></div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const $=id=>document.getElementById(id);let lockedTrackerRows=[],lockedTrackerDrive=null,lockedTrackerNumber=null;let league='nfl',selectedGame=null,refreshTimer=null,chosenPick='',lastEvents=[],roomCode='',players=[],cpuAdded=false,cpuPick='',currentDriveId=null,driveScored=false,scoringBusy=false;
+const $=id=>document.getElementById(id);
+
+/* Inclusive default: the same simple flow for NFL, college, friends and CPU. */
+const inviteParams=new URLSearchParams(location.search);
+function invitedRoom(){const value=String(inviteParams.get('room')||'').trim().toUpperCase();return /^[A-Z0-9]{4,8}$/.test(value)?value:''}
+function invitedGameId(){return String(inviteParams.get('game')||'').trim().slice(0,50)}
+function setConnectionState(state,message){const el=$('globalConnection');if(el&&(el.dataset.state!==state||el.textContent!==message)){el.dataset.state=state;el.textContent=message}}
+let pickToastTimer=null;
+function showPickToast(message,kind='success'){
+ const el=$('pickToast');if(!el)return;
+ clearTimeout(pickToastTimer);el.dataset.kind=kind;el.textContent=message;el.hidden=false;
+ if(kind!=='error'&&/✓/.test(message))gentleGameAlert('saved');
+ pickToastTimer=setTimeout(()=>{el.hidden=true},4400);
+}
+const practiceOutcomes=['Punt','Touchdown','Field Goal','Turnover'];
+let practiceIndex=0,practiceChosen='',practiceRevealed=false,practiceFocus=null;
+function renderPractice(){
+ const choices=$('practiceChoices');choices.replaceChildren();
+ for(const outcome of practiceOutcomes){
+  const button=document.createElement('button');button.type='button';button.textContent=outcome;
+  button.disabled=practiceRevealed;button.setAttribute('aria-pressed',String(outcome===practiceChosen));
+  button.addEventListener('click',()=>{practiceChosen=outcome;renderPractice()});choices.appendChild(button);
+ }
+ $('practicePrompt').textContent='Drive '+(practiceIndex+1)+' · Predict how the possession ends.';
+ $('practiceLock').disabled=!practiceChosen||practiceRevealed;
+ $('practiceLock').hidden=practiceRevealed;
+ $('practiceLock').textContent=practiceChosen?'✓ Lock practice pick: '+practiceChosen:'Choose a prediction';
+ $('practiceNext').hidden=!practiceRevealed;
+ if(!practiceRevealed)$('practiceResult').textContent=practiceChosen?'Ready to lock '+practiceChosen+'.':'Tap a prediction above.';
+}
+function openPractice(){
+ practiceFocus=document.activeElement;practiceIndex=0;practiceChosen='';practiceRevealed=false;
+ $('practiceDialog').hidden=false;document.body.style.overflow='hidden';renderPractice();$('practiceClose').focus();
+}
+function closePractice(){
+ $('practiceDialog').hidden=true;document.body.style.overflow='';
+ if(practiceFocus?.isConnected)practiceFocus.focus();
+}
+$('practiceStart').addEventListener('click',openPractice);
+$('trackerPracticeStart').addEventListener('click',openPractice);
+$('practiceClose').addEventListener('click',closePractice);
+$('practiceDialog').addEventListener('click',event=>{if(event.target===$('practiceDialog'))closePractice()});
+document.addEventListener('keydown',event=>{
+ if($('practiceDialog').hidden)return;
+ if(event.key==='Escape'){event.preventDefault();closePractice();return}
+ if(event.key!=='Tab')return;
+ const focusable=[...$('practiceDialog').querySelectorAll('button:not([disabled]):not([hidden])')];
+ const first=focusable[0],last=focusable.at(-1);
+ if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus()}
+ else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus()}
+});
+$('practiceLock').addEventListener('click',()=>{
+ if(!practiceChosen||practiceRevealed)return;
+ practiceRevealed=true;
+ const actual=practiceOutcomes[(practiceIndex+1)%practiceOutcomes.length];
+ const points=practiceChosen===actual?10:0;
+ renderPractice();
+ $('practiceResult').textContent='Result: '+actual+'. '+(points?'Correct! +10 practice points.':'Your pick: '+practiceChosen+'. 0 practice points.')+' Real scores stay unchanged.';
+ $('practiceNext').focus();
+});
+$('practiceNext').addEventListener('click',()=>{
+ practiceIndex=(practiceIndex+1)%practiceOutcomes.length;practiceChosen='';practiceRevealed=false;
+ renderPractice();$('practiceChoices').querySelector('button')?.focus();
+});
+function showInviteLanding(){
+ const code=invitedRoom();if(!code)return;
+ $('inviteWelcome').hidden=false;$('joinInviteOneTap').hidden=false;
+ $('groupEntry').classList.add('inviteFlow');$('joinCode').value=code;
+ $('roomInfo').textContent='Enter your name and tap Join the game.';
+}
+showInviteLanding();
+async function enterInvitedGame(){
+ const gameId=invitedGameId();
+ if(!gameId){$('roomInfo').hidden=false;$('roomInfo').textContent='You joined! Choose a football game below.';return}
+ await loadGames();
+ const game=lastEvents.find(e=>String(e.id)===gameId);
+ if(game){await openGame(game);return}
+ $('roomInfo').hidden=false;
+ $('roomInfo').textContent='Group joined. This game is not currently listed. Choose a matchup below.';
+}
+$('joinInviteOneTap').addEventListener('click',async()=>{
+ if(!requirePlayerName())return;
+ const button=$('joinInviteOneTap');button.disabled=true;button.textContent='Joining your game…';
+ try{
+  const joined=await joinRoom();
+  if(joined){
+   $('groupEntry').classList.remove('inviteFlow');$('inviteWelcome').hidden=true;button.hidden=true;
+   showPickToast('✓ You joined the group!');
+   await enterInvitedGame();
+  }else setConnectionState('warning','Unable to join. Check your connection and try again.');
+ }catch(error){
+  $('roomInfo').hidden=false;$('roomInfo').textContent='Could not join game: '+String(error?.message||error);
+  setConnectionState('warning','Unable to join. Check your connection and try again.');
+ }finally{button.disabled=false;button.textContent='🏈 Join the game'}
+});
+function invitationUrl(){
+ if(!roomCode)return '';
+ const url=new URL(location.pathname||'/',location.origin);
+ url.searchParams.set('room',roomCode);
+ const saved=readGroupBookmark();
+ const game=selectedGame||(saved?.code===roomCode&&saved?.league===league?saved.game:null);
+ if(game?.id)url.searchParams.set('game',String(game.id));
+ return url.toString();
+}
+let lockedTrackerRows=[],lockedTrackerDrive=null,lockedTrackerNumber=null;let league='nfl',selectedGame=null,refreshTimer=null,chosenPick='',lastEvents=[],roomCode='',players=[],cpuAdded=false,cpuPick='',currentDriveId=null,driveScored=false,scoringBusy=false;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function updateClock(){const d=new Date();$('today').textContent=d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'});$('now').textContent=d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit',second:'2-digit'})}updateClock();setInterval(updateClock,1000);
 function dateKey(d){return d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')}
 function fmtTime(v){if(!v)return 'Time TBA';const d=new Date(v);return isNaN(d)?'Time TBA':d.toLocaleString(undefined,{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}
 function eventState(e){return e.status?.type?.detail||e.status?.type?.shortDetail||e.status?.type?.description||'Scheduled'}
 function teams(e){const c=e.competitions?.[0]?.competitors||[];return {away:c.find(t=>t.homeAway==='away')||c[1],home:c.find(t=>t.homeAway==='home')||c[0]}}
-async function fetchDay(kind,key){const url=kind==='nfl'?'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates='+key:'https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=100&dates='+key;const r=await fetch(url);if(!r.ok)throw Error('ESPN HTTP '+r.status);return r.json()}
+async function fetchDay(kind,key){
+ const url=kind==='nfl'?'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates='+key:'https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=100&dates='+key;
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),7000);
+ try{const r=await fetch(url,{signal:controller.signal});if(!r.ok)throw Error('Direct scoreboard HTTP '+r.status);return r.json()}
+ finally{clearTimeout(timer)}
+}
+function sportsDbMatch(e){
+ if(!e||!e.idEvent||!e.strHomeTeam||!e.strAwayTeam)return null;
+ if(e.strLeague!=='NFL'&&String(e.idLeague)!=='4391')return null;
+ const rawDate=e.strTimestamp||((e.dateEvent||'')+'T'+(e.strTime||'00:00:00'));
+ if(!/^\d{4}-\d{2}-\d{2}T/.test(rawDate))return null;
+ const date=rawDate.match(/[zZ]|[+-]\d{2}:?\d{2}$/)?rawDate:rawDate+'Z';
+ const status=e.strStatus||e.strProgress||'Scheduled';
+ const state=/^(FT|AOT)$|final|finished/i.test(status)?'post':/^(Q[1-4]|OT|HT)$|in play|halftime/i.test(status)?'in':'pre';
+ return {id:'tsdb-'+e.idEvent,name:e.strAwayTeam+' at '+e.strHomeTeam,date,source:'TheSportsDB',partial:true,
+  status:{type:{state,detail:status}},competitions:[{competitors:[
+   {homeAway:'away',team:{displayName:e.strAwayTeam,shortDisplayName:e.strAwayTeam},score:e.intAwayScore??'—'},
+   {homeAway:'home',team:{displayName:e.strHomeTeam,shortDisplayName:e.strHomeTeam},score:e.intHomeScore??'—'}
+  ]}]};
+}
+async function fetchSportsDbDay(key){
+ const date=key.slice(0,4)+'-'+key.slice(4,6)+'-'+key.slice(6);
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),7000);
+ try{
+  const r=await fetch('https://www.thesportsdb.com/api/v1/json/123/eventsday.php?d='+date+'&l=NFL',{signal:controller.signal});
+  if(!r.ok)throw Error('Independent schedule HTTP '+r.status);
+  const payload=await r.json();
+  return (Array.isArray(payload.events)?payload.events:[]).map(sportsDbMatch).filter(Boolean);
+ }finally{clearTimeout(timer)}
+}
+function matchesExpectedTeams(e,away,home){
+ const t=teams(e),key=x=>String(x||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+ const match=(a,b)=>{a=key(a);b=key(b);return a.length>3&&b.length>3&&(a===b||a.includes(b)||b.includes(a))};
+ return match(t.away?.team?.displayName||t.away?.team?.shortDisplayName,away)&&
+  match(t.home?.team?.displayName||t.home?.team?.shortDisplayName,home);
+}
+function scoreboardOnlySnapshot(e,provider){
+ const c=e.competitions?.[0]||{},t=teams(e),status=e.status||{},situation=c.situation||{};
+ const away=t.away||{},home=t.home||{};
+ const score=x=>x.score===null||x.score===undefined?'—':x.score;
+ return {provider,eventId:String(e.id),name:e.name,
+  away:away.team?.displayName||away.team?.shortDisplayName||'Away',
+  home:home.team?.displayName||home.team?.shortDisplayName||'Home',
+  awayScore:score(away),homeScore:score(home),
+  state:status.type?.state||'unknown',status:eventState(e),period:Number(status.period||0),clock:status.displayClock||'',
+  possession:'',downDistance:'',fieldPosition:'',lastPlay:'',
+  fetchedAt:new Date().toISOString(),automatic:{pending:true,reason:'Scoreboard backup has no verified drive history.'}};
+}
+async function browserScoreFallback(game,teamNames){
+ const date=new Date(game.date);
+ if(!Number.isFinite(date.getTime()))throw Error('Game date unavailable for backup lookup');
+ const key=dateKey(date);
+ try{
+  const data=await fetchDay(game.league,key);
+  const event=(data.events||[]).find(e=>String(e.id)===String(game.id)&&matchesExpectedTeams(e,teamNames.away,teamNames.home))
+   ||(data.events||[]).find(e=>matchesExpectedTeams(e,teamNames.away,teamNames.home));
+  if(event)return {ok:true,scoringSafe:false,data:scoreboardOnlySnapshot(event,'Direct ESPN scoreboard (scores only)')};
+ }catch(e){console.warn('Direct scoreboard fallback failed:',String(e?.message||e).slice(0,100))}
+ if(game.league==='nfl'){
+  try{
+   const data=await fetchSportsDbDay(key);
+   const event=data.find(e=>matchesExpectedTeams(e,teamNames.away,teamNames.home));
+   if(event)return {ok:true,scoringSafe:false,data:scoreboardOnlySnapshot(event,'TheSportsDB browser backup (scores only)')};
+  }catch(e){console.warn('Independent scoreboard fallback failed:',String(e?.message||e).slice(0,100))}
+ }
+ throw Error('No football scoreboard provider is available for this matchup.');
+}
 function footballWeekDates(now=new Date()){
  const start=new Date(now.getFullYear(),now.getMonth(),now.getDate(),12);
  const day=start.getDay();
@@ -285,27 +556,76 @@ async function refreshPickedGamesFromServer(){
   updatePickedGameMarkers();
  }catch(e){console.warn('Could not refresh picked-game highlights:',e.message)}
 }
-async function loadGames(){const box=$('games');$('loadStatus').textContent='LOADING…';box.innerHTML='<div class="loading">Fetching current matchups from ESPN…</div>';const week=footballWeekDates();const keys=week.keys;let all=[],errors=0;try{await ensureAuth();const {data,error}=await db.functions.invoke('drive-duel-live-feed',{body:{operation:'schedule',league,dates:keys}});if(error||!data?.ok)throw error||new Error('Schedule unavailable');all=data.events||[]}catch(e){errors=keys.length}const seen=new Set();all=all.filter(e=>{if(seen.has(e.id))return false;seen.add(e.id);return true}).sort((a,b)=>new Date(a.date)-new Date(b.date));lastEvents=all;$('listTitle').textContent=league==='nfl'?'This Week’s NFL Games':'This Week’s College Football Games';$('listSub').textContent='Thursday–Monday · '+week.start.toLocaleDateString(undefined,{month:'short',day:'numeric'})+'–'+week.end.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' · local kickoff times';$('loadStatus').textContent=all.length?all.length+' GAMES':'ESPN FEED';if(!all.length){box.innerHTML='<div class="error">'+(errors===keys.length?'Could not reach ESPN right now. Check your connection and refresh.':'No matchups were returned for this football week.')+'</div>';renderRoomGames();return}box.innerHTML=all.map(e=>{const t=teams(e),state=eventState(e),live=e.status?.type?.state==='in';return '<button class="game" data-id="'+esc(e.id)+'"><span><span class="match">'+esc(t.away?.team?.shortDisplayName||t.away?.team?.displayName||'Away')+' <span style="color:var(--muted);font-weight:500">@</span> '+esc(t.home?.team?.shortDisplayName||t.home?.team?.displayName||'Home')+'</span><span class="meta">'+esc(fmtTime(e.date))+'</span><span class="myPickBadge" hidden>PICKS MADE</span><span class="badge '+(live?'live':'')+'">'+esc(state)+'</span></span><span class="score">'+esc(t.away?.score??'—')+'<span class="arrow">›</span><br>'+esc(t.home?.score??'—')+'</span></button>'}).join('');box.querySelectorAll('.game').forEach(b=>b.addEventListener('click',()=>openGame(all.find(e=>e.id===b.dataset.id))));renderRoomGames();updatePickedGameMarkers();refreshPickedGamesFromServer()}
-async function openGame(e){if(!e)return;if(frontPageRestorePromise)await frontPageRestorePromise;const name=humanName()||currentUser?.user_metadata?.player_name;if(!name&&!roomId){document.body.classList.remove('game-active');$('home').classList.remove('hidden');$('trackerView').classList.add('hidden');return}selectedGame={id:e.id,name:e.name,league:league,date:e.date};$('standingsGame').value=String(e.id);gamePlayerIds=new Set();renderPossessionDiagram({});$('lastPlay').textContent='Waiting for play updates…';$('playDetail').open=false;pickCollapseKey='';pickCompletionKey='';document.body.classList.add('game-active');const initialTeams=teams(e);setTrackerTeamStyle(initialTeams);$('awayName').textContent=initialTeams.away?.team?.shortDisplayName||initialTeams.away?.team?.displayName||'Away';$('homeName').textContent=initialTeams.home?.team?.shortDisplayName||initialTeams.home?.team?.displayName||'Home';$('awayScore').textContent=initialTeams.away?.score??'—';$('homeScore').textContent=initialTeams.home?.score??'—';driveNumber=1;currentDriveId=null;driveScored=false;chosenPick='';resetNextPicks();resetDrivePicks();$('home').classList.add('hidden');$('trackerView').classList.remove('hidden');$('trackerTitle').textContent=e.name||'Game tracker';$('trackerMeta').textContent=fmtTime(e.date);if(!roomId){try{await startRoomForGame()}catch(err){$('pickNote').textContent='Could not start your room: '+err.message;document.body.classList.remove('game-active');return}}$('roomView').classList.add('hidden');try{const cpuIds=await ensureGameOpponent();await enterSelectedGame(cpuIds);await rememberGameCalendar(e);await loadRoomPlayers();}catch(err){$('pickNote').textContent='Could not enter this game: '+err.message;document.body.classList.remove('game-active');showRoomView();return;}await refreshGame();if(roomId){await initRemoteDrive();await syncSharedDrive();renderTrackerRoom();saveGroupBookmark(e)}if(refreshTimer)clearInterval(refreshTimer);refreshTimer=setInterval(()=>{if(selectedGame)refreshGame()},5000);window.scrollTo({top:0,behavior:'smooth'})}
+async function loadGames(){
+ const box=$('games'),week=footballWeekDates(),keys=week.keys;
+ $('loadStatus').textContent='LOADING…';box.innerHTML='<div class="loading">Checking football schedules from multiple feeds…</div>';
+ let all=[],sourceLabel='Live feed',partial=false,failures=[];
+ try{
+  await ensureAuth();
+  const {data,error}=await db.functions.invoke('drive-duel-live-feed',{body:{operation:'schedule',league,dates:keys}});
+  if(error||!data?.ok)throw error||new Error(data?.error||'Live schedule service unavailable');
+  all=data.events||[];partial=!!data.partial;sourceLabel=data.sourceLabel||'Live feed';
+ }catch(e){failures.push('Schedule service: '+String(e?.message||e).slice(0,100))}
+ if(!all.length){
+  const direct=await Promise.allSettled(keys.map(key=>fetchDay(league,key)));
+  all=direct.flatMap(r=>r.status==='fulfilled'&&Array.isArray(r.value?.events)?r.value.events:[]);
+  if(all.length){sourceLabel='Direct scoreboard fallback';partial=direct.some(r=>r.status==='rejected')}
+  else failures.push('Direct scoreboard unavailable');
+ }
+ if(!all.length&&league==='nfl'){
+  const backup=await Promise.allSettled(keys.map(fetchSportsDbDay));
+  all=backup.flatMap(r=>r.status==='fulfilled'?r.value:[]);
+  if(all.length){sourceLabel='TheSportsDB backup';partial=true}
+  else failures.push('Independent NFL schedule unavailable');
+ }
+ const seen=new Set();
+ all=all.filter(e=>{if(!e?.id||seen.has(String(e.id)))return false;seen.add(String(e.id));return true})
+  .sort((a,b)=>new Date(a.date)-new Date(b.date));
+ lastEvents=all;
+ $('listTitle').textContent=league==='nfl'?'This Week’s NFL Games':'This Week’s College Football Games';
+ $('listSub').textContent='Thursday–Monday · '+week.start.toLocaleDateString(undefined,{month:'short',day:'numeric'})+'–'+week.end.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' · local kickoff times'+(partial?' · Backup may show only some games':'');
+ $('loadStatus').textContent=all.length?all.length+' GAMES · '+sourceLabel:'FEEDS OFFLINE';
+ if(!all.length){box.innerHTML='<div class="error">Football game feeds are unavailable right now. Refresh to retry. '+esc(failures.join(' · ').slice(0,240))+'</div>';renderRoomGames();return}
+ box.innerHTML=all.map(e=>{
+  const t=teams(e),state=eventState(e),live=e.status?.type?.state==='in';
+  return '<button class="game" data-id="'+esc(e.id)+'"><span><span class="match">'+esc(t.away?.team?.shortDisplayName||t.away?.team?.displayName||'Away')+' <span style="color:var(--muted);font-weight:500">@</span> '+esc(t.home?.team?.shortDisplayName||t.home?.team?.displayName||'Home')+'</span><span class="meta">'+esc(fmtTime(e.date))+'</span><span class="myPickBadge" hidden>PICKS MADE</span><span class="badge '+(live?'live':'')+'">'+esc(state)+'</span></span><span class="score">'+esc(t.away?.score??'—')+'<span class="arrow">›</span><br>'+esc(t.home?.score??'—')+'</span></button>';
+ }).join('');
+ box.querySelectorAll('.game').forEach(b=>b.addEventListener('click',()=>openGame(all.find(e=>String(e.id)===b.dataset.id))));
+ renderRoomGames();updatePickedGameMarkers();refreshPickedGamesFromServer();
+}
+async function openGame(e){if(!e)return;if(frontPageRestorePromise)await frontPageRestorePromise;const soloStart=!roomId&&!invitedRoom()&&!$('joinCode').value.trim();const name=humanName()||currentUser?.user_metadata?.player_name;if(!name&&!roomId){document.body.classList.remove('game-active');$('home').classList.remove('hidden');$('trackerView').classList.add('hidden');return}selectedGame={id:e.id,name:e.name,league:league,date:e.date,competitions:e.competitions,status:e.status};if(roomId)saveGroupBookmark(e);$('standingsGame').value=String(e.id);gamePlayerIds=new Set();renderPossessionDiagram({});lastVerifiedPlay='';$('lastPlay').textContent='Waiting for play updates…';$('playDetail').open=false;pickCollapseKey='';pickCompletionKey='';document.body.classList.add('game-active');const initialTeams=teams(e);setTrackerTeamStyle(initialTeams);$('awayName').textContent=initialTeams.away?.team?.shortDisplayName||initialTeams.away?.team?.displayName||'Away';$('homeName').textContent=initialTeams.home?.team?.shortDisplayName||initialTeams.home?.team?.displayName||'Home';$('awayScore').textContent=initialTeams.away?.score??'—';$('homeScore').textContent=initialTeams.home?.score??'—';driveNumber=1;currentDriveId=null;driveScored=false;chosenPick='';resetNextPicks();resetDrivePicks();$('home').classList.add('hidden');$('trackerView').classList.remove('hidden');$('trackerTitle').textContent=e.name||'Game tracker';$('trackerMeta').textContent=fmtTime(e.date);if(!roomId){try{await startRoomForGame()}catch(err){$('pickNote').textContent='Could not start your room: '+err.message;document.body.classList.remove('game-active');return}}$('roomView').classList.add('hidden');try{const cpuIds=await ensureGameOpponent(soloStart);await enterSelectedGame(cpuIds);await rememberGameCalendar(e);await loadRoomPlayers();}catch(err){$('pickNote').textContent='Could not enter this game: '+err.message;document.body.classList.remove('game-active');showRoomView();return;}await refreshGame();if(roomId){await initRemoteDrive();await syncSharedDrive();renderTrackerRoom();saveGroupBookmark(e)}if(refreshTimer)clearInterval(refreshTimer);refreshTimer=setInterval(()=>{if(selectedGame)refreshGame()},5000);window.scrollTo({top:0,behavior:'smooth'})}
 $('back').addEventListener('click',()=>{document.body.classList.remove('game-active');selectedGame=null;if(refreshTimer)clearInterval(refreshTimer);$('trackerView').classList.add('hidden');if(roomId){showRoomView()}else{$('home').classList.remove('hidden')}window.scrollTo({top:0,behavior:'smooth'});refreshPickedGamesFromServer()});
 document.querySelectorAll('.tab[data-league]').forEach(b=>b.addEventListener('click',()=>{league=b.dataset.league;document.querySelectorAll('.tab').forEach(x=>{const active=x===b;x.classList.toggle('active',active);x.setAttribute('aria-selected',String(active))});loadGames()}));
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&selectedGame)refreshGame()});
+document.addEventListener('visibilitychange',()=>{
+ if(document.hidden)return;
+ if(roomId&&db){loadRoomPlayers().catch(e=>console.warn('Roster reconnect:',e.message));syncSharedDrive().catch(e=>console.warn('Drive reconnect:',e.message));}
+ if(selectedGame)refreshGame();
+});
 window.addEventListener('focus',()=>{if(selectedGame)refreshGame()});
-let feedRefreshBusy=false;
+let feedRefreshBusy=false,fallbackRefreshUntil=0,lastVerifiedPlay='';
 async function refreshGame(){
- if(!selectedGame||feedRefreshBusy)return;feedRefreshBusy=true;const refreshingGame=selectedGame.id;
+ if(!selectedGame||feedRefreshBusy||Date.now()<fallbackRefreshUntil)return;feedRefreshBusy=true;const refreshingGame=selectedGame.id;
  $('trackerStatus').textContent='CHECKING FEEDS…';
  $('feedStatus').textContent='Updating live feed…';
  try{
-   if(!db)ensureDb();
-   const {data:sessionData}=await db.auth.getSession();
-   if(!sessionData?.session)await ensureAuth();
-   const teamsNow={away:$('awayName').textContent,home:$('homeName').textContent};
-   const result=await db.functions.invoke('drive-duel-live-feed',{body:{eventId:selectedGame.id,league:selectedGame.league,date:selectedGame.date,awayName:teamsNow.away,homeName:teamsNow.home,roomId}});
-   if(result.error)throw result.error;
-   const payload=result.data;if(selectedGame?.id!==refreshingGame)return;
+   const currentTeams=teams(selectedGame);
+   const teamsNow={away:currentTeams.away?.team?.displayName||$('awayName').textContent,home:currentTeams.home?.team?.displayName||$('homeName').textContent};
+   let payload;
+   try{
+    if(!db&&!ensureDb())throw Error('Multiplayer service unavailable');
+    const {data:sessionData}=await db.auth.getSession();
+    if(!sessionData?.session)await ensureAuth();
+    const result=await db.functions.invoke('drive-duel-live-feed',{body:{eventId:selectedGame.id,league:selectedGame.league,date:selectedGame.date,awayName:teamsNow.away,homeName:teamsNow.home,roomId}});
+    if(result.error||!result.data?.ok)throw result.error||Error(result.data?.error||'Live service unavailable');
+    payload=result.data;
+   }catch(serviceError){
+    console.warn('Live service unavailable; checking score-only providers:',String(serviceError?.message||serviceError).slice(0,100));
+    payload=await browserScoreFallback(selectedGame,teamsNow);
+   }
+   if(selectedGame?.id!==refreshingGame)return;
    if(!payload?.ok||!payload?.data)throw new Error(payload?.error||'No trusted feed returned this matchup.');
    const e=payload.data;
+   fallbackRefreshUntil=String(e.provider||'').includes('TheSportsDB')?Date.now()+25000:0;
    const currentScores=[$('awayScore').textContent,$('homeScore').textContent];
    const oldState=$('gameStatus').textContent;
    const hadVerified=$('feedStatus').dataset.verified==='true';
@@ -322,11 +642,13 @@ async function refreshGame(){
    $('possession').textContent=e.possession||'Possession not confirmed';renderPossessionDiagram(e);
    $('downDistance').textContent=e.downDistance||'—';
    $('fieldPosition').textContent=e.fieldPosition===0||e.fieldPosition?String(e.fieldPosition):'—';
-   $('lastPlay').textContent=e.lastPlay||'No play detail in scoreboard feed';
+   if(payload.scoringSafe===true&&e.lastPlay)lastVerifiedPlay=e.lastPlay;
+   $('lastPlay').textContent=e.lastPlay||(lastVerifiedPlay?lastVerifiedPlay+' · Last verified play; new play-by-play unavailable':'Play-by-play unavailable from this provider');
    $('summary').textContent=(e.lastPlay?e.lastPlay+' · ':'')+e.status+'.';
-   $('trackerStatus').textContent=e.state==='in'?'LIVE · VERIFIED':'UPDATED · VERIFIED';
-   $('feedStatus').dataset.verified='true';automaticReady=payload.scoringSafe===true;automaticPending=!!e.automatic?.pending;await syncSharedDrive();
-   $('feedStatus').innerHTML='Live feed · Updated '+new Date(e.fetchedAt).toLocaleString([], {month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
+   automaticReady=payload.scoringSafe===true;automaticPending=!!e.automatic?.pending;
+   $('trackerStatus').textContent=automaticReady?(e.state==='in'?'LIVE · VERIFIED':'UPDATED · VERIFIED'):'SCORES ONLY · DRIVE VERIFICATION PENDING';
+   $('feedStatus').dataset.verified=automaticReady?'true':'false';await syncSharedDrive();
+   $('feedStatus').textContent=(e.provider||'Football feed')+' · Updated '+new Date(e.fetchedAt).toLocaleString([], {month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'})+(automaticReady?' · verified drives':' · automatic picks and scoring paused');
  }catch(err){
    $('feedStatus').dataset.verified='false';automaticReady=false;automaticPending=true;renderPick();
    $('trackerStatus').textContent='FEED UNVERIFIED';
@@ -366,6 +688,10 @@ function renderPick(){
 }
 
 
+const primaryPickOptions={
+ offense:['Touchdown','Field Goal','Punt','Turnover'],
+ defense:['Allow a touchdown','Hold to a field goal','Force a punt','Force a turnover']
+};
 const dualPickOptions={
  offense:['Touchdown','Field Goal','Punt','Turnover','Stopped on downs','Safety','Missed Field Goal','End of half/game'],
  defense:['Force a punt','Force a turnover','Stop on downs','Hold to a field goal','Allow a touchdown','Force a safety','Force a missed field goal','End without a score']
@@ -381,7 +707,7 @@ function renderDualPickPanels(){
    button.setAttribute('aria-pressed',String(button.dataset.pick===selected));
    button.disabled=!ready||(!next&&saved)||queueBusy||lockingBusy;
   }
-  $('dual'+name+'State').textContent=(queueBusy||lockingBusy)&&type===activePredictionType?'SAVING…':queueError&&type===activePredictionType?'⚠ NOT SAVED':saved?(next?'✓ SAVED FOR NEXT DRIVE':'🔒 LOCKED'):selected?'TAP AGAIN TO SAVE':'TAP TO SAVE';
+  $('dual'+name+'State').textContent=(queueBusy||lockingBusy)&&type===activePredictionType?'SAVING…':queueError&&type===activePredictionType?'⚠ NOT SAVED':saved?(next?'✓ SAVED FOR NEXT DRIVE':'🔒 LOCKED'):selected?'READY TO SAVE':'TAP TO SAVE';
   const save=$('dual'+name+'Save');
   save.disabled=!ready||(!next&&saved)||!selected||scoringBusy||lockingBusy||queueBusy;
   save.textContent=queueBusy||lockingBusy?'Saving…':next?(saved?'Update '+type+' queue':'Save '+type+' for next drive'):saved?'✓ '+name+' locked':'🔒 Lock '+type+' pick';
@@ -390,7 +716,9 @@ function renderDualPickPanels(){
 for(const type of ['offense','defense']){
  const name=type==='offense'?'Offense':'Defense';
  const target=$('dual'+name+'Choices');
- target.innerHTML=dualPickOptions[type].map(p=>'<button type="button" data-pick="'+p.replaceAll('"','&quot;')+'">'+pickLabel(p)+'</button>').join('');
+ const markup=p=>'<button type="button" data-pick="'+p.replaceAll('"','&quot;')+'">'+pickLabel(p)+'</button>';
+ target.innerHTML='<div class="primaryPickGrid">'+primaryPickOptions[type].map(markup).join('')+'</div>'+
+ '<details class="extraPicks"><summary>More outcomes</summary><div class="extraPickGrid">'+dualPickOptions[type].filter(p=>!primaryPickOptions[type].includes(p)).map(markup).join('')+'</div></details>';
  target.addEventListener('click',e=>{
   const button=e.target.closest('button[data-pick]');
   if(!button||button.disabled||lockingBusy||queueBusy)return;
@@ -406,7 +734,14 @@ for(const type of ['offense','defense']){
  $('dual'+name+'Save').addEventListener('click',()=>{activePredictionType=type;renderChoices();$('lockPick').click();});
 }
 
-let picksManuallyOpened=false,picksEntryGameKey='';
+let picksManuallyOpened=true,picksEntryGameKey='';
+function updateAdvancedPickMode(){
+ const advanced=$('advancedPickDetails').open;
+ $('dualPickPanels').hidden=advanced;
+ if(advanced){picksManuallyOpened=true;pickControlsExpanded=true;renderPickControls()}
+}
+$('advancedPickDetails').addEventListener('toggle',updateAdvancedPickMode);
+
 $('makePicksNow').addEventListener('click',()=>{
  picksManuallyOpened=true;pickControlsExpanded=true;renderPickControls();
  $('dualPickPanels').scrollIntoView({behavior:'smooth',block:'start'});
@@ -417,7 +752,7 @@ function renderPickControls(){
  const key=selectedGame?.id+':'+(currentDriveId||'waiting');
  if(key!==pickCollapseKey){pickCollapseKey=key;pickControlsExpanded=picksManuallyOpened;pickCompletionKey='';}
  const completion=queued?'queue:'+queueRows.offense.version+':'+queueRows.defense.version:bothLocked?'locked:'+currentDriveId:'';
- if(completion&&completion!==pickCompletionKey){pickControlsExpanded=false;pickCompletionKey=completion;}
+ if(completion&&completion!==pickCompletionKey){pickCompletionKey=completion;}
  if(!completion)pickCompletionKey='';
  const ended=queueState?.game_state==='post';
  if(ended)pickControlsExpanded=false;
@@ -474,9 +809,9 @@ $('lockPick').addEventListener('click',async()=>{
    throw error;
  }
  queueError='';markGameWithPick(selectedGame?.id);
- if(currentDriveId===drive){lockedTypes[type]=true;chosenPicks[type]=pick;}
+ if(currentDriveId===drive){lockedTypes[type]=true;chosenPicks[type]=pick;showPickToast('✓ '+(type==='offense'?'Offense':'Defense')+' pick locked!')}
  await refreshRemotePicks();loadRoomPlayers().catch(e=>console.warn('Player refresh pending:',e.message));
- }catch(e){queueError='Could not save pick: '+e.message;}
+ }catch(e){queueError='Could not save pick: '+e.message;showPickToast('Pick not saved. Check connection and try again.','error');}
  finally{lockingBusy=false;renderPick();}
 });
 $('nextDrive').addEventListener('click',async()=>{if(!driveScored||!roomId||!selectedGame)return;const btn=$('nextDrive');btn.disabled=true;try{const {data:latest,error:le}=await db.from('drives').select('drive_number,status').eq('room_id',roomId).eq('game_id',selectedGame.id).order('drive_number',{ascending:false}).limit(1);if(le)throw le;const last=latest?.[0];if(last&&last.drive_number>driveNumber){await syncSharedDrive();return}if(!last||last.status!=='scored')throw new Error('The current shared drive has not been scored.');const {error}=await db.rpc('drive_duel_get_drive',{p_room_id:roomId,p_game_id:selectedGame.id,p_drive_number:last.drive_number+1,p_quarter:1});if(error)throw error;await syncSharedDrive()}catch(e){$('pickNote').textContent='Could not advance shared drive: '+e.message}finally{renderPick()}});
@@ -489,10 +824,10 @@ let db=null,roomId=null,playerId=null,roomChannel=null,currentUser=null,roomPoll
 let gamePlayerIds=new Set();
 function gamePlayers(){return selectedGame?players.filter(p=>gamePlayerIds.has(p.id)):players;}
 
-async function ensureGameOpponent(){
+async function ensureGameOpponent(allowCpu=false){
  const read=()=>db.from('players').select('id,is_cpu').eq('room_id',roomId);
  let {data,error}=await read();if(error)throw error;
- if((data||[]).filter(p=>!p.is_cpu).length<=1&&!(data||[]).some(p=>p.is_cpu)){
+ if(allowCpu&&(data||[]).filter(p=>!p.is_cpu).length<=1&&!(data||[]).some(p=>p.is_cpu)){
  const added=await db.rpc('add_drive_duel_cpu',{p_room_id:roomId});if(added.error)throw added.error;
  const fresh=await read();if(fresh.error)throw fresh.error;data=fresh.data;
  }
@@ -601,6 +936,7 @@ function renderGroupScores(){
  const el=$('liveGroupScoreChips');if(!el)return;
  const ordered=[...gamePlayers()].sort((a,b)=>a.id===playerId?-1:b.id===playerId?1:0);
  el.hidden=!!lockedTrackerRows.length;
+ renderHeadToHead(ordered);
  el.innerHTML=ordered.map(p=>'<span class="groupScoreChip'+(p.id===playerId?' mine':'')+'" title="'+esc(p.player_name||'Player')+'"><b>'+esc(p.id===playerId?'You':p.player_name||'Player')+(p.is_cpu?' 🤖':'')+'</b><strong>'+esc(playerGameScore(p.id))+' pts</strong></span>').join('')||'<span class="note">Waiting for players</span>';
  const text=scoreReceipt?'Possession '+scoreReceipt.drive.drive_number+' scored · '+ordered.map(p=>(p.id===playerId?'You':p.player_name||'Player')+' +'+(scoreReceipt.points[p.id]||0)).join(' · '):'No scored possessions yet.';
  $('liveScoreLog').textContent=text;$('liveScoreLog').title=text;
@@ -632,6 +968,11 @@ async function refreshScoreLog(){
  }
  if(!stillCurrent())return;
  const totals={};for(const receipt of receipts)for(const [id,points] of Object.entries(receipt.points))totals[id]=(totals[id]||0)+points;
+ const alertKey=room+':'+game+':'+playerId;
+ const before=lastAnnouncedPoints.get(alertKey);
+ const ownPoints=Number(totals[playerId])||0;
+ if(before!==undefined&&ownPoints>before)gentleGameAlert('points');
+ lastAnnouncedPoints.set(alertKey,ownPoints);
  gamePoints=totals;scoreReceipt=receipts[0]||null;
  renderPlayers();renderTrackerRoom();
  }catch(e){console.warn('Confirmed game scores pending:',e.message);}
@@ -653,17 +994,83 @@ function renderRosterStatus(){
  $('liveRosterStatus').textContent=(roomCode?'Group '+roomCode:'Group')+' · '+count+' '+(count===1?'player':'players')+(lastJoinedName?' · '+lastJoinedName+' entered this game':'');
 }
 
-function renderRoomInvite(){saveGroupBookmark();renderGroupCard();if(!$('roomCodeDisplay'))return;$('roomCodeDisplay').textContent=roomCode||'—';$('roomLinkDisplay').value=roomCode?'https://nickhaney916-lang.github.io/Drive-Duel/?room='+encodeURIComponent(roomCode):''}
+function renderRoomInvite(){saveGroupBookmark();renderGroupCard();if(!$('roomCodeDisplay'))return;$('roomCodeDisplay').textContent=roomCode||'—';$('roomLinkDisplay').value=invitationUrl()}
 function ensureDb(){if(!window.supabase){statusRoom('Multiplayer client did not load. Check your connection and reload.');return false}if(!db)db=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);return true}
 let authInitPromise=null;
 async function ensureAuth(){
- if(!authInitPromise)authInitPromise=(async()=>{if(!ensureDb())throw new Error('Supabase client failed to load');let {data:{session}}=await db.auth.getSession();if(!session){const {data,error}=await db.auth.signInAnonymously();if(error)throw new Error('Supabase anonymous sign-in failed: '+error.message+'. Anonymous sign-ins may need to be enabled in Supabase Auth settings.');session=data.session}currentUser=session?.user||null;if(!currentUser)throw new Error('Could not establish a multiplayer session.');return currentUser})();
+ if(!authInitPromise)authInitPromise=(async()=>{if(!ensureDb())throw new Error('Supabase client failed to load');let {data:{session}}=await db.auth.getSession();if(!session){const {data,error}=await db.auth.signInAnonymously();if(error)throw new Error('Supabase anonymous sign-in failed: '+error.message+'. Anonymous sign-ins may need to be enabled in Supabase Auth settings.');session=data.session}currentUser=session?.user||null;if(!currentUser)throw new Error('Could not establish a multiplayer session.');if(!roomId)setConnectionState('connected','✓ Game service connected · Choose a matchup');return currentUser})();
  const pending=authInitPromise;
- try{return await pending}finally{if(authInitPromise===pending)authInitPromise=null}
+ try{return await pending}catch(error){setConnectionState('warning','Unable to connect · Check your internet or try again');throw error}finally{if(authInitPromise===pending)authInitPromise=null}
 }
 
 function humanName(){return $('playerName').value.trim().slice(0,24)}
 function requirePlayerName(){const name=humanName();if(!name){$('playerName').focus();statusRoom('Enter your player name first so everyone can identify you in the room.');return null}return name}
+
+const ALERT_PREFS_KEY='drive-duel-alerts-v1';
+function readAlertPrefs(){try{const o=JSON.parse(localStorage.getItem(ALERT_PREFS_KEY)||'{}');return {sound:o.sound===true,vibration:o.vibration===true}}catch{return {sound:false,vibration:false}}}
+let alertPrefs=readAlertPrefs(),alertAudioContext=null,lastNotifiedDrive=null,lastAnnouncedPoints=new Map();
+$('alertSound').checked=alertPrefs.sound;
+$('alertVibration').checked=alertPrefs.vibration;
+function storeAlertPrefs(){
+ alertPrefs={sound:$('alertSound').checked,vibration:$('alertVibration').checked};
+ try{localStorage.setItem(ALERT_PREFS_KEY,JSON.stringify(alertPrefs))}catch{}
+}
+$('alertSound').addEventListener('change',storeAlertPrefs);
+$('alertVibration').addEventListener('change',storeAlertPrefs);
+function gentleGameAlert(type){
+ if(alertPrefs.vibration&&navigator.vibrate){
+  try{navigator.vibrate(type==='points'?[75,60,75]:[75])}catch{}
+ }
+ if(!alertPrefs.sound)return;
+ try{
+  const AudioEngine=window.AudioContext||window.webkitAudioContext;
+  if(!AudioEngine)return;
+  if(!alertAudioContext)alertAudioContext=new AudioEngine();
+  if(alertAudioContext.state==='suspended')alertAudioContext.resume().catch(()=>{});
+  const start=alertAudioContext.currentTime,osc=alertAudioContext.createOscillator(),gain=alertAudioContext.createGain();
+  osc.type='sine';osc.frequency.value=type==='points'?850:type==='drive'?700:590;
+  gain.gain.setValueAtTime(0.0001,start);gain.gain.exponentialRampToValueAtTime(0.065,start+0.016);
+  gain.gain.exponentialRampToValueAtTime(0.0001,start+0.18);
+  osc.connect(gain);gain.connect(alertAudioContext.destination);osc.start(start);osc.stop(start+0.2);
+ }catch(error){console.warn('Optional sound unavailable:',String(error?.message||error).slice(0,80))}
+}
+function renderHeadToHead(ordered){
+ const wrap=$('headToHead');if(!wrap)return;wrap.replaceChildren();
+ if(!ordered.length){
+  const hint=document.createElement('span');hint.textContent='Waiting for players to join…';wrap.append(hint);
+  $('headToHeadStatus').textContent='Points update after verified drives are scored.';return;
+ }
+ const highest=Math.max(...ordered.map(p=>Number(playerGameScore(p.id))||0));
+ for(const player of ordered){
+  const row=document.createElement('span');row.className='headPlayer'+(player.id===playerId?' mine':'');
+  const label=document.createElement('span');label.textContent=(player.id===playerId?'You':player.player_name||'Player')+(player.is_cpu?' 🤖':'');
+  const score=document.createElement('strong');score.textContent=String(playerGameScore(player.id));
+  row.append(label,score);wrap.appendChild(row);
+ }
+ const leaders=ordered.filter(p=>(Number(playerGameScore(p.id))||0)===highest);
+ $('headToHeadStatus').textContent=ordered.length===1?'Waiting for another player · '+highest+' points':
+  leaders.length>1?'Tied at '+highest+' points':
+  (leaders[0].id===playerId?'You are ahead':(leaders[0].player_name||'A player')+' is ahead')+' · '+highest+' points';
+}
+function renderCompactPickTimer(state,remaining){
+ const bar=$('pickCountdown');if(!bar)return;
+ const time=Math.max(0,Math.ceil(Number(remaining)||0));
+ bar.dataset.state=state;
+ if(state==='open'){
+  $('pickCountdownLabel').textContent='Make your pick now · '+driveNumber;
+  $('pickCountdownNumber').textContent=time+'s';
+ }else if(state==='locked'){
+  $('pickCountdownLabel').textContent='Pick locked · waiting for result';
+  $('pickCountdownNumber').textContent='✓';
+ }else if(state==='closed'){
+  $('pickCountdownLabel').textContent='Window closed · next drive soon';
+  $('pickCountdownNumber').textContent='—';
+ }else{
+  $('pickCountdownLabel').textContent=automaticReady?'Waiting for next possession':'Waiting for verified live data';
+  $('pickCountdownNumber').textContent='—';
+ }
+}
+
 function displayPickWindow(message,state,remaining=0){
  $('driveStatus').textContent=message;
  $('pickWindowBanner').dataset.state=state;
@@ -673,6 +1080,7 @@ function displayPickWindow(message,state,remaining=0){
  $('pickWindowHint').textContent=state==='open'?'Tap your picks below.':state==='closed'?'You can prepare picks for the next drive.':state==='locked'?'Your choices are shown below.':'We will show you when picks open.';
  $('jumpToPicks').hidden=state!=='open';
  $('picks').dataset.window=state;
+ renderCompactPickTimer(state,remaining);
 }
 $('jumpToPicks').addEventListener('click',()=>{pickControlsExpanded=true;renderPickControls();$('picks').scrollIntoView({behavior:'smooth',block:'center'});document.querySelector('#picks .pick:not(:disabled)')?.focus({preventScroll:true})});
 function renderAutomaticStatus(){
@@ -682,7 +1090,12 @@ function renderAutomaticStatus(){
  if(lockedTypes.offense&&lockedTypes.defense){displayPickWindow('Both of your picks are locked for possession '+driveNumber+'. Waiting for the confirmed result.','locked',feedClosed||automaticPending?0:remaining);$('pickWindowLabel').textContent='POSSESSION '+driveNumber+' · YOUR PICKS LOCKED ✓'+(remaining&&!feedClosed&&!automaticPending?'':' · WINDOW CLOSED');$('pickWindowHint').textContent='Your offense and defense picks are shown below.';return}
  if(lockedTypes[activePredictionType]){
   const type=activePredictionType==='offense'?'Offense':'Defense';
-  displayPickWindow(type+' pick locked for possession '+driveNumber+': '+chosenPicks[activePredictionType]+'. '+(feedClosed||automaticPending?'We are confirming the result and conversion before scoring.':'Waiting for this possession’s result.'),'locked',feedClosed||automaticPending?0:remaining);
+  const otherType=activePredictionType==='offense'?'defense':'offense';
+  if(automaticReady&&!feedClosed&&!automaticPending&&!lockedTypes[otherType]&&remaining>0){
+   displayPickWindow(type+' pick locked. '+(otherType==='offense'?'Offense':'Defense')+' is still open for '+remaining+' seconds.','open',remaining);
+   $('pickWindowLabel').textContent='OTHER PICK STILL OPEN · '+remaining+'s';
+   $('pickWindowHint').textContent='You can still save your '+otherType+' prediction before the shared deadline.';
+  }else displayPickWindow(type+' pick locked for possession '+driveNumber+'. '+(feedClosed||automaticPending?'Waiting for verified drive details.':'Waiting for the result.'),'locked',feedClosed||automaticPending?0:remaining);
   return;
  }
  if(!automaticReady){displayPickWindow('Waiting for verified possession data. Picks are temporarily paused.','waiting');return}
@@ -700,7 +1113,7 @@ async function syncSharedDrive(){
   if(!state.active_drive_id){currentDriveId=null;feedClosed=true;driveScored=false;renderPick();await loadRoomPlayers();return}
   const {data:d,error:de}=await db.from('drives').select('*').eq('id',state.active_drive_id).single();if(de)throw de;
   if(selectedGame?.id!==game)return;
-  if(currentDriveId!==d.id){resetLockedTracker();currentDriveId=d.id;driveNumber=d.drive_number;activePredictionType='offense';resetDrivePicks();}
+  if(currentDriveId!==d.id){resetLockedTracker();currentDriveId=d.id;driveNumber=d.drive_number;activePredictionType='offense';resetDrivePicks();if(lastNotifiedDrive!==d.id){lastNotifiedDrive=d.id;gentleGameAlert('drive')}}
   feedClosed=d.feed_closed;predictionDeadline=d.prediction_deadline?Date.parse(d.prediction_deadline):null;driveScored=d.status==='scored';
   await refreshRemotePicks();await loadRoomPlayers();renderPick();
  }catch(e){automaticReady=false;$('pickNote').textContent='Shared drive verification pending. '+e.message;renderPick()}
@@ -727,12 +1140,12 @@ async function saveNextPick(cancel=false,requestedType=activePredictionType,requ
  const {error}=await db.rpc('drive_duel_queue_pick',{p_room_id:roomId,p_game_id:game,p_prediction_type:type,p_predicted_outcome:cancel?null:pick,p_expected_version:version,p_cancel:cancel});
  if(error)throw error;
  // The server accepted the change. Refresh failures must not misreport that save as failed.
- if(!cancel)markGameWithPick(game);
+ if(!cancel){markGameWithPick(game);showPickToast('✓ '+(type==='offense'?'Offense':'Defense')+' prediction saved for the next drive!')}else showPickToast('Next-drive prediction canceled.');
  if(selectedGame?.id===game){
   if(cancel){queueSelections[type]='';queueRows[type]=null;}
   try{await syncSharedDrive();}catch(syncError){console.warn('Queued pick saved; refresh pending:',syncError.message);queueError=(cancel?'Queue cancellation saved.':'Pick saved.')+' Refresh pending; please wait before changing it.'}
  }
- }catch(e){if(selectedGame?.id===game){try{await syncSharedDrive();}catch(syncError){console.warn('Queue refresh failed:',syncError.message)}queueError='Could not '+(cancel?'cancel':'save')+' queued pick: '+e.message;}}
+ }catch(e){if(selectedGame?.id===game){try{await syncSharedDrive();}catch(syncError){console.warn('Queue refresh failed:',syncError.message)}queueError='Could not '+(cancel?'cancel':'save')+' queued pick: '+e.message;showPickToast('Pick not saved. Check connection and try again.','error');}}
  finally{queueBusy=false;if(selectedGame?.id===game){renderNextPicks();}}
 }
 $('cancelNextPick').addEventListener('click',()=>saveNextPick(true));
@@ -762,7 +1175,12 @@ async function readRoomPlayers(){
  renderPlayers();renderTrackerRoom();await refreshScoreLog();await refreshStandings();
  if(roomId===readingRoom)renderTrackerRoom();
 }
-function setRealtimeStatus(msg,good=false){const el=$('realtimeStatus');if(!el)return;el.textContent='Realtime connection: '+msg;el.style.color=good?'var(--green)':'var(--gold)'}
+function setRealtimeStatus(msg,good=false){
+ const el=$('realtimeStatus');if(el){el.textContent='Realtime connection: '+msg;el.style.color=good?'var(--green)':'var(--gold)'}
+ if(!navigator.onLine)setConnectionState('offline','Internet disconnected · Reconnect to continue playing');
+ else if(good)setConnectionState('connected','✓ Connected · Group updates are working');
+ else setConnectionState('warning','Reconnecting to your group · Saved picks are preserved');
+}
 function watchRoom(){
  if(!db||!roomId)return;
  if(roomChannel)db.removeChannel(roomChannel);
@@ -794,17 +1212,17 @@ async function createRoom(){
  for(let attempt=0;attempt<3;attempt++){const result=await db.rpc('create_drive_duel_room',{p_room_code:makeCode(),p_league:league,p_player_name:name});if(!result.error){room=result.data;break;}if(attempt===2||!/duplicate|already exists|unique/i.test(result.error.message))throw result.error;}
  if(!room)throw Error('Could not generate a unique code. Try again.');
  adoptGroup(room);$('joinCode').value='';const url=new URL(location.href);url.searchParams.delete('room');history.replaceState(null,'',url);
- await loadRoomPlayers();watchRoom();statusRoom('New group created · '+roomCode+'. Share this code with your new group.');if(!selectedGame)showRoomView();
+ await loadRoomPlayers();watchRoom();statusRoom('Group created! Tap Invite friends to send a one-tap game link. No computer opponent will join unless you choose solo play.');if(!selectedGame)showRoomView();
  }catch(e){statusRoom('Could not create group: '+e.message);}
 }
 async function joinRoom(){
  groupActionEpoch++;
- const name=requirePlayerName();if(!name)return;
- try{await ensureAuth();const code=$('joinCode').value.trim().toUpperCase();if(!code){statusRoom('Enter a group code first.');return;}
+ const name=requirePlayerName();if(!name)return false;
+ try{await ensureAuth();const code=$('joinCode').value.trim().toUpperCase();if(!code){statusRoom('Enter a group code first.');return false;}
  statusRoom('Joining group…');const {data:room,error}=await db.rpc('join_drive_duel_room',{p_room_code:code,p_player_name:name});if(error)throw error;
  if(room.room_id!==roomId)adoptGroup(room);else{playerId=room.player_id;roomCode=room.room_code;league=room.league||league;}
- $('roomPlayersBlock').classList.remove('hidden');renderRoomInvite();await loadRoomPlayers();watchRoom();statusRoom(room.already_joined?'Reconnected to your existing player in group '+roomCode+'.':'Joined group '+roomCode+'.');
- }catch(e){statusRoom('Could not join group: '+e.message);}
+ $('roomPlayersBlock').classList.remove('hidden');renderRoomInvite();await loadRoomPlayers();watchRoom();statusRoom(room.already_joined?'Reconnected to your existing player in group '+roomCode+'.':'Joined group '+roomCode+'.');return true;
+ }catch(e){statusRoom('Could not join group: '+e.message);return false;}
 }
 function showGroupEntry(){
  showRoomView();groupEntryOpen=true;renderGroupCard();$('joinOptions').classList.remove('hidden');$('joinCode').value='';
@@ -813,20 +1231,30 @@ function showGroupEntry(){
 }
 for(const id of ['createNewGroup','createNewGroupRoom'])$(id).addEventListener('click',async()=>{$(id).disabled=true;try{await createRoom();}finally{$(id).disabled=false;}});
 for(const id of ['joinAnotherGroup','joinAnotherGroupRoom'])$(id).addEventListener('click',showGroupEntry);
-async function startRoomForGame(){const name=requirePlayerName();if(!name)return;await ensureAuth();const inviteCode=new URLSearchParams(location.search).get('room')||$('joinCode').value.trim();if(inviteCode){const {data:room,error}=await db.rpc('join_drive_duel_room',{p_room_code:inviteCode.trim().toUpperCase(),p_player_name:name});if(error)throw error;roomId=room.room_id;playerId=room.player_id;roomCode=room.room_code;league=room.league||league}else{statusRoom('Starting your game room…');const generatedCode=makeCode();const {data:room,error}=await db.rpc('create_drive_duel_room',{p_room_code:generatedCode,p_league:league,p_player_name:name});if(error)throw error;roomId=room.room_id;playerId=room.player_id;roomCode=room.room_code} $('roomPlayersBlock').classList.remove('hidden');renderRoomInvite();await loadRoomPlayers();watchRoom();if(players.filter(p=>!p.is_cpu).length<=1&&!players.some(p=>p.is_cpu)){statusRoom('Adding your computer opponent…');const {error}=await db.rpc('add_drive_duel_cpu',{p_room_id:roomId});if(error)throw error;await loadRoomPlayers()}statusRoom('You’re in! Choose a matchup or make your picks. Your room code and invite link are below.');}
-function renderRoomGames(){$('roomGamesMount').innerHTML=$('games').innerHTML;$('roomGamesMount').querySelectorAll('.game').forEach(b=>b.addEventListener('click',()=>openGame(lastEvents.find(e=>e.id===b.dataset.id))));updatePickedGameMarkers();}
+async function startRoomForGame(){const name=requirePlayerName();if(!name)return;await ensureAuth();const inviteCode=new URLSearchParams(location.search).get('room')||$('joinCode').value.trim();if(inviteCode){const {data:room,error}=await db.rpc('join_drive_duel_room',{p_room_code:inviteCode.trim().toUpperCase(),p_player_name:name});if(error)throw error;roomId=room.room_id;playerId=room.player_id;roomCode=room.room_code;league=room.league||league}else{statusRoom('Starting your game room…');const generatedCode=makeCode();const {data:room,error}=await db.rpc('create_drive_duel_room',{p_room_code:generatedCode,p_league:league,p_player_name:name});if(error)throw error;roomId=room.room_id;playerId=room.player_id;roomCode=room.room_code} $('roomPlayersBlock').classList.remove('hidden');renderRoomInvite();await loadRoomPlayers();watchRoom();if(!inviteCode&&players.filter(p=>!p.is_cpu).length<=1&&!players.some(p=>p.is_cpu)){statusRoom('Adding your computer opponent…');const {error}=await db.rpc('add_drive_duel_cpu',{p_room_id:roomId});if(error)throw error;await loadRoomPlayers()}statusRoom('You’re in! Choose a matchup or make your picks. Your room code and invite link are below.');}
+function renderRoomGames(){$('roomGamesMount').innerHTML=$('games').innerHTML;$('roomGamesMount').querySelectorAll('.game').forEach(b=>b.addEventListener('click',()=>openGame(lastEvents.find(e=>String(e.id)===b.dataset.id))));updatePickedGameMarkers();}
 function showRoomView(){
  if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null;}selectedGame=null;currentDriveId=null;
  document.body.classList.remove('game-active');$('trackerView').classList.add('hidden');$('roomView').classList.add('hidden');$('home').classList.remove('hidden');
- $('homeLeaderboardMount').appendChild($('mainLeaderboard'));renderPlayers();renderStandings();refreshStandings();updatePickedGameMarkers();refreshPickedGamesFromServer();window.scrollTo({top:0,behavior:'smooth'});
+ $('homeLeaderboardMount').appendChild($('mainLeaderboard'));renderPlayers();renderRoomInvite();renderStandings();refreshStandings();updatePickedGameMarkers();refreshPickedGamesFromServer();window.scrollTo({top:0,behavior:'smooth'});
 }
 $('roomBack').addEventListener('click',()=>{ renderPlayers();$('homeLeaderboardMount').appendChild($('mainLeaderboard'));renderStandings();document.body.classList.remove('game-active');$('roomView').classList.add('hidden');$('home').classList.remove('hidden');window.scrollTo({top:0,behavior:'smooth'})});
 async function quickJoinRoom(){const name=requirePlayerName();if(!name)return;$('joinOptions').classList.remove('hidden');$('createRoom').textContent='✓ Name entered';statusRoom('Ready, '+name+'. Enter a group code or choose any live game below. A CPU room is created only after choosing a game.');$('games').scrollIntoView({behavior:'smooth',block:'nearest'});}
 $('joinRoom').addEventListener('click',async()=>{try{const name=requirePlayerName();if(!name)return;const code=$('joinCode').value.trim().toUpperCase();if(!code){statusRoom('Enter a group code, or tap a live game below to start against the CPU.');return}await joinRoom();if(roomId&&!selectedGame)showRoomView()}catch(e){statusRoom('Could not enter group: '+e.message)}});
 $('createRoom').addEventListener('click',quickJoinRoom);
 
-$('trackerShare').addEventListener('click',()=>{if(!roomCode)return;showRoomView()});
-function inviteText(){const link='https://nickhaney916-lang.github.io/Drive-Duel/?room='+encodeURIComponent(roomCode);return 'Join my Drive Duel game! Code: '+roomCode+' — '+link}
+$('trackerShare').addEventListener('click',async()=>{
+ if(!roomCode)return;
+ renderRoomInvite();
+ if(navigator.share){
+  try{await navigator.share({title:'Drive Duel',text:inviteText(),url:invitationUrl()});return}
+  catch(error){if(error?.name==='AbortError')return}
+ }
+ showRoomView();renderRoomInvite();
+ if($('inviteDetails').classList.contains('hidden'))$('groupInvite').click();
+ $('groupInvite').scrollIntoView({behavior:'smooth',block:'nearest'});
+});
+function inviteText(){return 'Play Drive Duel football with me! Tap this link, enter your name, and join: '+invitationUrl()+' (backup group code: '+roomCode+')'}
 $('shareInvite').addEventListener('click',async()=>{if(!roomCode){statusRoom('Join a room first.');return}try{if(navigator.share){await navigator.share({title:'Drive Duel Invite',text:inviteText(),url:$('roomLinkDisplay').value})}else if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(inviteText());statusRoom('Invite link and code copied. Send it to your opponent.')}else{statusRoom(inviteText())}}catch(e){statusRoom(inviteText())}});
 $('copyInvite').addEventListener('click',async()=>{if(!roomCode){statusRoom('Join a room first.');return}try{await navigator.clipboard.writeText(inviteText());statusRoom('Invite link and code copied. Send it to your opponent.')}catch(e){statusRoom(inviteText())}});
 if(location.search){const inviteCode=new URLSearchParams(location.search).get('room');if(inviteCode){$('joinOptions').classList.remove('hidden');$('joinCode').value=inviteCode.toUpperCase();$('roomInfo').textContent='Enter your name, then tap Join group.'}}
@@ -841,7 +1269,8 @@ function renderResumeGroup(){
 function saveGroupBookmark(event){
  if(!roomCode||!currentUser)return;
  const previous=readGroupBookmark(),same=previous?.code===roomCode;
- const game=event?{id:String(event.id),name:event.name,date:event.date,competitions:event.competitions}:same?previous.game:null;
+ const visible=event||(selectedGame?.id?selectedGame:null);
+ const game=visible?{id:String(visible.id),name:visible.name,date:visible.date,competitions:visible.competitions}:same?previous.game:null;
  const own=players.find(p=>p.id===playerId);
  try{localStorage.setItem(GROUP_BOOKMARK_KEY,JSON.stringify({version:1,code:roomCode,name:own?.player_name||humanName(),league,userId:currentUser.id,game}));rememberRecentGroup(readGroupBookmark());renderResumeGroup();renderRecentGroups()}catch{$('resumeStatus').textContent='Your browser could not remember this group. Keep your invite link or code to rejoin.'}
 }
@@ -864,7 +1293,12 @@ async function resumeGroup(){
  finally{$('resumeGroup').disabled=false;}
 }
 $('resumeGroup').addEventListener('click',resumeGroup);
-window.addEventListener('online',()=>{if(roomId){watchRoom();loadRoomPlayers();if(selectedGame)refreshGame();}});
+window.addEventListener('offline',()=>setConnectionState('offline','Internet disconnected · Reconnect to continue playing'));
+window.addEventListener('online',()=>{
+ setConnectionState('connecting','Reconnecting to Drive Duel…');
+ if(roomId){watchRoom();loadRoomPlayers();if(selectedGame)refreshGame();}
+ else loadGames();
+});
 renderResumeGroup();
 
 let groupActionEpoch=0,frontPageRestorePromise=null;
@@ -991,5 +1425,19 @@ for(const [button,panel] of [['groupInvite','inviteDetails'],['groupSwitch','gro
 renderGroupCard();
 
 frontPageRestorePromise=restoreFrontPageGroup();
+frontPageRestorePromise.then(async()=>{
+ const saved=readGroupBookmark();
+ if(!roomId||selectedGame||!saved?.game||roomCode!==saved.code)return;
+ let remembered=saved.game;
+ const wanted=invitedRoom()===roomCode?invitedGameId():'';
+ if(wanted&&String(remembered.id)!==wanted){
+  await loadGames();remembered=lastEvents.find(e=>String(e.id)===wanted);
+  if(!remembered){$('resumeStatus').textContent='Group restored. Please select the invited game below.';return}
+ }
+ if(remembered?.id){
+  try{await openGame(remembered)}
+  catch(error){$('resumeStatus').textContent='Rejoined group. Select your game below to continue.'}
+ }
+}).catch(error=>console.warn('Automatic game restore pending:',String(error?.message||error)));
 loadGames();
 </script></body></html>
