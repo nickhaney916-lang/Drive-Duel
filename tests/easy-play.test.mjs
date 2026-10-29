@@ -28,11 +28,13 @@ test('universal quick play has accessible controls',()=>{
 
 test('invitation contains room and selected game but does not leak other group game',()=>{
  const source=between('function invitationUrl(){','\nlet lockedTrackerRows');
- const make=new Function('roomCode','selectedGame','readGroupBookmark','league',source+'\nreturn invitationUrl');
- const link=make('ABCD23',{id:'4017'},()=>null,'nfl')();
+ const make=new Function('roomCode','selectedGame','readGroupBookmark','league','location',source+'\nreturn invitationUrl');
+ const location={origin:'http://127.0.0.1:8000',pathname:'/'};
+ const link=make('ABCD23',{id:'4017'},()=>null,'nfl',location)();
+ assert.equal(new URL(link).origin,location.origin);
  assert.equal(new URL(link).searchParams.get('room'),'ABCD23');
  assert.equal(new URL(link).searchParams.get('game'),'4017');
- const stale=make('ABCD23',null,()=>({code:'OLD',league:'nfl',game:{id:'9'}}),'nfl')();
+ const stale=make('ABCD23',null,()=>({code:'OLD',league:'nfl',game:{id:'9'}}),'nfl',location)();
  assert.equal(new URL(stale).searchParams.has('game'),false);
 });
 
