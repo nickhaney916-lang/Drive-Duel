@@ -268,7 +268,110 @@ body.game-active .myCurrentPicks strong{letter-spacing:0}
 <button type="button" id="practiceNext" hidden>Try another practice drive</button></div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const $=id=>document.getElementById(id);let lockedTrackerRows=[],lockedTrackerDrive=null,lockedTrackerNumber=null;let league='nfl',selectedGame=null,refreshTimer=null,chosenPick='',lastEvents=[],roomCode='',players=[],cpuAdded=false,cpuPick='',currentDriveId=null,driveScored=false,scoringBusy=false;
+const $=id=>document.getElementById(id);
+
+/* Inclusive default: the same simple flow for NFL, college, friends and CPU. */
+const inviteParams=new URLSearchParams(location.search);
+function invitedRoom(){const value=String(inviteParams.get('room')||'').trim().toUpperCase();return /^[A-Z0-9]{4,8}$/.test(value)?value:''}
+function invitedGameId(){return String(inviteParams.get('game')||'').trim().slice(0,50)}
+function setConnectionState(state,message){const el=$('globalConnection');if(el&&(el.dataset.state!==state||el.textContent!==message)){el.dataset.state=state;el.textContent=message}}
+let pickToastTimer=null;
+function showPickToast(message,kind='success'){
+ const el=$('pickToast');if(!el)return;
+ clearTimeout(pickToastTimer);el.dataset.kind=kind;el.textContent=message;el.hidden=false;
+ pickToastTimer=setTimeout(()=>{el.hidden=true},4400);
+}
+const practiceOutcomes=['Punt','Touchdown','Field Goal','Turnover'];
+let practiceIndex=0,practiceChosen='',practiceRevealed=false,practiceFocus=null;
+function renderPractice(){
+ const choices=$('practiceChoices');choices.replaceChildren();
+ for(const outcome of practiceOutcomes){
+  const button=document.createElement('button');button.type='button';button.textContent=outcome;
+  button.disabled=practiceRevealed;button.setAttribute('aria-pressed',String(outcome===practiceChosen));
+  button.addEventListener('click',()=>{practiceChosen=outcome;renderPractice()});choices.appendChild(button);
+ }
+ $('practicePrompt').textContent='Drive '+(practiceIndex+1)+' · Predict how the possession ends.';
+ $('practiceLock').disabled=!practiceChosen||practiceRevealed;
+ $('practiceLock').hidden=practiceRevealed;
+ $('practiceLock').textContent=practiceChosen?'✓ Lock practice pick: '+practiceChosen:'Choose a prediction';
+ $('practiceNext').hidden=!practiceRevealed;
+ if(!practiceRevealed)$('practiceResult').textContent=practiceChosen?'Ready to lock '+practiceChosen+'.':'Tap a prediction above.';
+}
+function openPractice(){
+ practiceFocus=document.activeElement;practiceIndex=0;practiceChosen='';practiceRevealed=false;
+ $('practiceDialog').hidden=false;document.body.style.overflow='hidden';renderPractice();$('practiceClose').focus();
+}
+function closePractice(){
+ $('practiceDialog').hidden=true;document.body.style.overflow='';
+ if(practiceFocus?.isConnected)practiceFocus.focus();
+}
+$('practiceStart').addEventListener('click',openPractice);
+$('trackerPracticeStart').addEventListener('click',openPractice);
+$('practiceClose').addEventListener('click',closePractice);
+$('practiceDialog').addEventListener('click',event=>{if(event.target===$('practiceDialog'))closePractice()});
+document.addEventListener('keydown',event=>{
+ if($('practiceDialog').hidden)return;
+ if(event.key==='Escape'){event.preventDefault();closePractice();return}
+ if(event.key!=='Tab')return;
+ const focusable=[...$('practiceDialog').querySelectorAll('button:not([disabled]):not([hidden])')];
+ const first=focusable[0],last=focusable.at(-1);
+ if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus()}
+ else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus()}
+});
+$('practiceLock').addEventListener('click',()=>{
+ if(!practiceChosen||practiceRevealed)return;
+ practiceRevealed=true;
+ const actual=practiceOutcomes[(practiceIndex+1)%practiceOutcomes.length];
+ const points=practiceChosen===actual?10:0;
+ renderPractice();
+ $('practiceResult').textContent='Result: '+actual+'. '+(points?'Correct! +10 practice points.':'Your pick: '+practiceChosen+'. 0 practice points.')+' Real scores stay unchanged.';
+ $('practiceNext').focus();
+});
+$('practiceNext').addEventListener('click',()=>{
+ practiceIndex=(practiceIndex+1)%practiceOutcomes.length;practiceChosen='';practiceRevealed=false;
+ renderPractice();$('practiceChoices').querySelector('button')?.focus();
+});
+function showInviteLanding(){
+ const code=invitedRoom();if(!code)return;
+ $('inviteWelcome').hidden=false;$('joinInviteOneTap').hidden=false;
+ $('groupEntry').classList.add('inviteFlow');$('joinCode').value=code;
+ $('roomInfo').textContent='Enter your name and tap Join the game.';
+}
+showInviteLanding();
+async function enterInvitedGame(){
+ const gameId=invitedGameId();
+ if(!gameId){$('roomInfo').hidden=false;$('roomInfo').textContent='You joined! Choose a football game below.';return}
+ await loadGames();
+ const game=lastEvents.find(e=>String(e.id)===gameId);
+ if(game){await openGame(game);return}
+ $('roomInfo').hidden=false;
+ $('roomInfo').textContent='Group joined. This game is not currently listed. Choose a matchup below.';
+}
+$('joinInviteOneTap').addEventListener('click',async()=>{
+ if(!requirePlayerName())return;
+ const button=$('joinInviteOneTap');button.disabled=true;button.textContent='Joining your game…';
+ try{
+  const joined=await joinRoom();
+  if(joined){
+   $('groupEntry').classList.remove('inviteFlow');$('inviteWelcome').hidden=true;button.hidden=true;
+   showPickToast('✓ You joined the group!');
+   await enterInvitedGame();
+  }else setConnectionState('warning','Unable to join. Check your connection and try again.');
+ }catch(error){
+  $('roomInfo').hidden=false;$('roomInfo').textContent='Could not join game: '+String(error?.message||error);
+  setConnectionState('warning','Unable to join. Check your connection and try again.');
+ }finally{button.disabled=false;button.textContent='🏈 Join the game'}
+});
+function invitationUrl(){
+ if(!roomCode)return '';
+ const url=new URL('https://nickhaney916-lang.github.io/Drive-Duel/');
+ url.searchParams.set('room',roomCode);
+ const saved=readGroupBookmark();
+ const game=selectedGame||(saved?.code===roomCode&&saved?.league===league?saved.game:null);
+ if(game?.id)url.searchParams.set('game',String(game.id));
+ return url.toString();
+}
+let lockedTrackerRows=[],lockedTrackerDrive=null,lockedTrackerNumber=null;let league='nfl',selectedGame=null,refreshTimer=null,chosenPick='',lastEvents=[],roomCode='',players=[],cpuAdded=false,cpuPick='',currentDriveId=null,driveScored=false,scoringBusy=false;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function updateClock(){const d=new Date();$('today').textContent=d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'});$('now').textContent=d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit',second:'2-digit'})}updateClock();setInterval(updateClock,1000);
 function dateKey(d){return d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')}
