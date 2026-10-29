@@ -596,7 +596,11 @@ async function loadGames(){
 async function openGame(e){if(!e)return;if(frontPageRestorePromise)await frontPageRestorePromise;const soloStart=!roomId&&!invitedRoom()&&!$('joinCode').value.trim();const name=humanName()||currentUser?.user_metadata?.player_name;if(!name&&!roomId){document.body.classList.remove('game-active');$('home').classList.remove('hidden');$('trackerView').classList.add('hidden');return}selectedGame={id:e.id,name:e.name,league:league,date:e.date,competitions:e.competitions,status:e.status};if(roomId)saveGroupBookmark(e);$('standingsGame').value=String(e.id);gamePlayerIds=new Set();renderPossessionDiagram({});lastVerifiedPlay='';$('lastPlay').textContent='Waiting for play updates…';$('playDetail').open=false;pickCollapseKey='';pickCompletionKey='';document.body.classList.add('game-active');const initialTeams=teams(e);setTrackerTeamStyle(initialTeams);$('awayName').textContent=initialTeams.away?.team?.shortDisplayName||initialTeams.away?.team?.displayName||'Away';$('homeName').textContent=initialTeams.home?.team?.shortDisplayName||initialTeams.home?.team?.displayName||'Home';$('awayScore').textContent=initialTeams.away?.score??'—';$('homeScore').textContent=initialTeams.home?.score??'—';driveNumber=1;currentDriveId=null;driveScored=false;chosenPick='';resetNextPicks();resetDrivePicks();$('home').classList.add('hidden');$('trackerView').classList.remove('hidden');$('trackerTitle').textContent=e.name||'Game tracker';$('trackerMeta').textContent=fmtTime(e.date);if(!roomId){try{await startRoomForGame()}catch(err){$('pickNote').textContent='Could not start your room: '+err.message;document.body.classList.remove('game-active');return}}$('roomView').classList.add('hidden');try{const cpuIds=await ensureGameOpponent(soloStart);await enterSelectedGame(cpuIds);await rememberGameCalendar(e);await loadRoomPlayers();}catch(err){$('pickNote').textContent='Could not enter this game: '+err.message;document.body.classList.remove('game-active');showRoomView();return;}await refreshGame();if(roomId){await initRemoteDrive();await syncSharedDrive();renderTrackerRoom();saveGroupBookmark(e)}if(refreshTimer)clearInterval(refreshTimer);refreshTimer=setInterval(()=>{if(selectedGame)refreshGame()},5000);window.scrollTo({top:0,behavior:'smooth'})}
 $('back').addEventListener('click',()=>{document.body.classList.remove('game-active');selectedGame=null;if(refreshTimer)clearInterval(refreshTimer);$('trackerView').classList.add('hidden');if(roomId){showRoomView()}else{$('home').classList.remove('hidden')}window.scrollTo({top:0,behavior:'smooth'});refreshPickedGamesFromServer()});
 document.querySelectorAll('.tab[data-league]').forEach(b=>b.addEventListener('click',()=>{league=b.dataset.league;document.querySelectorAll('.tab').forEach(x=>{const active=x===b;x.classList.toggle('active',active);x.setAttribute('aria-selected',String(active))});loadGames()}));
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&selectedGame)refreshGame()});
+document.addEventListener('visibilitychange',()=>{
+ if(document.hidden)return;
+ if(roomId&&db){loadRoomPlayers().catch(e=>console.warn('Roster reconnect:',e.message));syncSharedDrive().catch(e=>console.warn('Drive reconnect:',e.message));}
+ if(selectedGame)refreshGame();
+});
 window.addEventListener('focus',()=>{if(selectedGame)refreshGame()});
 let feedRefreshBusy=false,fallbackRefreshUntil=0,lastVerifiedPlay='';
 async function refreshGame(){
@@ -604,7 +608,8 @@ async function refreshGame(){
  $('trackerStatus').textContent='CHECKING FEEDS…';
  $('feedStatus').textContent='Updating live feed…';
  try{
-   const teamsNow={away:$('awayName').textContent,home:$('homeName').textContent};
+   const currentTeams=teams(selectedGame);
+   const teamsNow={away:currentTeams.away?.team?.displayName||$('awayName').textContent,home:currentTeams.home?.team?.displayName||$('homeName').textContent};
    let payload;
    try{
     if(!db&&!ensureDb())throw Error('Multiplayer service unavailable');
@@ -747,7 +752,7 @@ function renderPickControls(){
  const key=selectedGame?.id+':'+(currentDriveId||'waiting');
  if(key!==pickCollapseKey){pickCollapseKey=key;pickControlsExpanded=picksManuallyOpened;pickCompletionKey='';}
  const completion=queued?'queue:'+queueRows.offense.version+':'+queueRows.defense.version:bothLocked?'locked:'+currentDriveId:'';
- if(completion&&completion!==pickCompletionKey){pickControlsExpanded=false;pickCompletionKey=completion;}
+ if(completion&&completion!==pickCompletionKey){pickCompletionKey=completion;}
  if(!completion)pickCompletionKey='';
  const ended=queueState?.game_state==='post';
  if(ended)pickControlsExpanded=false;
