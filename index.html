@@ -262,6 +262,43 @@ async function fetchSportsDbDay(key){
   return (Array.isArray(payload.events)?payload.events:[]).map(sportsDbMatch).filter(Boolean);
  }finally{clearTimeout(timer)}
 }
+function matchesExpectedTeams(e,away,home){
+ const t=teams(e),key=x=>String(x||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+ const match=(a,b)=>{a=key(a);b=key(b);return a.length>3&&b.length>3&&(a===b||a.includes(b)||b.includes(a))};
+ return match(t.away?.team?.displayName||t.away?.team?.shortDisplayName,away)&&
+  match(t.home?.team?.displayName||t.home?.team?.shortDisplayName,home);
+}
+function scoreboardOnlySnapshot(e,provider){
+ const c=e.competitions?.[0]||{},t=teams(e),status=e.status||{},situation=c.situation||{};
+ const away=t.away||{},home=t.home||{};
+ const score=x=>x.score===null||x.score===undefined?'—':x.score;
+ return {provider,eventId:String(e.id),name:e.name,
+  away:away.team?.displayName||away.team?.shortDisplayName||'Away',
+  home:home.team?.displayName||home.team?.shortDisplayName||'Home',
+  awayScore:score(away),homeScore:score(home),
+  state:status.type?.state||'unknown',status:eventState(e),period:Number(status.period||0),clock:status.displayClock||'',
+  possession:'',downDistance:'',fieldPosition:'',lastPlay:'',
+  fetchedAt:new Date().toISOString(),automatic:{pending:true,reason:'Scoreboard backup has no verified drive history.'}};
+}
+async function browserScoreFallback(game,teamNames){
+ const date=new Date(game.date);
+ if(!Number.isFinite(date.getTime()))throw Error('Game date unavailable for backup lookup');
+ const key=dateKey(date);
+ try{
+  const data=await fetchDay(game.league,key);
+  const event=(data.events||[]).find(e=>String(e.id)===String(game.id)&&matchesExpectedTeams(e,teamNames.away,teamNames.home))
+   ||(data.events||[]).find(e=>matchesExpectedTeams(e,teamNames.away,teamNames.home));
+  if(event)return {ok:true,scoringSafe:false,data:scoreboardOnlySnapshot(event,'Direct ESPN scoreboard (scores only)')};
+ }catch(e){console.warn('Direct scoreboard fallback failed:',String(e?.message||e).slice(0,100))}
+ if(game.league==='nfl'){
+  try{
+   const data=await fetchSportsDbDay(key);
+   const event=data.find(e=>matchesExpectedTeams(e,teamNames.away,teamNames.home));
+   if(event)return {ok:true,scoringSafe:false,data:scoreboardOnlySnapshot(event,'TheSportsDB browser backup (scores only)')};
+  }catch(e){console.warn('Independent scoreboard fallback failed:',String(e?.message||e).slice(0,100))}
+ }
+ throw Error('No football scoreboard provider is available for this matchup.');
+}
 function footballWeekDates(now=new Date()){
  const start=new Date(now.getFullYear(),now.getMonth(),now.getDate(),12);
  const day=start.getDay();
@@ -362,13 +399,20 @@ async function refreshGame(){
  $('trackerStatus').textContent='CHECKING FEEDS…';
  $('feedStatus').textContent='Updating live feed…';
  try{
-   if(!db)ensureDb();
-   const {data:sessionData}=await db.auth.getSession();
-   if(!sessionData?.session)await ensureAuth();
    const teamsNow={away:$('awayName').textContent,home:$('homeName').textContent};
-   const result=await db.functions.invoke('drive-duel-live-feed',{body:{eventId:selectedGame.id,league:selectedGame.league,date:selectedGame.date,awayName:teamsNow.away,homeName:teamsNow.home,roomId}});
-   if(result.error)throw result.error;
-   const payload=result.data;if(selectedGame?.id!==refreshingGame)return;
+   let payload;
+   try{
+    if(!db&&!ensureDb())throw Error('Multiplayer service unavailable');
+    const {data:sessionData}=await db.auth.getSession();
+    if(!sessionData?.session)await ensureAuth();
+    const result=await db.functions.invoke('drive-duel-live-feed',{body:{eventId:selectedGame.id,league:selectedGame.league,date:selectedGame.date,awayName:teamsNow.away,homeName:teamsNow.home,roomId}});
+    if(result.error||!result.data?.ok)throw result.error||Error(result.data?.error||'Live service unavailable');
+    payload=result.data;
+   }catch(serviceError){
+    console.warn('Live service unavailable; checking score-only providers:',String(serviceError?.message||serviceError).slice(0,100));
+    payload=await browserScoreFallback(selectedGame,teamsNow);
+   }
+   if(selectedGame?.id!==refreshingGame)return;
    if(!payload?.ok||!payload?.data)throw new Error(payload?.error||'No trusted feed returned this matchup.');
    const e=payload.data;
    fallbackRefreshUntil=String(e.provider||'').includes('TheSportsDB')?Date.now()+25000:0;
