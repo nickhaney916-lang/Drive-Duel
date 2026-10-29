@@ -329,11 +329,22 @@ Deno.serve(async (req: Request) => {
         else {
           const game = findNflStaticGame(await response.json(), awayName, homeName);
           if (game) {
-            const data = normalizeNflStatic(game, awayName, homeName);
-            if (Number.isFinite(data.awayScore) && Number.isFinite(data.homeScore)) {
-              return json({ok:true,data:{...data,automatic:{pending:true,reason:"Backup scoreboard has no verified drive history."}},attempts,scoringSafe:false});
+            // Legacy NFL static data must match the requested game day; team names
+            // alone can accidentally match an old season's game.
+            const start=game.date??game.startTime??game.start_time??game.gameDate??game.gameTime;
+            const startDate=new Date(start||"");
+            const pieces=Number.isFinite(startDate.getTime())
+              ?new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(startDate):[];
+            const part=(type:string)=>pieces.find(p=>p.type===type)?.value??"";
+            const gameDay=part("year")+part("month")+part("day");
+            if(!start||gameDay!==dates)attempts.push("NFL static scoreboard: dated matchup could not be verified");
+            else {
+              const data=normalizeNflStatic(game,awayName,homeName);
+              if(Number.isFinite(data.awayScore)&&Number.isFinite(data.homeScore)){
+                return json({ok:true,data:{...data,automatic:{pending:true,reason:"Backup scoreboard has no verified drive history."}},attempts,scoringSafe:false});
+              }
+              attempts.push("NFL static scoreboard: matching game had invalid scores");
             }
-            attempts.push("NFL live scores: matching game had invalid scores");
           } else attempts.push("NFL live scores: matchup not found in backup feed");
         }
       } catch (error) { attempts.push("NFL live scores: " + (error instanceof Error && error.name === "AbortError" ? "timeout" : "request/parse failure")); }
