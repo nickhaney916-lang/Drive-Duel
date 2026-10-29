@@ -117,10 +117,33 @@ test('easy play: friend invitation, practice, two devices and no surprise CPU',a
   expect(joined.roomId).toBe(ROOM_ID);
   expect(players.filter(p=>!p.is_cpu)).toHaveLength(2);
   expect(rpcCalls.filter(x=>x.kind==='add_drive_duel_cpu')).toHaveLength(0);
+  // The live game tracker is always on the main screen, not hidden by streamlining.
+  await expect(guest.locator('#liveTrackerDetails')).toHaveAttribute('open','');
+  for(const id of ['gameStatus','awayScore','homeScore','clockInfo','downDistance','fieldPosition',
+    'possessionField','possession','lastPlay','pickCountdown','headToHead','headToHeadStatus']){
+   await expect(guest.locator('#'+id)).toBeVisible();
+  }
+  await expect(guest.locator('#headToHead')).toContainText('Dad');
+  await expect(guest.locator('#headToHead')).toContainText('Nick');
+  expect(await guest.locator('#alertSound').isChecked()).toBe(false);
+  expect(await guest.locator('#alertVibration').isChecked()).toBe(false);
+  const windowState=await guest.evaluate(()=>{
+   automaticReady=true;automaticPending=false;feedClosed=false;driveScored=false;
+   currentDriveId='test-open-drive';predictionDeadline=Date.now()+13000;
+   renderAutomaticStatus();
+   const data={state:document.getElementById('pickCountdown').dataset.state,
+     seconds:document.getElementById('pickCountdownNumber').textContent};
+   automaticReady=false;automaticPending=true;feedClosed=true;currentDriveId=null;
+   renderAutomaticStatus();return data;
+  });
+  expect(windowState.state).toBe('open');
+  expect(windowState.seconds).toMatch(/^1[23]s$/);
   for(const width of [320,390,430]){
    await guest.setViewportSize({width,height:800});
    const choices=guest.locator('.primaryPickGrid').first();
    await expect(choices).toBeVisible();
+   const overflow=await guest.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth);
+   expect(overflow,'No horizontal scrolling for primary game screen').toBeLessThanOrEqual(2);
    await guest.screenshot({path:'test-results/easy-play-game-'+width+'.png'});
   }
  }finally{
