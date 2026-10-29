@@ -242,8 +242,8 @@ function sportsDbMatch(e){
  if(!e||!e.idEvent||!e.strHomeTeam||!e.strAwayTeam)return null;
  if(e.strLeague!=='NFL'&&String(e.idLeague)!=='4391')return null;
  const rawDate=e.strTimestamp||((e.dateEvent||'')+'T'+(e.strTime||'00:00:00'));
- if(!/^\\d{4}-\\d{2}-\\d{2}T/.test(rawDate))return null;
- const date=rawDate.match(/[zZ]|[+-]\\d{2}:?\\d{2}$/)?rawDate:rawDate+'Z';
+ if(!/^\d{4}-\d{2}-\d{2}T/.test(rawDate))return null;
+ const date=rawDate.match(/[zZ]|[+-]\d{2}:?\d{2}$/)?rawDate:rawDate+'Z';
  const status=e.strStatus||e.strProgress||'Scheduled';
  const state=/^(FT|AOT)$|final|finished/i.test(status)?'post':/^(Q[1-4]|OT|HT)$|in play|halftime/i.test(status)?'in':'pre';
  return {id:'tsdb-'+e.idEvent,name:e.strAwayTeam+' at '+e.strHomeTeam,date,source:'TheSportsDB',partial:true,
@@ -356,9 +356,9 @@ $('back').addEventListener('click',()=>{document.body.classList.remove('game-act
 document.querySelectorAll('.tab[data-league]').forEach(b=>b.addEventListener('click',()=>{league=b.dataset.league;document.querySelectorAll('.tab').forEach(x=>{const active=x===b;x.classList.toggle('active',active);x.setAttribute('aria-selected',String(active))});loadGames()}));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&selectedGame)refreshGame()});
 window.addEventListener('focus',()=>{if(selectedGame)refreshGame()});
-let feedRefreshBusy=false;
+let feedRefreshBusy=false,fallbackRefreshUntil=0;
 async function refreshGame(){
- if(!selectedGame||feedRefreshBusy)return;feedRefreshBusy=true;const refreshingGame=selectedGame.id;
+ if(!selectedGame||feedRefreshBusy||Date.now()<fallbackRefreshUntil)return;feedRefreshBusy=true;const refreshingGame=selectedGame.id;
  $('trackerStatus').textContent='CHECKING FEEDS…';
  $('feedStatus').textContent='Updating live feed…';
  try{
@@ -371,6 +371,7 @@ async function refreshGame(){
    const payload=result.data;if(selectedGame?.id!==refreshingGame)return;
    if(!payload?.ok||!payload?.data)throw new Error(payload?.error||'No trusted feed returned this matchup.');
    const e=payload.data;
+   fallbackRefreshUntil=String(e.provider||'').includes('TheSportsDB')?Date.now()+25000:0;
    const currentScores=[$('awayScore').textContent,$('homeScore').textContent];
    const oldState=$('gameStatus').textContent;
    const hadVerified=$('feedStatus').dataset.verified==='true';
