@@ -623,6 +623,10 @@ function renderPick(){
 }
 
 
+const primaryPickOptions={
+ offense:['Touchdown','Field Goal','Punt','Turnover'],
+ defense:['Allow a touchdown','Hold to a field goal','Force a punt','Force a turnover']
+};
 const dualPickOptions={
  offense:['Touchdown','Field Goal','Punt','Turnover','Stopped on downs','Safety','Missed Field Goal','End of half/game'],
  defense:['Force a punt','Force a turnover','Stop on downs','Hold to a field goal','Allow a touchdown','Force a safety','Force a missed field goal','End without a score']
@@ -638,7 +642,7 @@ function renderDualPickPanels(){
    button.setAttribute('aria-pressed',String(button.dataset.pick===selected));
    button.disabled=!ready||(!next&&saved)||queueBusy||lockingBusy;
   }
-  $('dual'+name+'State').textContent=(queueBusy||lockingBusy)&&type===activePredictionType?'SAVING…':queueError&&type===activePredictionType?'⚠ NOT SAVED':saved?(next?'✓ SAVED FOR NEXT DRIVE':'🔒 LOCKED'):selected?'TAP AGAIN TO SAVE':'TAP TO SAVE';
+  $('dual'+name+'State').textContent=(queueBusy||lockingBusy)&&type===activePredictionType?'SAVING…':queueError&&type===activePredictionType?'⚠ NOT SAVED':saved?(next?'✓ SAVED FOR NEXT DRIVE':'🔒 LOCKED'):selected?'READY TO SAVE':'TAP TO SAVE';
   const save=$('dual'+name+'Save');
   save.disabled=!ready||(!next&&saved)||!selected||scoringBusy||lockingBusy||queueBusy;
   save.textContent=queueBusy||lockingBusy?'Saving…':next?(saved?'Update '+type+' queue':'Save '+type+' for next drive'):saved?'✓ '+name+' locked':'🔒 Lock '+type+' pick';
@@ -647,7 +651,9 @@ function renderDualPickPanels(){
 for(const type of ['offense','defense']){
  const name=type==='offense'?'Offense':'Defense';
  const target=$('dual'+name+'Choices');
- target.innerHTML=dualPickOptions[type].map(p=>'<button type="button" data-pick="'+p.replaceAll('"','&quot;')+'">'+pickLabel(p)+'</button>').join('');
+ const markup=p=>'<button type="button" data-pick="'+p.replaceAll('"','&quot;')+'">'+pickLabel(p)+'</button>';
+ target.innerHTML='<div class="primaryPickGrid">'+primaryPickOptions[type].map(markup).join('')+'</div>'+
+ '<details class="extraPicks"><summary>More outcomes</summary><div class="extraPickGrid">'+dualPickOptions[type].filter(p=>!primaryPickOptions[type].includes(p)).map(markup).join('')+'</div></details>';
  target.addEventListener('click',e=>{
   const button=e.target.closest('button[data-pick]');
   if(!button||button.disabled||lockingBusy||queueBusy)return;
@@ -731,9 +737,9 @@ $('lockPick').addEventListener('click',async()=>{
    throw error;
  }
  queueError='';markGameWithPick(selectedGame?.id);
- if(currentDriveId===drive){lockedTypes[type]=true;chosenPicks[type]=pick;}
+ if(currentDriveId===drive){lockedTypes[type]=true;chosenPicks[type]=pick;showPickToast('✓ '+(type==='offense'?'Offense':'Defense')+' pick locked!')}
  await refreshRemotePicks();loadRoomPlayers().catch(e=>console.warn('Player refresh pending:',e.message));
- }catch(e){queueError='Could not save pick: '+e.message;}
+ }catch(e){queueError='Could not save pick: '+e.message;showPickToast('Pick not saved. Check connection and try again.','error');}
  finally{lockingBusy=false;renderPick();}
 });
 $('nextDrive').addEventListener('click',async()=>{if(!driveScored||!roomId||!selectedGame)return;const btn=$('nextDrive');btn.disabled=true;try{const {data:latest,error:le}=await db.from('drives').select('drive_number,status').eq('room_id',roomId).eq('game_id',selectedGame.id).order('drive_number',{ascending:false}).limit(1);if(le)throw le;const last=latest?.[0];if(last&&last.drive_number>driveNumber){await syncSharedDrive();return}if(!last||last.status!=='scored')throw new Error('The current shared drive has not been scored.');const {error}=await db.rpc('drive_duel_get_drive',{p_room_id:roomId,p_game_id:selectedGame.id,p_drive_number:last.drive_number+1,p_quarter:1});if(error)throw error;await syncSharedDrive()}catch(e){$('pickNote').textContent='Could not advance shared drive: '+e.message}finally{renderPick()}});
@@ -910,7 +916,7 @@ function renderRosterStatus(){
  $('liveRosterStatus').textContent=(roomCode?'Group '+roomCode:'Group')+' · '+count+' '+(count===1?'player':'players')+(lastJoinedName?' · '+lastJoinedName+' entered this game':'');
 }
 
-function renderRoomInvite(){saveGroupBookmark();renderGroupCard();if(!$('roomCodeDisplay'))return;$('roomCodeDisplay').textContent=roomCode||'—';$('roomLinkDisplay').value=roomCode?'https://nickhaney916-lang.github.io/Drive-Duel/?room='+encodeURIComponent(roomCode):''}
+function renderRoomInvite(){saveGroupBookmark();renderGroupCard();if(!$('roomCodeDisplay'))return;$('roomCodeDisplay').textContent=roomCode||'—';$('roomLinkDisplay').value=invitationUrl()}
 function ensureDb(){if(!window.supabase){statusRoom('Multiplayer client did not load. Check your connection and reload.');return false}if(!db)db=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);return true}
 let authInitPromise=null;
 async function ensureAuth(){
@@ -984,12 +990,12 @@ async function saveNextPick(cancel=false,requestedType=activePredictionType,requ
  const {error}=await db.rpc('drive_duel_queue_pick',{p_room_id:roomId,p_game_id:game,p_prediction_type:type,p_predicted_outcome:cancel?null:pick,p_expected_version:version,p_cancel:cancel});
  if(error)throw error;
  // The server accepted the change. Refresh failures must not misreport that save as failed.
- if(!cancel)markGameWithPick(game);
+ if(!cancel){markGameWithPick(game);showPickToast('✓ '+(type==='offense'?'Offense':'Defense')+' prediction saved for the next drive!')}else showPickToast('Next-drive prediction canceled.');
  if(selectedGame?.id===game){
   if(cancel){queueSelections[type]='';queueRows[type]=null;}
   try{await syncSharedDrive();}catch(syncError){console.warn('Queued pick saved; refresh pending:',syncError.message);queueError=(cancel?'Queue cancellation saved.':'Pick saved.')+' Refresh pending; please wait before changing it.'}
  }
- }catch(e){if(selectedGame?.id===game){try{await syncSharedDrive();}catch(syncError){console.warn('Queue refresh failed:',syncError.message)}queueError='Could not '+(cancel?'cancel':'save')+' queued pick: '+e.message;}}
+ }catch(e){if(selectedGame?.id===game){try{await syncSharedDrive();}catch(syncError){console.warn('Queue refresh failed:',syncError.message)}queueError='Could not '+(cancel?'cancel':'save')+' queued pick: '+e.message;showPickToast('Pick not saved. Check connection and try again.','error');}}
  finally{queueBusy=false;if(selectedGame?.id===game){renderNextPicks();}}
 }
 $('cancelNextPick').addEventListener('click',()=>saveNextPick(true));
@@ -1056,12 +1062,12 @@ async function createRoom(){
 }
 async function joinRoom(){
  groupActionEpoch++;
- const name=requirePlayerName();if(!name)return;
- try{await ensureAuth();const code=$('joinCode').value.trim().toUpperCase();if(!code){statusRoom('Enter a group code first.');return;}
+ const name=requirePlayerName();if(!name)return false;
+ try{await ensureAuth();const code=$('joinCode').value.trim().toUpperCase();if(!code){statusRoom('Enter a group code first.');return false;}
  statusRoom('Joining group…');const {data:room,error}=await db.rpc('join_drive_duel_room',{p_room_code:code,p_player_name:name});if(error)throw error;
  if(room.room_id!==roomId)adoptGroup(room);else{playerId=room.player_id;roomCode=room.room_code;league=room.league||league;}
- $('roomPlayersBlock').classList.remove('hidden');renderRoomInvite();await loadRoomPlayers();watchRoom();statusRoom(room.already_joined?'Reconnected to your existing player in group '+roomCode+'.':'Joined group '+roomCode+'.');
- }catch(e){statusRoom('Could not join group: '+e.message);}
+ $('roomPlayersBlock').classList.remove('hidden');renderRoomInvite();await loadRoomPlayers();watchRoom();statusRoom(room.already_joined?'Reconnected to your existing player in group '+roomCode+'.':'Joined group '+roomCode+'.');return true;
+ }catch(e){statusRoom('Could not join group: '+e.message);return false;}
 }
 function showGroupEntry(){
  showRoomView();groupEntryOpen=true;renderGroupCard();$('joinOptions').classList.remove('hidden');$('joinCode').value='';
@@ -1083,7 +1089,7 @@ $('joinRoom').addEventListener('click',async()=>{try{const name=requirePlayerNam
 $('createRoom').addEventListener('click',quickJoinRoom);
 
 $('trackerShare').addEventListener('click',()=>{if(!roomCode)return;showRoomView()});
-function inviteText(){const link='https://nickhaney916-lang.github.io/Drive-Duel/?room='+encodeURIComponent(roomCode);return 'Join my Drive Duel game! Code: '+roomCode+' — '+link}
+function inviteText(){return 'Play Drive Duel football with me! Tap this link, enter your name, and join: '+invitationUrl()+' (backup group code: '+roomCode+')'}
 $('shareInvite').addEventListener('click',async()=>{if(!roomCode){statusRoom('Join a room first.');return}try{if(navigator.share){await navigator.share({title:'Drive Duel Invite',text:inviteText(),url:$('roomLinkDisplay').value})}else if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(inviteText());statusRoom('Invite link and code copied. Send it to your opponent.')}else{statusRoom(inviteText())}}catch(e){statusRoom(inviteText())}});
 $('copyInvite').addEventListener('click',async()=>{if(!roomCode){statusRoom('Join a room first.');return}try{await navigator.clipboard.writeText(inviteText());statusRoom('Invite link and code copied. Send it to your opponent.')}catch(e){statusRoom(inviteText())}});
 if(location.search){const inviteCode=new URLSearchParams(location.search).get('room');if(inviteCode){$('joinOptions').classList.remove('hidden');$('joinCode').value=inviteCode.toUpperCase();$('roomInfo').textContent='Enter your name, then tap Join group.'}}
