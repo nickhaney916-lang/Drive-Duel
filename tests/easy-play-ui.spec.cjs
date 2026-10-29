@@ -11,6 +11,7 @@ test('easy play: friend invitation, practice, two devices and no surprise CPU',a
  fs.mkdirSync('test-results',{recursive:true});
  const browsers=await Promise.all([chromium.launch(),chromium.launch()]);
  const pages=[],contexts=[],players=[],gameMembers=[],rpcCalls=[];
+ let providerMode='scores-only';
  const fixture={id:GAME_ID,name:'Replay Away at Replay Home',date:now(),
   status:{type:{state:'pre',detail:'Scheduled'}},
   competitions:[{competitors:[
@@ -41,9 +42,10 @@ test('easy play: friend invitation, practice, two devices and no surprise CPU',a
     else if(path==='/auth/v1/user')answer=user;
     else if(path.includes('/functions/v1/')){
      if(body.operation==='schedule')answer={ok:true,events:[fixture]};
-     else answer={ok:true,scoringSafe:false,data:{provider:'Mock fixture',away:'Replay Away',home:'Replay Home',
+     else answer={ok:true,scoringSafe:providerMode==='verified',data:{provider:'Mock fixture',away:'Replay Away',home:'Replay Home',
        awayScore:0,homeScore:0,state:'pre',status:'Scheduled',period:0,clock:'',
-       possession:'',lastPlay:'',fetchedAt:now(),automatic:{pending:true}}};
+       possession:'',lastPlay:providerMode==='verified'?'Verified run for 8 yards':'',
+       fetchedAt:now(),automatic:{pending:providerMode!=='verified'}}};
     }else if(path.endsWith('/rpc/create_drive_duel_room')||path.endsWith('/rpc/join_drive_duel_room')){
      rpcCalls.push({kind:path.split('/').at(-1),player:i});
      if(!players.some(p=>p.id===playerId))players.push({id:playerId,user_id:userId,room_id:ROOM_ID,
@@ -127,6 +129,20 @@ test('easy play: friend invitation, practice, two devices and no surprise CPU',a
   await expect(guest.locator('#headToHead')).toContainText('Nick');
   expect(await guest.locator('#alertSound').isChecked()).toBe(false);
   expect(await guest.locator('#alertVibration').isChecked()).toBe(false);
+  // Once a trusted play has been seen, losing play-by-play must not erase or invent that play.
+  providerMode='verified';
+  await guest.locator('#refresh').click();
+  await expect(guest.locator('#lastPlay')).toContainText('Verified run for 8 yards');
+  await expect(guest.locator('#feedStatus')).toContainText('verified drives');
+  providerMode='scores-only';
+  await guest.locator('#refresh').click();
+  await expect(guest.locator('#feedStatus')).toContainText('automatic picks and scoring paused');
+  await expect(guest.locator('#lastPlay')).toContainText('Last verified play');
+  // Preferences require a deliberate opt-in and remain local to the device.
+  await guest.locator('#alertSettings').evaluate(el=>{el.open=true});
+  await guest.locator('#alertSound').check();
+  expect(await guest.evaluate(()=>JSON.parse(localStorage.getItem('drive-duel-alerts-v1')).sound)).toBe(true);
+  await guest.locator('#alertSound').uncheck();
   const windowState=await guest.evaluate(()=>{
    automaticReady=true;automaticPending=false;feedClosed=false;driveScored=false;
    currentDriveId='test-open-drive';predictionDeadline=Date.now()+13000;
@@ -146,6 +162,12 @@ test('easy play: friend invitation, practice, two devices and no surprise CPU',a
    expect(overflow,'No horizontal scrolling for primary game screen').toBeLessThanOrEqual(2);
    await guest.screenshot({path:'test-results/easy-play-game-'+width+'.png'});
   }
+  await guest.reload({waitUntil:'domcontentloaded'});
+  await expect.poll(()=>guest.evaluate(()=>roomCode),{timeout:30000}).toBe(ROOM_CODE);
+  await expect.poll(()=>guest.evaluate(()=>selectedGame?.id),{timeout:30000}).toBe(GAME_ID);
+  expect(players.filter(p=>!p.is_cpu)).toHaveLength(2);
+  expect(rpcCalls.filter(x=>x.kind==='add_drive_duel_cpu')).toHaveLength(0);
+  await guest.screenshot({path:'test-results/easy-play-reconnected.png'});
  }finally{
   await Promise.allSettled(contexts.map(c=>c.close()));
   await Promise.allSettled(browsers.map(b=>b.close()));
