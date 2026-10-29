@@ -201,6 +201,7 @@ body.game-active .myCurrentPicks strong{letter-spacing:0}
 }
 
 /* Easy play is the default for every player and league. */
+#dualPickPanels[hidden]{display:none!important}
 #globalConnection{min-height:44px;display:flex;align-items:center;gap:10px;padding:10px 12px;margin:-10px 0 16px;background:#142d41;border:1px solid #53748b;border-radius:12px;font-size:14px;font-weight:750}
 #globalConnection:before{content:"";display:block;width:10px;height:10px;flex-shrink:0;border-radius:50%;background:var(--gold)}
 #globalConnection[data-state="connected"]:before{background:var(--green)}
@@ -670,6 +671,13 @@ for(const type of ['offense','defense']){
 }
 
 let picksManuallyOpened=false,picksEntryGameKey='';
+function updateAdvancedPickMode(){
+ const advanced=$('advancedPickDetails').open;
+ $('dualPickPanels').hidden=advanced;
+ if(advanced){picksManuallyOpened=true;pickControlsExpanded=true;renderPickControls()}
+}
+$('advancedPickDetails').addEventListener('toggle',updateAdvancedPickMode);
+
 $('makePicksNow').addEventListener('click',()=>{
  picksManuallyOpened=true;pickControlsExpanded=true;renderPickControls();
  $('dualPickPanels').scrollIntoView({behavior:'smooth',block:'start'});
