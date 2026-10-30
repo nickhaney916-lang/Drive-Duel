@@ -156,8 +156,26 @@ test('easy play: friend invitation, practice, two devices and no surprise CPU',a
   expect(windowState.seconds).toMatch(/^1[23]s$/);
   for(const width of [320,390,430]){
    await guest.setViewportSize({width,height:800});
-   const choices=guest.locator('.primaryPickGrid').first();
+   const choices=guest.locator('#dualOffenseChoices .allPickGrid');
    await expect(choices).toBeVisible();
+   await expect(choices.locator('button')).toHaveCount(8);
+   await expect(guest.locator('#dualDefenseChoices .allPickGrid button')).toHaveCount(8);
+   await expect(guest.locator('.extraPicks')).toHaveCount(0);
+   await expect(guest.locator('#advancedPickDetails')).toBeHidden();
+   const typography=await guest.evaluate(()=>Array.from(document.querySelectorAll('#dualPickPanels .allPickGrid button')).map(button=>{
+     const style=getComputedStyle(button);
+     return {wordBreak:style.wordBreak,overflowWrap:style.overflowWrap,
+       borderRadius:parseFloat(style.borderTopLeftRadius),width:button.clientWidth,
+       scrollWidth:button.scrollWidth,fontsize:parseFloat(style.fontSize)};
+   }));
+   expect(typography).toHaveLength(16);
+   for(const button of typography){
+     expect(button.wordBreak).toBe('normal');
+     expect(button.overflowWrap).toBe('normal');
+     expect(button.borderRadius).toBeGreaterThanOrEqual(12);
+     expect(button.scrollWidth).toBeLessThanOrEqual(button.width+2);
+     expect(button.fontsize).toBeLessThanOrEqual(14);
+   }
    const overflow=await guest.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth);
    expect(overflow,'No horizontal scrolling for primary game screen').toBeLessThanOrEqual(2);
    await guest.screenshot({path:'test-results/easy-play-game-'+width+'.png'});
