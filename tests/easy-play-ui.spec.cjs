@@ -146,6 +146,15 @@ test('easy play: friend invitation, practice, two devices and no surprise CPU',a
     color:document.getElementById('dualOffenseTeam').style.getPropertyValue('--team-accent'),
     number:driveNumber
    };
+   // Do not relabel a single drive if later snapshots disagree.
+   setVerifiedPossessionIdentity({possession:'Replay Home'},true);renderDualPickPanels();
+   const pinnedOffense=document.getElementById('dualOffenseTeamName').textContent;
+   const pinnedDefense=document.getElementById('dualDefenseTeamName').textContent;
+   // Neutral field when feed is scores-only; team accent when possession verified.
+   renderPossessionDiagram({possession:'Replay Away',away:'Replay Away',home:'Replay Home'},false);
+   const unverifiedField=document.getElementById('possessionField').dataset.side;
+   renderPossessionDiagram({possession:'Replay Away',away:'Replay Away',home:'Replay Home'},true);
+   const verifiedField=document.getElementById('possessionField').dataset.side;
    // The identity resolver supports both exact full names and abbreviations.
    event[0].team.abbreviation='RA';event[1].team.abbreviation='RH';
    const abbreviation=confirmedPossessionSide('RH');
@@ -161,13 +170,17 @@ test('easy play: friend invitation, practice, two devices and no surprise CPU',a
     defense:document.getElementById('dualDefenseTeamName').textContent};
    currentDriveId=null;automaticPending=true;feedClosed=true;automaticReady=false;
    driveTeamIdentity.clear();possessionIdentity=null;renderDualPickPanels();
-   return {away,abbreviation,unknown,conflict,changed,fallback};
+   return {away,abbreviation,unknown,conflict,changed,fallback,pinnedOffense,pinnedDefense,unverifiedField,verifiedField};
   });
   expect(teamLabels.away).toEqual({
    offense:'Away',defense:'Home',
    logo:'https://a.espncdn.com/i/teamlogos/nfl/500/away.png',
    color:'#13579B',number:5
   });
+  expect(teamLabels.pinnedOffense).toBe('Away');
+  expect(teamLabels.pinnedDefense).toBe('Home');
+  expect(teamLabels.unverifiedField).toBe('unknown');
+  expect(teamLabels.verifiedField).toBe('away');
   expect(teamLabels.abbreviation).toBe('home');
   expect(teamLabels.unknown).toBeNull();
   expect(teamLabels.conflict).toBeNull();
