@@ -699,7 +699,7 @@ async function refreshGame(){
    $('awayScore').textContent=e.awayScore;$('homeScore').textContent=e.homeScore;
    $('gameStatus').textContent=e.status||'Status unavailable';
    $('clockInfo').textContent=[e.period?'Q'+e.period:'',e.clock||''].filter(Boolean).join(' · ')||'Not started';
-   $('possession').textContent=e.possession||'Possession not confirmed';renderPossessionDiagram(e);
+   renderPossessionDiagram(e,payload.scoringSafe===true);
    $('downDistance').textContent=e.downDistance||'—';
    $('fieldPosition').textContent=e.fieldPosition===0||e.fieldPosition?String(e.fieldPosition):'—';
    if(payload.scoringSafe===true&&e.lastPlay)lastVerifiedPlay=e.lastPlay;
@@ -805,7 +805,7 @@ function renderPredictionTeamLabels(){
    possessionIdentity?.driveId===currentDriveId?possessionIdentity?.side:null;
  const pinned=activeDriveTeamSide();
  // Queued next-drive predictions cannot inherit the current drive's team.
- const side=next?null:current||pinned;
+ const side=next?null:pinned||current;
  for(const type of ['offense','defense']){
   const role=type==='offense'?'Offense':'Defense';
   const yours=side?(type==='offense'?side:(side==='away'?'home':'away')):null;
@@ -1028,12 +1028,11 @@ function renderTrackerPickTargets(){
  $('trackerQueuedRows').innerHTML=rows.map(({type,row})=>'<span title="Possession '+number+' · '+(type==='offense'?'Offense':'Defense')+': '+esc(row.predicted_outcome)+'" aria-label="Possession '+number+' · '+(type==='offense'?'Offense':'Defense')+': '+esc(row.predicted_outcome)+'">'+(type==='offense'?'🏈 ':'🛡️ ')+esc(shortPick(row.predicted_outcome))+'</span>').join(' · ');
 }
 
-function renderPossessionDiagram(data){
- $('possession').textContent=data.possession||'Possession not confirmed';
- const norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
- const possession=norm(data.possession),away=norm(data.away),home=norm(data.home);
- const owns=(team)=>!!possession&&!!team&&(team.includes(possession)||possession.includes(team));
- const side=owns(away)?'away':owns(home)?'home':'unknown';
+function renderPossessionDiagram(data,verified=false){
+ // Display possession highlights only from uniquely matched, verified team identity.
+ const candidate=verified?confirmedPossessionSide(data?.possession):null;
+ const side=candidate||'unknown';
+ $('possession').textContent=side==='unknown'?'Possession not confirmed':data.possession;
  $('possessionField').dataset.side=side;
  const rawSpot=data.fieldPosition;
  const numericSpot=typeof rawSpot==='number'?rawSpot:(typeof rawSpot==='string'&&/^\\d{1,3}$/.test(rawSpot.trim())?Number(rawSpot.trim()):NaN);
