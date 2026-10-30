@@ -171,9 +171,34 @@ test('easy play: friend invitation, practice, two devices and no surprise CPU',a
   await expect(guest.locator('#liveTrackerDetails')).toBeVisible();
   for(const width of [320,390,430]){
    await guest.setViewportSize({width,height:800});
+   // Restore the synthetic state inside the same task as the assertions.
+   // Realtime polling can legitimately return the mock fixture to waiting.
+   const snapshot=await guest.evaluate(()=>{
+    currentDriveId='mock-drive-3';driveNumber=3;driveScored=false;
+    automaticReady=true;automaticPending=true;feedClosed=true;
+    lockedTypes={offense:true,defense:true};
+    chosenPicks={offense:'Field Goal',defense:'Hold to a field goal'};
+    lockedTrackerNumber=3;
+    lockedTrackerRows=[
+     {player_id:playerId,is_locked:true,prediction_type:'offense',predicted_outcome:'Field Goal'},
+     {player_id:playerId,is_locked:true,prediction_type:'defense',predicted_outcome:'Hold to a field goal'}
+    ];
+    renderAutomaticStatus();renderMyCurrentPicks();renderDualPickPanels();
+    return {
+     cardVisible:!document.querySelector('#myCurrentPicks').hidden,
+     bannerHidden:document.querySelector('#pickWindowBanner').hidden,
+     timerHidden:document.querySelector('#pickCountdown').hidden,
+     header:document.querySelector('#myPicksState').textContent,
+     offense:document.querySelector('#myOffensePick').textContent,
+     defense:document.querySelector('#myDefensePick').textContent,
+     trackerOpen:document.querySelector('#liveTrackerDetails').open
+    };
+   });
+   expect(snapshot).toEqual({
+    cardVisible:true,bannerHidden:true,timerHidden:true,header:'✓ LOCKED',
+    offense:'Field Goal',defense:'Hold to a field goal',trackerOpen:true
+   });
    await guest.screenshot({path:'test-results/one-lock-confirmation-'+width+'.png'});
-   await expect(guest.locator('#myCurrentPicks')).toBeVisible();
-   await expect(guest.locator('#pickWindowBanner')).toBeHidden();
   }
   // The next possession must restore the ordinary prediction/countdown state.
   await guest.evaluate(()=>{
