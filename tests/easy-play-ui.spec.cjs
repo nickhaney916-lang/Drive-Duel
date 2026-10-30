@@ -129,6 +129,64 @@ test('easy play: friend invitation, practice, two devices and no surprise CPU',a
   await expect(guest.locator('#headToHead')).toContainText('Nick');
   expect(await guest.locator('#alertSound').isChecked()).toBe(false);
   expect(await guest.locator('#alertVibration').isChecked()).toBe(false);
+  // Verified possession determines both teams; field position and scores never do.
+  const teamLabels=await guest.evaluate(()=>{
+   const event=selectedGame.competitions[0].competitors;
+   event[0].team.name='Away';event[0].team.color='13579B';
+   event[0].team.logo='https://a.espncdn.com/i/teamlogos/nfl/500/away.png';
+   event[1].team.name='Home';event[1].team.color='B45309';
+   currentDriveId='team-test-drive';driveNumber=5;automaticReady=true;
+   automaticPending=false;feedClosed=false;driveScored=false;
+   predictionDeadline=Date.now()+20000;
+   setVerifiedPossessionIdentity({possession:'Replay Away'},true);renderDualPickPanels();
+   const away={
+    offense:document.getElementById('dualOffenseTeamName').textContent,
+    defense:document.getElementById('dualDefenseTeamName').textContent,
+    logo:document.getElementById('dualOffenseLogo').src,
+    color:document.getElementById('dualOffenseTeam').style.getPropertyValue('--team-accent'),
+    number:driveNumber
+   };
+   // Do not relabel a single drive if later snapshots disagree.
+   setVerifiedPossessionIdentity({possession:'Replay Home'},true);renderDualPickPanels();
+   const pinnedOffense=document.getElementById('dualOffenseTeamName').textContent;
+   const pinnedDefense=document.getElementById('dualDefenseTeamName').textContent;
+   // Neutral field when feed is scores-only; team accent when possession verified.
+   renderPossessionDiagram({possession:'Replay Away',away:'Replay Away',home:'Replay Home'},false);
+   const unverifiedField=document.getElementById('possessionField').dataset.side;
+   renderPossessionDiagram({possession:'Replay Away',away:'Replay Away',home:'Replay Home'},true);
+   const verifiedField=document.getElementById('possessionField').dataset.side;
+   // The identity resolver supports both exact full names and abbreviations.
+   event[0].team.abbreviation='RA';event[1].team.abbreviation='RH';
+   const abbreviation=confirmedPossessionSide('RH');
+   const unknown=confirmedPossessionSide('Replay');
+   const conflict=confirmedPossessionSide('Replay Home Panthers');
+   currentDriveId='team-test-drive-2';driveNumber=6;
+   setVerifiedPossessionIdentity({possession:'Replay Home'},true);renderDualPickPanels();
+   const changed={offense:document.getElementById('dualOffenseTeamName').textContent,
+    defense:document.getElementById('dualDefenseTeamName').textContent};
+   setVerifiedPossessionIdentity({possession:'Replay Away'},false);
+   automaticPending=true;renderDualPickPanels();
+   const fallback={offense:document.getElementById('dualOffenseTeamName').textContent,
+    defense:document.getElementById('dualDefenseTeamName').textContent};
+   currentDriveId=null;automaticPending=true;feedClosed=true;automaticReady=false;
+   driveTeamIdentity.clear();possessionIdentity=null;renderDualPickPanels();
+   return {away,abbreviation,unknown,conflict,changed,fallback,pinnedOffense,pinnedDefense,unverifiedField,verifiedField};
+  });
+  expect(teamLabels.away).toEqual({
+   offense:'Away',defense:'Home',
+   logo:'https://a.espncdn.com/i/teamlogos/nfl/500/away.png',
+   color:'#13579B',number:5
+  });
+  expect(teamLabels.pinnedOffense).toBe('Away');
+  expect(teamLabels.pinnedDefense).toBe('Home');
+  expect(teamLabels.unverifiedField).toBe('unknown');
+  expect(teamLabels.verifiedField).toBe('away');
+  expect(teamLabels.abbreviation).toBe('home');
+  expect(teamLabels.unknown).toBeNull();
+  expect(teamLabels.conflict).toBeNull();
+  expect(teamLabels.changed).toEqual({offense:'Home',defense:'Away'});
+  expect(teamLabels.fallback.offense).toContain('team TBD');
+  expect(teamLabels.fallback.defense).toContain('team TBD');
   // Once a trusted play has been seen, losing play-by-play must not erase or invent that play.
   providerMode='verified';
   await guest.locator('#refresh').click();
