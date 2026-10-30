@@ -143,6 +143,48 @@ test('easy play: friend invitation, practice, two devices and no surprise CPU',a
   await guest.locator('#alertSound').check();
   expect(await guest.evaluate(()=>JSON.parse(localStorage.getItem('drive-duel-alerts-v1')).sound)).toBe(true);
   await guest.locator('#alertSound').uncheck();
+  // Only one confirmation may remain when both picks are locked.
+  await guest.evaluate(()=>{
+   currentDriveId='mock-drive-3';driveNumber=3;
+   automaticReady=true;automaticPending=true;feedClosed=true;driveScored=false;
+   lockedTypes={offense:true,defense:true};
+   chosenPicks={offense:'Field Goal',defense:'Hold to a field goal'};
+   lockedTrackerNumber=3;
+   lockedTrackerRows=[
+    {player_id:playerId,is_locked:true,prediction_type:'offense',predicted_outcome:'Field Goal'},
+    {player_id:playerId,is_locked:true,prediction_type:'defense',predicted_outcome:'Hold to a field goal'}
+   ];
+   renderAutomaticStatus();
+   renderMyCurrentPicks();
+   renderDualPickPanels();
+  });
+  await expect(guest.locator('#myCurrentPicks')).toBeVisible();
+  await expect(guest.locator('#myPicksState')).toHaveText('✓ LOCKED');
+  await expect(guest.locator('#myOffensePick')).toHaveText('Field Goal');
+  await expect(guest.locator('#myDefensePick')).toHaveText('Hold to a field goal');
+  await expect(guest.locator('#pickWindowBanner')).toBeHidden();
+  await expect(guest.locator('#pickCountdown')).toBeHidden();
+  await expect(guest.locator('#dualOffenseState')).toBeHidden();
+  await expect(guest.locator('#dualDefenseState')).toBeHidden();
+  await expect(guest.locator('#dualOffenseSave')).toBeHidden();
+  await expect(guest.locator('#dualDefenseSave')).toBeHidden();
+  await expect(guest.locator('#liveTrackerDetails')).toBeVisible();
+  for(const width of [320,390,430]){
+   await guest.setViewportSize({width,height:800});
+   await guest.screenshot({path:'test-results/one-lock-confirmation-'+width+'.png'});
+   await expect(guest.locator('#myCurrentPicks')).toBeVisible();
+   await expect(guest.locator('#pickWindowBanner')).toBeHidden();
+  }
+  // The next possession must restore the ordinary prediction/countdown state.
+  await guest.evaluate(()=>{
+   currentDriveId=null;lockedTypes={offense:false,defense:false};
+   chosenPicks={offense:'',defense:''};
+   lockedTrackerRows=[];lockedTrackerNumber=null;automaticPending=true;
+   renderAutomaticStatus();renderMyCurrentPicks();renderDualPickPanels();
+  });
+  await expect(guest.locator('#myCurrentPicks')).toBeHidden();
+  await expect(guest.locator('#pickWindowBanner')).toBeVisible();
+  await expect(guest.locator('#pickCountdown')).toBeVisible();
   const windowState=await guest.evaluate(()=>{
    automaticReady=true;automaticPending=false;feedClosed=false;driveScored=false;
    currentDriveId='test-open-drive';predictionDeadline=Date.now()+13000;
