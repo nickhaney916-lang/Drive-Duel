@@ -312,6 +312,15 @@ body.game-active #dualPickPanels .dualPickChoices .allPickGrid button{
 @media(min-width:390px) and (max-width:720px){
  body.game-active #dualPickPanels .dualPickChoices .allPickGrid button{font-size:14px}
 }
+
+/* The green saved-picks card is the only lock confirmation.
+   Keep the live scoreboard, possession and last play visible below it. */
+body.game-active #pickWindowBanner[hidden],
+body.game-active #pickCountdown[hidden]{display:none!important}
+body.game-active.both-picks-confirmed #dualOffenseState,
+body.game-active.both-picks-confirmed #dualDefenseState,
+body.game-active.both-picks-confirmed #dualOffenseSave,
+body.game-active.both-picks-confirmed #dualDefenseSave{display:none!important}
 </style></head>
 <body><div class="wrap">
 <header class="top"><div class="brand"><div class="ball" aria-hidden="true"><span class="laces">≋</span></div><div><h1>DRIVE <span>DUEL</span></h1><div class="tag">EVERY DRIVE. EVERY PICK.</div></div></div><div class="clock"><div id="today" class="date"></div><div id="now" class="time"></div></div></header>
@@ -332,7 +341,7 @@ body.game-active #dualPickPanels .dualPickChoices .allPickGrid button{
 <div class="sectionhead"><div><div class="lobbyTitle"><span class="stepNum">2</span><h3 id="listTitle">NFL Matchups</h3></div><p id="listSub">Tap a game to open it.</p></div><div id="loadStatus" class="status">LOADING…</div></div><div id="games" class="games"><div class="loading">Loading real ESPN matchups…</div></div><div class="footer">MATCHUPS AND SCORES FROM ESPN · TIMES SHOWN IN YOUR LOCAL TIME</div></section>
 <section id="roomView" hidden class="hidden"><button id="roomBack" hidden>Back to games</button><div id="roomPageStatus"></div><div id="roomDetailsMount"></div><div id="roomLeaderboardMount"></div><div id="roomGamesMount"></div></section>
 <section id="trackerView" class="hidden"><button id="back" class="back">← All Games</button><div class="play" id="trackerRoomBanner" style="margin-bottom:12px"><strong id="trackerRoomLabel">Group loading…</strong><div id="trackerPlayerSummary" class="meta"></div><button id="trackerShare" class="secondaryAction" style="margin-top:10px">↗ Invite players</button><button type="button" id="trackerPracticeStart">Practice a pick</button></div><div class="sectionhead"><div><div class="eyebrow">LIVE GAME</div><h3 id="trackerTitle">Game tracker</h3><p id="trackerMeta"></p></div><div id="trackerStatus" class="status">GAME CENTER</div></div>
-<div class="tracker"><div class="pickWindowBanner" id="pickWindowBanner" data-state="waiting"><div><strong id="pickWindowLabel">WAITING FOR POSSESSION</strong><span id="pickWindowHint">Picks open together at the next possession.</span></div><button type="button" id="jumpToPicks" hidden>Make a pick ↓</button></div><section id="myCurrentPicks" class="myCurrentPicks" hidden aria-live="polite"><div class="myPicksHeading"><strong id="myPicksPossession">YOUR LOCKED PICKS</strong><span>✓ LOCKED</span></div><div class="myPickValues"><div><small>🏈 OFFENSE</small><strong id="myOffensePick">—</strong></div><div><small>🛡️ DEFENSE</small><strong id="myDefensePick">—</strong></div></div></section><div id="pickCountdown" role="status" aria-live="off" data-state="waiting"><span id="pickCountdownLabel">Waiting for verified possession</span><strong id="pickCountdownNumber">—</strong></div>
+<div class="tracker"><div class="pickWindowBanner" id="pickWindowBanner" data-state="waiting"><div><strong id="pickWindowLabel">WAITING FOR POSSESSION</strong><span id="pickWindowHint">Picks open together at the next possession.</span></div><button type="button" id="jumpToPicks" hidden>Make a pick ↓</button></div><section id="myCurrentPicks" class="myCurrentPicks" hidden aria-live="polite"><div class="myPicksHeading"><strong id="myPicksPossession">YOUR PICKS</strong><span id="myPicksState">✓ LOCKED</span></div><div class="myPickValues"><div><small>🏈 OFFENSE</small><strong id="myOffensePick">—</strong></div><div><small>🛡️ DEFENSE</small><strong id="myDefensePick">—</strong></div></div></section><div id="pickCountdown" role="status" aria-live="off" data-state="waiting"><span id="pickCountdownLabel">Waiting for verified possession</span><strong id="pickCountdownNumber">—</strong></div>
 <div class="liveScoreTitle" aria-hidden="true">🏟️ LIVE GAME</div><details id="liveTrackerDetails" class="liveTrackerDetails" open><summary>Scoreboard & field <span>▾</span></summary><div class="liveGameTracker" id="liveGameTracker" role="region" aria-label="Live game tracker">
 <div class="liveTrackerHeading"><span id="gameStatus">Loading…</span></div>
 <div class="trackerTeams"><span id="awayName">Away</span><span class="trackerScore"><span id="awayScore">—</span> : <span id="homeScore">—</span></span><span id="homeName">Home</span></div>
@@ -734,10 +743,10 @@ function renderDualPickPanels(){
    button.setAttribute('aria-pressed',String(button.dataset.pick===selected));
    button.disabled=!ready||(!next&&saved)||queueBusy||lockingBusy;
   }
-  $('dual'+name+'State').textContent=(queueBusy||lockingBusy)&&type===activePredictionType?'SAVING…':queueError&&type===activePredictionType?'⚠ NOT SAVED':saved?(next?'✓ SAVED FOR NEXT DRIVE':'🔒 LOCKED'):selected?'READY TO SAVE':'TAP TO SAVE';
+  $('dual'+name+'State').textContent=(queueBusy||lockingBusy)&&type===activePredictionType?'SAVING…':queueError&&type===activePredictionType?'⚠ NOT SAVED':saved?(next?'✓ SAVED FOR NEXT DRIVE':'SAVED'):selected?'READY TO SAVE':'TAP TO SAVE';
   const save=$('dual'+name+'Save');
   save.disabled=!ready||(!next&&saved)||!selected||scoringBusy||lockingBusy||queueBusy;
-  save.textContent=queueBusy||lockingBusy?'Saving…':next?(saved?'Update '+type+' queue':'Save '+type+' for next drive'):saved?'✓ '+name+' locked':'🔒 Lock '+type+' pick';
+  save.textContent=queueBusy||lockingBusy?'Saving…':next?(saved?'Update '+type+' queue':'Save '+type+' for next drive'):saved?'✓ Saved':'Save '+type+' pick';
  }
 }
 for(const type of ['offense','defense']){
@@ -783,7 +792,7 @@ function renderPickControls(){
  button.disabled=ended;
  button.setAttribute('aria-expanded',String(pickControlsExpanded));
  button.textContent=ended?'Game ended':pickControlsExpanded?'Hide picks':!next&&bothLocked?'View locked picks':next?(queued?'View next-drive picks':'Make next-drive picks'):'Make picks';
- $('savedPickStatus').textContent=queued?'✓ Your next-possession picks are saved':bothLocked?'✓ Possession '+driveNumber+' picks locked':pickControlsExpanded?'':'Picks available below';
+ $('savedPickStatus').textContent=bothLocked?'':queued?'✓ Your next-possession picks are saved':pickControlsExpanded?'':'Picks available below';
 }
 $('togglePickControls').addEventListener('click',()=>{pickControlsExpanded=!pickControlsExpanded;renderPickControls();if(pickControlsExpanded){$('pickControls').scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>document.querySelector('#picks .pick:not(:disabled)')?.focus({preventScroll:true}),250);}});
 
@@ -869,20 +878,26 @@ function resetLockedTracker(){lockedTrackerRows=[];lockedTrackerDrive=null;locke
 const shortPick=p=>({'Stopped on downs':'Downs','Safety':'Safety','Force a safety':'Safety','Missed Field Goal':'Miss FG','Force a missed field goal':'Miss FG','End of half/game':'End','End without a score':'End','Touchdown':'TD','Field Goal':'FG','Turnover':'TO','Force a punt':'Punt','Force a turnover':'TO','Stop on downs':'Downs','Hold to a field goal':'FG','Allow a touchdown':'TD'}[p]||p);
 function renderMyCurrentPicks(){
  const panel=$('myCurrentPicks');if(!panel)return;
- const own=lockedTrackerRows.filter(p=>String(p.player_id)===String(playerId)&&p.is_locked);
- const current=lockedTrackerNumber===driveNumber&&!!currentDriveId;
- panel.hidden=!current||!own.length;
+ // Show only server-acknowledged picks for the current possession.
+ const current=!!currentDriveId;
+ const own=current&&lockedTrackerNumber===driveNumber?
+  lockedTrackerRows.filter(p=>String(p.player_id)===String(playerId)&&p.is_locked):[];
+ const savedTypes=['offense','defense'].filter(type=>
+  !!own.find(p=>p.prediction_type===type)||!!lockedTypes[type]);
+ panel.hidden=!current||!savedTypes.length;
  if(panel.hidden)return;
  $('myPicksPossession').textContent='YOUR PICKS · DRIVE '+driveNumber;
+ $('myPicksState').textContent=savedTypes.length===2?'✓ LOCKED':'1 PICK SAVED';
  for(const [type,id] of [['offense','myOffensePick'],['defense','myDefensePick']]){
   const entry=own.find(p=>p.prediction_type===type);
-  $(id).textContent=entry?pickLabel(entry.predicted_outcome):'Not locked';
+  const choice=entry?.predicted_outcome||(lockedTypes[type]?chosenPicks[type]:'');
+  $(id).textContent=choice?pickLabel(choice):'Not selected';
  }
 }
 function renderLockedTracker(){renderGroupScores();renderMyCurrentPicks();
  const panel=$('trackerLockedPicks');if(!panel)return;
  panel.hidden=!lockedTrackerRows.length;
- $('trackerLockedTitle').textContent='Possession '+(lockedTrackerNumber??'—')+' · 🔒 Locked picks';
+ $('trackerLockedTitle').textContent='Player predictions · Possession '+(lockedTrackerNumber??'—');
  panel.dataset.possession=String(lockedTrackerNumber??'');
  const ids=[...new Set([...gamePlayers().map(p=>p.id)])].sort((a,b)=>a===playerId?-1:b===playerId?1:0);
  $('trackerLockedRows').innerHTML=ids.map(id=>{
@@ -1081,7 +1096,7 @@ function renderCompactPickTimer(state,remaining){
   $('pickCountdownLabel').textContent='Make your pick now · '+driveNumber;
   $('pickCountdownNumber').textContent=time+'s';
  }else if(state==='locked'){
-  $('pickCountdownLabel').textContent='Pick locked · waiting for result';
+  $('pickCountdownLabel').textContent='Waiting for result';
   $('pickCountdownNumber').textContent='✓';
  }else if(state==='closed'){
   $('pickCountdownLabel').textContent='Window closed · next drive soon';
@@ -1094,6 +1109,11 @@ function renderCompactPickTimer(state,remaining){
 
 function displayPickWindow(message,state,remaining=0){
  $('driveStatus').textContent=message;
+ const bothSaved=!!currentDriveId&&lockedTypes.offense&&lockedTypes.defense&&!driveScored;
+ // The green card is the only full-pick confirmation; keep tracker visible.
+ $('pickWindowBanner').hidden=bothSaved;
+ $('pickCountdown').hidden=bothSaved;
+ document.body.classList.toggle('both-picks-confirmed',bothSaved);
  $('pickWindowBanner').dataset.state=state;
  const type=activePredictionType==='offense'?'OFFENSE':'DEFENSE';
  const labels={open:'MAKE YOUR PICKS · '+remaining+'s',closed:'NEXT DRIVE · PICKS AVAILABLE',locked:'PICKS SAVED',waiting:'WAITING FOR NEXT DRIVE'};
@@ -1108,7 +1128,11 @@ function renderAutomaticStatus(){
  const remaining=predictionDeadline?Math.max(0,Math.ceil((predictionDeadline-Date.now())/1000)):0;
  if(!currentDriveId){displayPickWindow(automaticReady?'Wait for the next possession. Picks will open for everyone together.':'Waiting for verified possession data. Picks will open when the next possession is confirmed.','waiting');return}
  if(driveScored){displayPickWindow('Possession '+driveNumber+' complete and scored. Wait for the next possession.','closed');return}
- if(lockedTypes.offense&&lockedTypes.defense){displayPickWindow('Both of your picks are locked for possession '+driveNumber+'. Waiting for the confirmed result.','locked',feedClosed||automaticPending?0:remaining);$('pickWindowLabel').textContent='POSSESSION '+driveNumber+' · YOUR PICKS LOCKED ✓'+(remaining&&!feedClosed&&!automaticPending?'':' · WINDOW CLOSED');$('pickWindowHint').textContent='Your offense and defense picks are shown below.';return}
+ if(lockedTypes.offense&&lockedTypes.defense){
+  displayPickWindow('Waiting for the verified result of possession '+driveNumber+'.','locked',0);
+  renderMyCurrentPicks();
+  return;
+ }
  if(lockedTypes[activePredictionType]){
   const type=activePredictionType==='offense'?'Offense':'Defense';
   const otherType=activePredictionType==='offense'?'defense':'offense';
