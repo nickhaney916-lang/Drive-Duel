@@ -708,6 +708,7 @@ async function refreshGame(){
    automaticReady=payload.scoringSafe===true;automaticPending=!!e.automatic?.pending;
    $('trackerStatus').textContent=automaticReady?(e.state==='in'?'LIVE · VERIFIED':'UPDATED · VERIFIED'):'SCORES ONLY · DRIVE VERIFICATION PENDING';
    $('feedStatus').dataset.verified=automaticReady?'true':'false';await syncSharedDrive();
+   if(selectedGame?.id!==refreshingGame)return;
    setVerifiedPossessionIdentity(e,payload.scoringSafe===true);
    renderMyCurrentPicks();
    $('feedStatus').textContent=(e.provider||'Football feed')+' · Updated '+new Date(e.fetchedAt).toLocaleString([], {month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'})+(automaticReady?' · verified drives':' · automatic picks and scoring paused');
