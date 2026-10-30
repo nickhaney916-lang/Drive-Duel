@@ -21,7 +21,7 @@ test('universal quick play has accessible controls',()=>{
   assert.ok(html.includes('id="'+id+'"'),'Missing '+id);
  }
  assert.match(html,/aria-modal="true"/);
- assert.match(html,/class="primaryPickGrid"/);
+ assert.match(html,/class="primaryPickGrid allPickGrid"/);
  assert.match(script,/const primaryPickOptions=\{/);
  assert.match(script,/offense:\['Touchdown','Field Goal','Punt','Turnover'\]/);
 });
