@@ -185,8 +185,52 @@ test('easy play: friend invitation, practice, two devices and no surprise CPU',a
   expect(teamLabels.unknown).toBeNull();
   expect(teamLabels.conflict).toBeNull();
   expect(teamLabels.changed).toEqual({offense:'Home',defense:'Away'});
-  expect(teamLabels.fallback.offense).toContain('team TBD');
-  expect(teamLabels.fallback.defense).toContain('team TBD');
+  // With a scores-only fallback, the most recent verified teams stay visible
+  // as historical context (not a claim about the NEXT possession).
+  expect(teamLabels.fallback).toEqual({offense:'Home',defense:'Away'});
+  // Reproduce the user's Panthers/Packers screenshot: current possession
+  // verified as Green Bay, yet the UI is queueing a NEXT drive pick.
+  const queuedTeams=await guest.evaluate(()=>{
+   const competitors=selectedGame.competitions[0].competitors;
+   const originals=competitors.map(c=>({...c.team}));
+   const first=competitors.find(c=>c.homeAway==='away')||competitors[0];
+   const second=competitors.find(c=>c.homeAway==='home')||competitors[1];
+   Object.assign(first.team,{displayName:'Carolina Panthers',name:'Panthers',
+    abbreviation:'CAR',color:'0085CA',logo:''});
+   Object.assign(second.team,{displayName:'Green Bay Packers',name:'Packers',
+    abbreviation:'GB',color:'203731',logo:''});
+   const originalLeague=selectedGame.league;
+   selectedGame.league='nfl';
+   currentDriveId='green-bay-drive-9';driveNumber=9;driveScored=false;
+   automaticReady=true;automaticPending=true;feedClosed=true;
+   lastVerifiedTeamIdentity=null;driveTeamIdentity.clear();
+   setVerifiedPossessionIdentity({possession:'Green Bay Packers'},true);
+   renderDualPickPanels();
+   const snapshot={
+    next:pickingNext(),
+    offense:document.getElementById('dualOffenseTeamName').textContent,
+    defense:document.getElementById('dualDefenseTeamName').textContent,
+    offenseContext:document.getElementById('dualOffenseTeamContext').textContent,
+    defenseContext:document.getElementById('dualDefenseTeamContext').textContent,
+    offenseLogo:document.getElementById('dualOffenseLogo').getAttribute('src'),
+    defenseLogo:document.getElementById('dualDefenseLogo').getAttribute('src'),
+    offenseColor:document.getElementById('dualOffenseTeam').style.getPropertyValue('--team-accent')
+   };
+   // Capture the state before restoring fixture data.
+   for(const [index,c] of competitors.entries())c.team=originals[index];
+   selectedGame.league=originalLeague;
+   currentDriveId=null;driveTeamIdentity.clear();possessionIdentity=null;lastVerifiedTeamIdentity=null;
+   renderDualPickPanels();
+   return snapshot;
+  });
+  expect(queuedTeams).toEqual({
+   next:true,offense:'Packers',defense:'Panthers',
+   offenseContext:'CURRENT BALL · next pick team not set yet',
+   defenseContext:'CURRENT BALL · next pick team not set yet',
+   offenseLogo:'https://a.espncdn.com/i/teamlogos/nfl/500/gb.png',
+   defenseLogo:'https://a.espncdn.com/i/teamlogos/nfl/500/car.png',
+   offenseColor:'#203731'
+  });
   // Once a trusted play has been seen, losing play-by-play must not erase or invent that play.
   providerMode='verified';
   await guest.locator('#refresh').click();
